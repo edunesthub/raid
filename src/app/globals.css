@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+:root {
+  /* RAID Esports Brand Colors - Black & Orange Theme */
+  --raid-black-primary: #000000;
+  --raid-black-secondary: #1a1a1a;
+  --raid-orange-primary: #ff8c00;
+  --raid-orange-secondary: #ff7700;
+  --raid-dark: #0a0a0a;
+  --raid-gray-dark: #1a1a1a;
+  --raid-gray-medium: #262626;
+  --raid-gray-light: #404040;
+  --raid-white: #ffffff;
+  --raid-text-light: #f5f5f5;
+
+  --background: var(--raid-dark);
+  --foreground: var(--raid-text-light);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Custom RAID Colors - Black & Orange Theme */
+  --color-raid-black: var(--raid-black-primary);
+  --color-raid-black-dark: var(--raid-black-secondary);
+  --color-raid-orange: var(--raid-orange-primary);
+  --color-raid-orange-dark: var(--raid-orange-secondary);
+  --color-raid-dark: var(--raid-dark);
+  --color-raid-gray: var(--raid-gray-dark);
+  --color-raid-gray-medium: var(--raid-gray-medium);
+  --color-raid-gray-light: var(--raid-gray-light);
+}
+
+/* Base styles */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Esports UI Components - Black & Orange Theme */
+.gradient-raid {
+  background: linear-gradient(135deg, var(--raid-black-primary), var(--raid-orange-primary));
+}
+
+.gradient-raid-dark {
+  background: linear-gradient(135deg, var(--raid-black-secondary), var(--raid-orange-secondary));
+}
+
+.btn-raid {
+  @apply bg-gradient-to-r from-black to-orange-500 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:from-gray-900 hover:to-orange-600 transform hover:scale-105 transition-all duration-200;
+}
+
+.btn-raid-outline {
+  @apply border-2 border-orange-500 text-orange-500 font-semibold py-2 px-4 rounded-lg hover:bg-orange-500 hover:text-white transition-all duration-200;
+}
+
+.card-raid {
+  @apply bg-gray-900 border border-gray-800 rounded-lg shadow-lg hover:border-orange-500 transition-all duration-300;
+}
+
+.text-raid-gradient {
+  background: linear-gradient(135deg, var(--raid-black-primary), var(--raid-orange-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Mobile-first responsive design */
+.container-mobile {
+  @apply max-w-sm mx-auto px-4;
+}
+
+@media (min-width: 640px) {
+  .container-mobile {
+    @apply max-w-lg;
+  }
+}
+
+@media (min-width: 768px) {
+  .container-mobile {
+    @apply max-w-2xl;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-mobile {
+    @apply max-w-4xl;
+  }
+}
+
+/* Tournament card animations */
+.tournament-card {
+  @apply transform transition-all duration-300 hover:scale-105 hover:shadow-2xl;
+}
+
+/* Glow effects for competitive feel */
+.glow-black {
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.glow-orange {
+  box-shadow: 0 0 20px rgba(255, 140, 0, 0.4);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--raid-gray-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--raid-orange-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--raid-orange-secondary);
+}
