@@ -2,7 +2,14 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { validateCredentials, generateFakeTokens } from "@/data/fakeUsers";
+import { 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile
+} from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 export const AuthContext = createContext(undefined);
 
@@ -11,117 +18,65 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Load auth state on first render
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const accessToken = localStorage.getItem("accessToken");
-        const userData = localStorage.getItem("userData");
-
-        if (!accessToken || !userData) {
-          setIsLoading(false);
-          return;
-        }
-
-        const user = JSON.parse(userData);
-        setUser(user);
-      } catch (err) {
-        console.error("Auth check failed:", err);
-        // Clear invalid data
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("userData");
-      } finally {
-        setIsLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          id: firebaseUser.uid,
+          email: firebaseUser.email,
+          username: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+          avatarUrl: firebaseUser.photoURL,
+          firstName: firebaseUser.displayName?.split(' ')[0] || '',
+          lastName: firebaseUser.displayName?.split(' ')[1] || '',
+        });
+      } else {
+        setUser(null);
       }
-    };
+      setIsLoading(false);
+    });
 
-    initAuth();
+    return () => unsubscribe();
   }, []);
 
   const login = async (email, password) => {
     setIsLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const fakeUser = validateCredentials(email, password);
-
-      if (!fakeUser) {
-        throw new Error("Invalid email or password");
-      }
-
-      const { accessToken, refreshToken } = generateFakeTokens(fakeUser);
-
-      const userData = {
-        id: fakeUser.id,
-        email: fakeUser.email,
-        username: fakeUser.username,
-        avatarUrl: fakeUser.avatarUrl,
-        firstName: fakeUser.firstName,
-        lastName: fakeUser.lastName,
-        role: fakeUser.role,
-      };
-
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
-      localStorage.setItem("userData", JSON.stringify(userData));
-
-      setUser(userData);
+      await signInWithEmailAndPassword(auth, email, password);
       router.push("/");
     } catch (error) {
-      throw error;
+      throw new Error(error.message || "Invalid email or password");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const refreshSession = async () => {
-    const refreshToken = localStorage.getItem("refreshToken");
-    const userData = localStorage.getItem("userData");
-
-    if (!refreshToken || !userData) {
-      logout();
-      return;
-    }
-
+  const signup = async (email, password, firstName, lastName) => {
+    setIsLoading(true);
     try {
-      const user = JSON.parse(userData);
-      const { accessToken } = generateFakeTokens({
-        id: user.id,
-        email: user.email,
-        password: "",
-        username: user.username || "",
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        role: user.role || "user",
-        createdAt: new Date().toISOString(),
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, {
+        displayName: `${firstName} ${lastName}`
       });
-
-      localStorage.setItem("accessToken", accessToken);
-    } catch (err) {
-      console.error(err);
-      logout();
+      router.push("/");
+    } catch (error) {
+      throw new Error(error.message || "Signup failed");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = async () => {
     try {
-      // In a real app, call logout API here
+      await signOut(auth);
+      router.push("/auth/login");
     } catch (err) {
       console.error("Logout error:", err);
-    } finally {
-      setUser(null);
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("userData");
-      router.push("/auth/login");
     }
   };
 
   const requestPasswordReset = async (email) => {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      // Simulate successful request (replace with API call in a real app)
     } catch (error) {
       throw new Error("Failed to send reset email");
     }
@@ -131,10 +86,10 @@ export function AuthProvider({ children }) {
     user,
     isAuthenticated: !!user,
     login,
+    signup,
     requestPasswordReset,
     logout,
     isLoading,
-    // Remove setUser unless explicitly needed by consumers
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
