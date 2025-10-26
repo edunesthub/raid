@@ -14,11 +14,10 @@ export default function BottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-black/50 backdrop-blur-xl rounded-2xl border border-white/20 shadow-lg z-50 flex justify-around py-3">
+    <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-black/50 backdrop-blur-xl rounded-2xl border border-white/20 shadow-lg z-50 flex justify-around py-3 md:hidden">
       {tabs.map((tab) => {
         const isActive = pathname === tab.href;
         const Icon = tab.icon;
-
         return (
           <Link
             key={tab.name}
