@@ -3,9 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useAuth } from "../../contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../contexts/AuthContext.jsx"; // Adjusted path
 
+// ✅ Use static path for public assets
 const raid1Logo = "/assets/raid1.svg";
+
+import { signIn } from 'next-auth/react';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -13,8 +17,10 @@ export default function LoginPage() {
     password: "",
   });
   const [error, setError] = useState("");
-  const { login, loginWithGoogle, isLoading } = useAuth();
+  const router = useRouter();
+  const { login, isLoading } = useAuth();
 
+  // Handle input
   const handleInputChange = (field, value) => {
     setFormData({
       ...formData,
@@ -23,10 +29,12 @@ export default function LoginPage() {
     if (error) setError("");
   };
 
+  // Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
+    // Basic validation
     if (!formData.email || !formData.password) {
       setError("Please fill in all fields");
       return;
@@ -39,28 +47,11 @@ export default function LoginPage() {
 
     try {
       await login(formData.email, formData.password);
+      // Login success - user will be redirected automatically
     } catch (err) {
-      if (err.code === "auth/user-not-found") {
-        setError("No account found with this email");
-      } else if (err.code === "auth/wrong-password") {
-        setError("Incorrect password");
-      } else if (err.code === "auth/invalid-credential") {
-        setError("Invalid email or password");
-      } else {
-        setError(err.message || "Login failed. Please try again.");
-      }
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      await loginWithGoogle();
-    } catch (err) {
-      if (err.code === "auth/popup-closed-by-user") {
-        setError("Sign-in popup was closed");
-      } else {
-        setError(err.message || "Google sign-in failed");
-      }
+      setError(
+        err instanceof Error ? err.message : "Login failed. Please try again."
+      );
     }
   };
 
@@ -84,6 +75,7 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <div className="card-raid p-8 bg-gray-800/50 rounded-lg border border-gray-700">
+          
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Error Message */}
             {error && (
@@ -94,9 +86,7 @@ export default function LoginPage() {
 
             {/* Email Field */}
             <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">
-                Email Address
-              </label>
+              <label className="block text-gray-300 text-sm font-medium mb-2">Email Address</label>
               <input
                 type="email"
                 value={formData.email}
@@ -109,9 +99,7 @@ export default function LoginPage() {
 
             {/* Password Field */}
             <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">
-                Password
-              </label>
+              <label className="block text-gray-300 text-sm font-medium mb-2">Password</label>
               <input
                 type="password"
                 value={formData.password}
@@ -127,18 +115,15 @@ export default function LoginPage() {
               <Link
                 href="/auth/reset"
                 className="text-orange-500 hover:text-orange-400 text-sm transition-colors"
-              >
-                Forgot your password?
-              </Link>
+              >Forgot your password?</Link>
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition-colors ${
-                isLoading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition-colors ${isLoading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
@@ -150,32 +135,20 @@ export default function LoginPage() {
               )}
             </button>
 
-            {/* Google Sign In */}
-            <button
-              onClick={handleGoogleLogin}
-              type="button"
-              disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors mt-4 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <img
-                src="/icons8-google-logo.svg"
-                alt="Google Logo"
-                className="w-6 h-6 mr-2"
-              />
+            <button onClick={() => signIn('google')} type='button' className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors mt-4 flex items-center justify-center">
+              <img src="/icons8-google-logo.svg" alt="Google Logo" className="w-6 h-6 mr-2" />
               Sign in with Google
             </button>
           </form>
 
+
           {/* Sign Up Link */}
           <div className="text-center mt-6">
-            <p className="text-gray-400">
-              Don&apos;t have an account?{" "}
+            <p className="text-gray-400">Don&apos;t have an account?{" "}
               <Link
                 href="/auth/signup"
                 className="text-orange-500 hover:text-orange-400 font-semibold transition-colors"
-              >
-                Sign up here
-              </Link>
+              >Sign up here</Link>
             </p>
           </div>
 
@@ -184,9 +157,7 @@ export default function LoginPage() {
             <Link
               href="/"
               className="text-gray-500 hover:text-gray-400 text-sm transition-colors"
-            >
-              ← Back to tournaments
-            </Link>
+            >← Back to tournaments</Link>
           </div>
         </div>
       </div>
