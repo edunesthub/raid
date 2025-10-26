@@ -9,7 +9,8 @@ import {
   onAuthStateChanged,
   updateProfile
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 export const AuthContext = createContext(undefined);
 
@@ -19,15 +20,20 @@ export function AuthProvider({ children }) {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        // Get additional user data from Firestore
+        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+        const userData = userDoc.data();
+        
         setUser({
           id: firebaseUser.uid,
           email: firebaseUser.email,
-          username: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-          avatarUrl: firebaseUser.photoURL,
-          firstName: firebaseUser.displayName?.split(' ')[0] || '',
-          lastName: firebaseUser.displayName?.split(' ')[1] || '',
+          username: userData?.username || firebaseUser.email.split('@')[0],
+          contact: userData?.contact || '',
+          avatarUrl: firebaseUser.photoURL || userData?.avatarUrl,
+          firstName: userData?.firstName || firebaseUser.displayName?.split(' ')[0] || '',
+          lastName: userData?.lastName || firebaseUser.displayName?.split(' ')[1] || '',
         });
       } else {
         setUser(null);
@@ -57,7 +63,7 @@ export function AuthProvider({ children }) {
       await updateProfile(userCredential.user, {
         displayName: `${firstName} ${lastName}`
       });
-      router.push("/");
+      router.push("/auth/onboarding");
     } catch (error) {
       throw new Error(error.message || "Signup failed");
     } finally {
