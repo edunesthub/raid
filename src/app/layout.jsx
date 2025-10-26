@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/next";
 import AppProviders from "./AppProviders";
 import PWAInstallPrompt from "../components/PWAInstallPrompt";
 import OfflineLoader from "../components/OfflineLoader";
+import BottomNav from "../components/BottomNav";
 
 // Google Fonts
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -89,6 +90,8 @@ export default function RootLayout({ children }) {
           <div className="fixed inset-0 -z-10 opacity-5 bg-esports-pattern" />
 
           <Footer />
+
+          <BottomNav />
 
           <PWAInstallPrompt />
 

@@ -21,7 +21,6 @@ export default function Navigation() {
   const authenticatedNavItems = [
     { href: "/", label: "Tournaments", icon: "" },
     { href: "/leagues", label: "Leagues", icon: "" },
-    { href: "/clans", label: "Clans", icon: "" },
     { href: "/deposit", label: "Deposit", icon: "" },
     { href: "/about", label: "About", icon: "" },
     { href: "/contact", label: "Contact", icon: "" },
