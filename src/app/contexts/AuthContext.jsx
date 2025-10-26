@@ -2,7 +2,17 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { validateCredentials, generateFakeTokens } from "@/data/fakeUsers";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  updateProfile
+} from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { auth, googleProvider, db } from "@/lib/firebase";
 
 export const AuthContext = createContext(undefined);
 
@@ -11,130 +21,142 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Load auth state on first render
+  // Listen for auth state changes
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const accessToken = localStorage.getItem("accessToken");
-        const userData = localStorage.getItem("userData");
-
-        if (!accessToken || !userData) {
-          setIsLoading(false);
-          return;
-        }
-
-        const user = JSON.parse(userData);
-        setUser(user);
-      } catch (err) {
-        console.error("Auth check failed:", err);
-        // Clear invalid data
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("userData");
-      } finally {
-        setIsLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Fetch additional user data from Firestore
+        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+        const userData = userDoc.exists() ? userDoc.data() : {};
+        
+        setUser({
+          id: firebaseUser.uid,
+          email: firebaseUser.email,
+          username: userData.username || firebaseUser.displayName || "",
+          avatarUrl: firebaseUser.photoURL || userData.avatarUrl || "",
+          firstName: userData.firstName || "",
+          lastName: userData.lastName || "",
+          phone: userData.phone || "",
+          role: userData.role || "user",
+        });
+      } else {
+        setUser(null);
       }
-    };
+      setIsLoading(false);
+    });
 
-    initAuth();
+    return () => unsubscribe();
   }, []);
 
-  const login = async (email, password) => {
+  // Sign up with email and password
+  const signup = async (email, password, userData) => {
     setIsLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
 
-      const fakeUser = validateCredentials(email, password);
+      // Update profile with display name
+      await updateProfile(firebaseUser, {
+        displayName: userData.username || `${userData.firstName} ${userData.lastName}`,
+      });
 
-      if (!fakeUser) {
-        throw new Error("Invalid email or password");
-      }
+      // Store additional user data in Firestore
+      await setDoc(doc(db, "users", firebaseUser.uid), {
+        username: userData.username,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: email,
+        phone: userData.phone || "",
+        role: "user",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
 
-      const { accessToken, refreshToken } = generateFakeTokens(fakeUser);
-
-      const userData = {
-        id: fakeUser.id,
-        email: fakeUser.email,
-        username: fakeUser.username,
-        avatarUrl: fakeUser.avatarUrl,
-        firstName: fakeUser.firstName,
-        lastName: fakeUser.lastName,
-        role: fakeUser.role,
-      };
-
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
-      localStorage.setItem("userData", JSON.stringify(userData));
-
-      setUser(userData);
       router.push("/");
     } catch (error) {
+      console.error("Signup error:", error);
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const refreshSession = async () => {
-    const refreshToken = localStorage.getItem("refreshToken");
-    const userData = localStorage.getItem("userData");
-
-    if (!refreshToken || !userData) {
-      logout();
-      return;
-    }
-
+  // Login with email and password
+  const login = async (email, password) => {
+    setIsLoading(true);
     try {
-      const user = JSON.parse(userData);
-      const { accessToken } = generateFakeTokens({
-        id: user.id,
-        email: user.email,
-        password: "",
-        username: user.username || "",
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        role: user.role || "user",
-        createdAt: new Date().toISOString(),
-      });
-
-      localStorage.setItem("accessToken", accessToken);
-    } catch (err) {
-      console.error(err);
-      logout();
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push("/");
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // Login with Google
+  const loginWithGoogle = async () => {
+    setIsLoading(true);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = result.user;
+
+      // Check if user document exists, if not create it
+      const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+      if (!userDoc.exists()) {
+        await setDoc(doc(db, "users", firebaseUser.uid), {
+          username: firebaseUser.displayName || "",
+          firstName: firebaseUser.displayName?.split(" ")[0] || "",
+          lastName: firebaseUser.displayName?.split(" ")[1] || "",
+          email: firebaseUser.email,
+          phone: "",
+          role: "user",
+          avatarUrl: firebaseUser.photoURL || "",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      }
+
+      router.push("/");
+    } catch (error) {
+      console.error("Google login error:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Logout
   const logout = async () => {
     try {
-      // In a real app, call logout API here
-    } catch (err) {
-      console.error("Logout error:", err);
-    } finally {
-      setUser(null);
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("userData");
+      await signOut(auth);
       router.push("/auth/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      throw error;
     }
   };
 
+  // Request password reset
   const requestPasswordReset = async (email) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // Simulate successful request (replace with API call in a real app)
+      await sendPasswordResetEmail(auth, email);
     } catch (error) {
-      throw new Error("Failed to send reset email");
+      console.error("Password reset error:", error);
+      throw error;
     }
   };
 
   const value = {
     user,
     isAuthenticated: !!user,
+    signup,
     login,
-    requestPasswordReset,
+    loginWithGoogle,
     logout,
+    requestPasswordReset,
     isLoading,
-    // Remove setUser unless explicitly needed by consumers
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
