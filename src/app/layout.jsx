@@ -15,56 +15,58 @@ import SplashScreen from "../components/SplashScreen";
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
-// ✅ Root Layout
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* Favicon */}
-        <link rel="icon" href="/assets/raid1.svg" type="image/svg+xml" />
-
-        {/* PWA Manifest */}
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#4f46e5" />
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, maximum-scale=1"
-        />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        {/* ✅ PWA & Meta Configuration */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="theme-color" content="#000000" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-          name="apple-mobile-web-app-status-bar-style"
-          content="black-translucent"
-        />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="RAID ARENA" />
+
+        {/* ✅ Manifest */}
+        <link rel="manifest" href="/manifest.json" />
+
+        {/* ✅ App Icons */}
+        <link rel="icon" href="/assets/raid1.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/icon-512.png" />
+        <link rel="icon" sizes="192x192" href="/icon-192.png" />
+        <link rel="icon" sizes="512x512" href="/icon-512.png" />
+
+        <title>Raid Esports Platform</title>
       </head>
+
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-gray-100 min-h-screen`}
       >
         <AppProviders>
+          {/* Splash Screen always first */}
           <SplashScreen />
+
+          {/* Global Navigation */}
           <Navigation />
 
-          {/* Main Content */}
+          {/* Main content */}
           <main className="min-h-screen pt-16 pb-28 md:pb-4">{children}</main>
 
-          {/* Background pattern */}
+          {/* Subtle esports pattern background */}
           <div className="fixed inset-0 -z-10 opacity-5 bg-esports-pattern" />
 
+          {/* Footer */}
           <Footer />
 
-          {/* Mobile-only Bottom Navbar */}
+          {/* Mobile Bottom Navbar */}
           <div className="md:hidden">
             <BottomNav />
           </div>
 
-          {/* PWA Install Prompt */}
+          {/* PWA Components */}
           <PWAInstallPrompt />
-
-          {/* Offline Loader */}
           <OfflineLoader />
         </AppProviders>
 
-        {/* Analytics */}
         <Analytics />
       </body>
     </html>
