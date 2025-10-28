@@ -18,25 +18,26 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head>
-        {/* ✅ PWA & Meta Configuration */}
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-        <meta name="theme-color" content="#000000" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="RAID ARENA" />
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="RAID ARENA" />
+  <meta name="mobile-web-app-capable" content="yes" />
 
-        {/* ✅ Manifest */}
-        <link rel="manifest" href="/manifest.json" />
+  {/* Manifest */}
+  <link rel="manifest" href="/manifest.json" />
 
-        {/* ✅ App Icons */}
-        <link rel="icon" href="/assets/raid1.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/icon-512.png" />
-        <link rel="icon" sizes="192x192" href="/icon-192.png" />
-        <link rel="icon" sizes="512x512" href="/icon-512.png" />
+  {/* Icons */}
+  <link rel="icon" href="/assets/raid1.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icon-512.png" />
+  <link rel="icon" sizes="192x192" href="/icon-192.png" />
+  <link rel="icon" sizes="512x512" href="/icon-512.png" />
 
-        <title>Raid Esports Platform</title>
-      </head>
+  <title>Raid Esports Platform</title>
+</head>
+
 
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-gray-100 min-h-screen`}

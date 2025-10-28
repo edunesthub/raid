@@ -145,3 +145,10 @@ body {
   border-radius: 9999px;
   transition: all 0.3s ease;
 }
+html,
+body {
+  background: linear-gradient(to bottom right, #000000, #0a0a0a, #1a1a1a);
+  color-scheme: dark;
+  overscroll-behavior: none;
+  height: 100%;
+}
