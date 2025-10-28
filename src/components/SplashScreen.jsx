@@ -1,34 +1,33 @@
 "use client";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { auth } from "../lib/firebase";
 
 export default function SplashScreen() {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isChecking, setIsChecking] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
-useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-    setTimeout(() => {
-      if (user) {
-        router.replace("/"); // ✅ Authenticated → Home
-      } else {
-        router.replace("/welcome"); // ✅ Not authenticated → Welcome
-      }
-      setIsVisible(false);
-    }, 2500);
-  });
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setTimeout(() => {
+        if (user) {
+          router.replace("/");
+        } else {
+          router.replace("/welcome");
+        }
+        setTimeout(() => setIsChecking(false), 100);
+      }, 2000);
+    });
 
-  return () => unsubscribe();
-}, [router]);
+    return () => unsubscribe();
+  }, [router]);
 
-
-
-  if (!isVisible) return null;
+  if (!isChecking) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-orange-900 animate-fade-in">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-orange-900">
       <div className="flex flex-col items-center justify-center space-y-6">
         {/* App Icon */}
         <div className="relative w-40 h-40 animate-bounce-slow">
@@ -58,15 +57,6 @@ useEffect(() => {
       </div>
 
       <style jsx>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
         @keyframes fade-in-up {
           from {
             opacity: 0;
@@ -85,10 +75,6 @@ useEffect(() => {
           50% {
             transform: translateY(-20px);
           }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.5s ease-in;
         }
 
         .animate-fade-in-up {
