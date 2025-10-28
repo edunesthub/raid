@@ -39,8 +39,14 @@ export default function RootLayout({ children }) {
 
 
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-gray-100 min-h-screen`}
-      >
+  className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-gray-100`}
+  style={{ 
+    minHeight: '100vh',
+    minHeight: '100dvh',
+    paddingTop: 'env(safe-area-inset-top, 0)',
+    paddingBottom: 'env(safe-area-inset-bottom, 0)'
+  }}
+>
         <AppProviders>
           {/* Splash Screen always first */}
           <SplashScreen />

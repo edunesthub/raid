@@ -4,7 +4,7 @@
   "description": "Sleek gaming tournaments and leagues platform",
   "start_url": "/",
   "scope": "/",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#000000",
