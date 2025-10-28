@@ -3,17 +3,19 @@
   "short_name": "Raid",
   "description": "Sleek gaming tournaments and leagues platform",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#1e1e2f",
   "theme_color": "#4f46e5",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "/public/icon-192.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/public/icon-512.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
