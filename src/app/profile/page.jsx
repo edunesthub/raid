@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { signOut } from "firebase/auth";
+import { auth } from "../../lib/firebase";
+import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/utils/formatters.js";
 
 const fakeMatches = [
@@ -39,10 +42,20 @@ const fakeMatches = [
 export default function ProfilePage() {
   const { user, isAuthenticated } = useAuth();
   const [matches, setMatches] = useState([]);
+  const router = useRouter();
 
   useEffect(() => {
     setMatches(fakeMatches);
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.replace("/login"); // Redirect to login after logout
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   if (!isAuthenticated) {
     return (
@@ -114,7 +127,9 @@ export default function ProfilePage() {
               <p className="text-gray-400 text-sm">{new Date(m.date).toDateString()}</p>
               <p className="text-orange-400">{m.game}</p>
               <p className="text-green-400">{m.placement}</p>
-              <p className="text-gray-300">{m.earnings > 0 && `Earnings: ${formatCurrency(m.earnings)}`}</p>
+              <p className="text-gray-300">
+                {m.earnings > 0 && `Earnings: ${formatCurrency(m.earnings)}`}
+              </p>
             </div>
           ))
         ) : (
@@ -124,7 +139,6 @@ export default function ProfilePage() {
         {/* Settings & Actions */}
         <div className="mb-6">
           <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-            <span className="mr-2"></span>
             Settings & Actions
           </h2>
           <div className="card-raid p-4 space-y-2">
@@ -158,6 +172,14 @@ export default function ProfilePage() {
               </div>
               <span>→</span>
             </Link>
+
+            {/* ✅ Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="w-full mt-4 py-2 bg-orange-600 hover:bg-orange-700 rounded-lg text-white font-semibold transition-all duration-200"
+            >
+              Log Out
+            </button>
           </div>
         </div>
       </div>

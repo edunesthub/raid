@@ -1,16 +1,29 @@
-import { useEffect, useState } from 'react';
+"use client";
+import { useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { auth } from "../lib/firebase";
 
 export default function SplashScreen() {
   const [isVisible, setIsVisible] = useState(true);
+  const router = useRouter();
 
-  useEffect(() => {
-    // Hide splash screen after 2.5 seconds
-    const timer = setTimeout(() => {
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    setTimeout(() => {
+      if (user) {
+        router.replace("/"); // ✅ Authenticated → Home
+      } else {
+        router.replace("/welcome"); // ✅ Not authenticated → Welcome
+      }
       setIsVisible(false);
     }, 2500);
+  });
 
-    return () => clearTimeout(timer);
-  }, []);
+  return () => unsubscribe();
+}, [router]);
+
+
 
   if (!isVisible) return null;
 
