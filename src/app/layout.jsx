@@ -9,6 +9,7 @@ import AppProviders from "./AppProviders";
 import PWAInstallPrompt from "../components/PWAInstallPrompt";
 import OfflineLoader from "../components/OfflineLoader";
 import BottomNav from "../components/BottomNav";
+import SplashScreen from "../components/SplashScreen";
 
 // Google Fonts
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -40,6 +41,7 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-gray-100 min-h-screen`}
       >
         <AppProviders>
+          <SplashScreen />
           <Navigation />
 
           {/* Main Content */}
