@@ -32,16 +32,6 @@ export default function Home() {
       <div className="container-mobile py-6">
         {/* Hero Section */}
         <div className="text-center mb-8">
-          <div className="mb-4 flex justify-center">
-            <Image
-              src="/assets/raid1.svg"
-              alt="RAID Logo"
-              width={120}
-              height={120}
-              className="w-30 h-30"
-            />
-          </div>
-
           <div className="bg-gradient-to-r from-black/10 to-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-6">
             <p className="text-sm text-gray-300">
               Compete in skill-based tournaments with gamers around Ghana.

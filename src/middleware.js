@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-export const runtime = "experimental-edge";
 
 export function middleware(request) {
   const { pathname } = request.nextUrl;
