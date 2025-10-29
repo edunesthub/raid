@@ -53,7 +53,8 @@ export default function OnboardingPage() {
         createdAt: new Date(),
       });
 
-      router.push("/");
+      // Use replace instead of push to prevent back navigation to onboarding
+      router.replace("/");
     } catch (err) {
       console.error("Error saving user data:", err);
       setError("Failed to save your information. Please try again.");

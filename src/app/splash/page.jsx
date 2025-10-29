@@ -1,21 +1,42 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
 
 export default function SplashPage() {
   const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
+    let timeout;
+    
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      const timeout = setTimeout(() => {
-        router.replace(user ? "/" : "/welcome");
-      }, 2000);
-      return () => clearTimeout(timeout);
+      // Clear any existing timeout
+      if (timeout) clearTimeout(timeout);
+      
+      // Set a minimum display time for splash screen
+      timeout = setTimeout(() => {
+        setIsChecking(false);
+        if (user) {
+          router.replace("/");
+        } else {
+          router.replace("/welcome");
+        }
+      }, 1500); // Reduced from 2000ms to 1500ms for faster transition
     });
 
-    return () => unsubscribe();
+    // Failsafe: if auth check takes too long, redirect to welcome
+    const failsafe = setTimeout(() => {
+      setIsChecking(false);
+      router.replace("/welcome");
+    }, 5000);
+
+    return () => {
+      unsubscribe();
+      if (timeout) clearTimeout(timeout);
+      clearTimeout(failsafe);
+    };
   }, [router]);
 
   return (
