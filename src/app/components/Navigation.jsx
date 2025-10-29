@@ -187,12 +187,7 @@ export default function Navigation() {
             <div className="flex items-center gap-2">
               {isAuthenticated && (
                 <div className="flex items-center gap-2">
-                  <Link
-                    href="/deposit"
-                    className="px-3 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold"
-                  >
-                    Deposit
-                  </Link>
+
                   <Link
                     href="/notifications"
                     className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white relative"

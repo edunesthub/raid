@@ -5,21 +5,23 @@ import { getTournamentById } from '@/data/tournaments';
 import { notFound } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner.jsx';
+import React from 'react';
 
 export default function TournamentPage({ params }) {
+  const resolvedParams = React.use(params); // ✅ unwrap the params Promise
   const [tournament, setTournament] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!params?.id) {
+    if (!resolvedParams?.id) {
       setError('Invalid tournament ID');
       setLoading(false);
       return;
     }
 
     try {
-      const data = getTournamentById(params.id);
+      const data = getTournamentById(resolvedParams.id);
       if (!data) {
         notFound();
       }
@@ -30,7 +32,7 @@ export default function TournamentPage({ params }) {
     } finally {
       setLoading(false);
     }
-  }, [params?.id]);
+  }, [resolvedParams?.id]);
 
   if (loading) {
     return (

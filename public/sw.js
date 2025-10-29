@@ -1,1 +1,105 @@
-if(!self.define){let e,s={};const a=(a,i)=>(a=new URL(a+".js",i).href,s[a]||new Promise(s=>{if("document"in self){const e=document.createElement("script");e.src=a,e.onload=s,document.head.appendChild(e)}else e=a,importScripts(a),s()}).then(()=>{let e=s[a];if(!e)throw new Error(`Module ${a} didn’t register its module`);return e}));self.define=(i,c)=>{const n=e||("document"in self?document.currentScript.src:"")||location.href;if(s[n])return;let t={};const r=e=>a(e,n),f={module:{uri:n},exports:t,require:r};s[n]=Promise.all(i.map(e=>f[e]||r(e))).then(e=>(c(...e),t))}}define(["./workbox-4754cb34"],function(e){"use strict";importScripts(),self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"/_next/app-build-manifest.json",revision:"e3bb2384c8724b6d4058305c47461f5e"},{url:"/_next/static/chunks/139.7a5a8e93a21948c1.js",revision:"7a5a8e93a21948c1"},{url:"/_next/static/chunks/261b60bd-86170d62ec3dca1b.js",revision:"86170d62ec3dca1b"},{url:"/_next/static/chunks/356-e5489542cb0f1b9a.js",revision:"e5489542cb0f1b9a"},{url:"/_next/static/chunks/493-44fd1aacfe833f7d.js",revision:"44fd1aacfe833f7d"},{url:"/_next/static/chunks/4bd1b696-c023c6e3521b1417.js",revision:"c023c6e3521b1417"},{url:"/_next/static/chunks/619-9168df9c2a29b74b.js",revision:"9168df9c2a29b74b"},{url:"/_next/static/chunks/646.f342b7cffc01feb0.js",revision:"f342b7cffc01feb0"},{url:"/_next/static/chunks/7508b87c-0866d47f24e031ff.js",revision:"0866d47f24e031ff"},{url:"/_next/static/chunks/8e1d74a4-d97a6609068aa90a.js",revision:"d97a6609068aa90a"},{url:"/_next/static/chunks/978-6ce6ec06c773d453.js",revision:"6ce6ec06c773d453"},{url:"/_next/static/chunks/983-9072141f095aa24b.js",revision:"9072141f095aa24b"},{url:"/_next/static/chunks/app/_not-found/page-9d900f5969532ac9.js",revision:"9d900f5969532ac9"},{url:"/_next/static/chunks/app/about/page-9e0b75a3d43ae8d6.js",revision:"9e0b75a3d43ae8d6"},{url:"/_next/static/chunks/app/auth/login/page-db1c8883b2e71d2a.js",revision:"db1c8883b2e71d2a"},{url:"/_next/static/chunks/app/auth/onboarding/page-038d1e1337d4785a.js",revision:"038d1e1337d4785a"},{url:"/_next/static/chunks/app/auth/reset/page-7b4303e52f8e172b.js",revision:"7b4303e52f8e172b"},{url:"/_next/static/chunks/app/auth/signup/page-b09200a4d25763fb.js",revision:"b09200a4d25763fb"},{url:"/_next/static/chunks/app/contact/page-09b180462336c739.js",revision:"09b180462336c739"},{url:"/_next/static/chunks/app/deposit/page-09b180462336c739.js",revision:"09b180462336c739"},{url:"/_next/static/chunks/app/layout-6889a7613d0a6439.js",revision:"6889a7613d0a6439"},{url:"/_next/static/chunks/app/leagues/page-79feff4cb6a75253.js",revision:"79feff4cb6a75253"},{url:"/_next/static/chunks/app/notifications/page-59dc286505eb1336.js",revision:"59dc286505eb1336"},{url:"/_next/static/chunks/app/page-81739c62ba13a498.js",revision:"81739c62ba13a498"},{url:"/_next/static/chunks/app/privacy-policy/page-09b180462336c739.js",revision:"09b180462336c739"},{url:"/_next/static/chunks/app/profile/change-password/page-037e2fa4072f823c.js",revision:"037e2fa4072f823c"},{url:"/_next/static/chunks/app/profile/notifications/page-7d973a20a20ed796.js",revision:"7d973a20a20ed796"},{url:"/_next/static/chunks/app/profile/page-48c74b5c752eb95d.js",revision:"48c74b5c752eb95d"},{url:"/_next/static/chunks/app/profile/privacy/page-2dec9f83de277a51.js",revision:"2dec9f83de277a51"},{url:"/_next/static/chunks/app/terms-of-service/page-59942692212fa756.js",revision:"59942692212fa756"},{url:"/_next/static/chunks/app/tournament/%5Bid%5D/page-1bab9ebc4ea6cef2.js",revision:"1bab9ebc4ea6cef2"},{url:"/_next/static/chunks/app/wallet/page-09b180462336c739.js",revision:"09b180462336c739"},{url:"/_next/static/chunks/framework-acd67e14855de5a2.js",revision:"acd67e14855de5a2"},{url:"/_next/static/chunks/main-725018c49b9301c2.js",revision:"725018c49b9301c2"},{url:"/_next/static/chunks/main-app-dfcf5cbba760d136.js",revision:"dfcf5cbba760d136"},{url:"/_next/static/chunks/pages/_app-335f4b33686a587c.js",revision:"335f4b33686a587c"},{url:"/_next/static/chunks/pages/_error-244b1c5184f30742.js",revision:"244b1c5184f30742"},{url:"/_next/static/chunks/polyfills-42372ed130431b0a.js",revision:"846118c33b2c0e922d7b3a7676f81f6f"},{url:"/_next/static/chunks/webpack-e0e8dabfb3c422ba.js",revision:"e0e8dabfb3c422ba"},{url:"/_next/static/css/3f60c6fb2e4e3aa6.css",revision:"3f60c6fb2e4e3aa6"},{url:"/_next/static/media/4cf2300e9c8272f7-s.p.woff2",revision:"18bae71b1e1b2bb25321090a3b563103"},{url:"/_next/static/media/747892c23ea88013-s.woff2",revision:"a0761690ccf4441ace5cec893b82d4ab"},{url:"/_next/static/media/8d697b304b401681-s.woff2",revision:"cc728f6c0adb04da0dfcb0fc436a8ae5"},{url:"/_next/static/media/93f479601ee12b01-s.p.woff2",revision:"da83d5f06d825c5ae65b7cca706cb312"},{url:"/_next/static/media/9610d9e46709d722-s.woff2",revision:"7b7c0ef93df188a852344fc272fc096b"},{url:"/_next/static/media/ba015fad6dcf6784-s.woff2",revision:"8ea4f719af3312a055caf09f34c89a77"},{url:"/_next/static/uzTB1MvTTqKw8qbe7ilfe/_buildManifest.js",revision:"096934a76440b6a0ada1d502ee5d0c2f"},{url:"/_next/static/uzTB1MvTTqKw8qbe7ilfe/_ssgManifest.js",revision:"b6652df95db52feb4daf4eca35380933"},{url:"/assets/2kmbile.jpg",revision:"e9514ce9b1fd519c1ed0316d2bea4333"},{url:"/assets/8ball.jpg",revision:"68960d1a1dc43a84f980462bebd78fd0"},{url:"/assets/airtel.png",revision:"99c98d4a1a68ebbcc1428866c636a9e7"},{url:"/assets/airtel.svg",revision:"7d289a50e2aa1be941d264b3555e4ba9"},{url:"/assets/amongus.jpg",revision:"aa059dafecb1cc5b2a7985f2a6a67ac1"},{url:"/assets/brawlhalla.jpg",revision:"1eb250c038bf3b7b6cf6c2787b618364"},{url:"/assets/chess.jpg",revision:"cf38c6819173f7b32c23d1896a0dfb5e"},{url:"/assets/clash.jpg",revision:"3326e530293d42feaebfd157bc297089"},{url:"/assets/cod.jpg",revision:"94fe16d72d33afb3a88f9f75e19fe72d"},{url:"/assets/dream.jpg",revision:"1c8b4452b887f5f54437359b34a1134a"},{url:"/assets/efootball.jpg",revision:"9ab8bd5a923cf7d6c78ba54f76ca4eb8"},{url:"/assets/fifa.jpg",revision:"88d25315d908590689f24657b24f2b5a"},{url:"/assets/freefire.jpg",revision:"4aef9e5e0310245813f37cafab0086f2"},{url:"/assets/insta.svg",revision:"76182f6e202d33d2b4a1a80c0eb84ff6"},{url:"/assets/mortal.jpg",revision:"a4e8d7d8a496961eecded6b6e980db3c"},{url:"/assets/mtn.jpg",revision:"74ffed6a1d983b558d4cffe201cc9652"},{url:"/assets/mtn.svg",revision:"f1f65aafe1e8a4e250235159dd44fbc1"},{url:"/assets/pubg-mobile.jpg",revision:"302a32c3fb8a65d54aecfa32a5534464"},{url:"/assets/raid1.png",revision:"6bbc78be9050850d88a8ad03654b5525"},{url:"/assets/raid1.svg",revision:"370fb61eb08438b543c338acc9e4231e"},{url:"/assets/shawdow.jpg",revision:"f538555974277019da71ad07c18ae5df"},{url:"/assets/telecel (1).svg",revision:"02a8dce796830496f3fb52c7a3a2a04a"},{url:"/assets/telecel.png",revision:"37d15fedf175da8f9558e44ea720bf86"},{url:"/chess.jpg",revision:"5d45d870819f4470cc1c495a33f2a2b9"},{url:"/cod.jpg",revision:"4709b58fe93d0aa0858a18c16d72ddd7"},{url:"/efootball.jpg",revision:"c5eadb3c75141a2431bf01ebb4d9ff78"},{url:"/fifa.jpg",revision:"f2ea1e8ab0c4359a44a6a2f43423e341"},{url:"/file.svg",revision:"d09f95206c3fa0bb9bd9fefabfd0ea71"},{url:"/globe.svg",revision:"2aaafa6a49b6563925fe440891e32717"},{url:"/icon-192.png",revision:"de6b2cf2b0bc64c48823e2f4ff888e01"},{url:"/icon-512.png",revision:"67bb867e877f19e840ede6519bd786a9"},{url:"/icons8-google-logo.svg",revision:"648fa9faea73bcefeebcdd3c28c94c38"},{url:"/next.svg",revision:"8e061864f388b47f33a1c3780831193e"},{url:"/pubg-mobile.jpg",revision:"08d666682d70ff82c40e8d7faa8357a2"},{url:"/vercel.svg",revision:"c0af2f507b369b085b35ef4bbe3bcf1e"},{url:"/window.svg",revision:"a2760511c65806022ad20adf74370ff3"}],{ignoreURLParametersMatching:[]}),e.cleanupOutdatedCaches(),e.registerRoute("/",new e.NetworkFirst({cacheName:"start-url",plugins:[{cacheWillUpdate:async({request:e,response:s,event:a,state:i})=>s&&"opaqueredirect"===s.type?new Response(s.body,{status:200,statusText:"OK",headers:s.headers}):s}]}),"GET"),e.registerRoute(/^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,new e.CacheFirst({cacheName:"google-fonts-webfonts",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:31536e3})]}),"GET"),e.registerRoute(/^https:\/\/fonts\.(?:googleapis)\.com\/.*/i,new e.StaleWhileRevalidate({cacheName:"google-fonts-stylesheets",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:604800})]}),"GET"),e.registerRoute(/\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,new e.StaleWhileRevalidate({cacheName:"static-font-assets",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:604800})]}),"GET"),e.registerRoute(/\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,new e.StaleWhileRevalidate({cacheName:"static-image-assets",plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\/_next\/image\?url=.+$/i,new e.StaleWhileRevalidate({cacheName:"next-image",plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:mp3|wav|ogg)$/i,new e.CacheFirst({cacheName:"static-audio-assets",plugins:[new e.RangeRequestsPlugin,new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:mp4)$/i,new e.CacheFirst({cacheName:"static-video-assets",plugins:[new e.RangeRequestsPlugin,new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:js)$/i,new e.StaleWhileRevalidate({cacheName:"static-js-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:css|less)$/i,new e.StaleWhileRevalidate({cacheName:"static-style-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\/_next\/data\/.+\/.+\.json$/i,new e.StaleWhileRevalidate({cacheName:"next-data",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:json|xml|csv)$/i,new e.NetworkFirst({cacheName:"static-data-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>{if(!(self.origin===e.origin))return!1;const s=e.pathname;return!s.startsWith("/api/auth/")&&!!s.startsWith("/api/")},new e.NetworkFirst({cacheName:"apis",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:16,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>{if(!(self.origin===e.origin))return!1;return!e.pathname.startsWith("/api/")},new e.NetworkFirst({cacheName:"others",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>!(self.origin===e.origin),new e.NetworkFirst({cacheName:"cross-origin",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:3600})]}),"GET")});
+// public/sw.js
+
+const CACHE_VERSION = 'v1.0.3'; // 🚀 bump this whenever you deploy
+const STATIC_CACHE = `raid-static-${CACHE_VERSION}`;
+const ASSET_CACHE = `raid-assets-${CACHE_VERSION}`;
+
+const PRECACHE_ASSETS = [
+  '/',
+  '/splash',
+  '/welcome',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/assets/raid1.svg',
+];
+
+// 🧩 Install — precache essential assets
+self.addEventListener('install', (event) => {
+  console.log(`[SW] Installing version: ${CACHE_VERSION}`);
+  event.waitUntil(
+    caches.open(STATIC_CACHE)
+      .then((cache) => cache.addAll(PRECACHE_ASSETS))
+      .then(() => self.skipWaiting())
+  );
+});
+
+// 🧹 Activate — clear old caches and reload clients
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating and cleaning old caches...');
+  event.waitUntil(
+    (async () => {
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames.map((name) => {
+          if (name !== STATIC_CACHE && name !== ASSET_CACHE) {
+            console.log('[SW] Deleting old cache:', name);
+            return caches.delete(name);
+          }
+        })
+      );
+      await self.clients.claim();
+
+      // 🔄 Refresh open tabs automatically
+      const clientsList = await self.clients.matchAll({ type: 'window' });
+      for (const client of clientsList) {
+        client.navigate(client.url);
+      }
+    })()
+  );
+});
+
+// ⚡ Fetch — cache-first for assets, network-first for HTML
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  const url = new URL(request.url);
+
+  // Skip cross-origin & non-HTTP requests
+  if (!url.protocol.startsWith('http') || url.origin !== location.origin) return;
+
+  // Always fetch HTML fresh (no caching pages)
+  if (request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(fetch(request).catch(() => caches.match('/offline.html')));
+    return;
+  }
+
+  // Cache-first for static assets (CSS, JS, images)
+  event.respondWith(
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        // Update in background
+        fetch(request).then((response) => {
+          if (response && response.status === 200) {
+            caches.open(ASSET_CACHE).then((cache) => cache.put(request, response.clone()));
+          }
+        });
+        return cachedResponse;
+      }
+
+      // Fetch new asset and cache it
+      return fetch(request).then((response) => {
+        if (!response || response.status !== 200) return response;
+        const responseClone = response.clone();
+        caches.open(ASSET_CACHE).then((cache) => cache.put(request, responseClone));
+        return response;
+      });
+    })
+  );
+});
+
+// 🧼 Manual commands from client
+self.addEventListener('message', (event) => {
+  const { type } = event.data || {};
+
+  if (type === 'SKIP_WAITING') {
+    console.log('[SW] Skipping waiting...');
+    self.skipWaiting();
+  }
+
+  if (type === 'CLEAR_CACHE') {
+    console.log('[SW] Clearing all caches...');
+    event.waitUntil(
+      caches.keys().then((names) => Promise.all(names.map((n) => caches.delete(n))))
+    );
+  }
+});

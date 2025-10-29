@@ -10,26 +10,38 @@ export default function SplashPage() {
 
   useEffect(() => {
     let timeout;
+    let hasNavigated = false;
+    
+    const navigate = (user) => {
+      if (hasNavigated) return;
+      hasNavigated = true;
+      
+      setIsChecking(false);
+      if (user) {
+        // User is authenticated, go to home
+        router.replace("/");
+      } else {
+        // User is not authenticated, go to welcome
+        router.replace("/welcome");
+      }
+    };
     
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       // Clear any existing timeout
       if (timeout) clearTimeout(timeout);
       
-      // Set a minimum display time for splash screen
+      // Set a minimum display time for splash screen (1.5 seconds)
       timeout = setTimeout(() => {
-        setIsChecking(false);
-        if (user) {
-          router.replace("/");
-        } else {
-          router.replace("/welcome");
-        }
-      }, 1500); // Reduced from 2000ms to 1500ms for faster transition
+        navigate(user);
+      }, 1500);
     });
 
-    // Failsafe: if auth check takes too long, redirect to welcome
+    // Failsafe: if auth check takes too long (5 seconds), go to welcome
     const failsafe = setTimeout(() => {
-      setIsChecking(false);
-      router.replace("/welcome");
+      if (!hasNavigated) {
+        console.log("Failsafe triggered - redirecting to welcome");
+        navigate(null);
+      }
     }, 5000);
 
     return () => {

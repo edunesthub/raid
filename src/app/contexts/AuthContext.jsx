@@ -48,7 +48,8 @@ export function AuthProvider({ children }) {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.replace("/"); // Changed from push to replace
+      // Don't navigate here - let splash screen handle it
+      router.replace("/splash");
     } catch (error) {
       throw new Error(error.message || "Invalid email or password");
     } finally {
@@ -63,7 +64,7 @@ export function AuthProvider({ children }) {
       await updateProfile(userCredential.user, {
         displayName: `${firstName} ${lastName}`
       });
-      router.replace("/auth/onboarding"); // Changed from push to replace
+      router.replace("/auth/onboarding");
     } catch (error) {
       throw new Error(error.message || "Signup failed");
     } finally {

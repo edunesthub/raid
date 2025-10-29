@@ -3,11 +3,11 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navigation from "./components/Navigation";
-import Footer from "./components/Footer";
 import { Analytics } from "@vercel/analytics/next";
 import AppProviders from "./AppProviders";
 import PWAInstallPrompt from "../components/PWAInstallPrompt";
 import OfflineLoader from "../components/OfflineLoader";
+import UpdatePrompt from "@/components/UpdatePrompt"; 
 import BottomNav from "../components/BottomNav";
 import { usePathname } from "next/navigation";
 
@@ -16,12 +16,14 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
-  const hideLayout = ["/welcome", "/auth/login", "/auth/signup", "/splash"].includes(pathname);
+  
+  // Pages that should hide navigation and footer completely
+  const hideLayout = ["/welcome", "/auth/login", "/auth/signup", "/splash", "/auth/onboarding"].includes(pathname);
 
   return (
-    <html lang="en">
+    <html lang="en" className="h-full">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
         <meta name="theme-color" content="#000000" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -36,26 +38,41 @@ export default function RootLayout({ children }) {
       </head>
 
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-gray-100`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-gray-100 h-full overflow-x-hidden`}
         style={{
           minHeight: "100vh",
           minHeight: "100dvh",
-          paddingTop: "env(safe-area-inset-top, 0)",
-          paddingBottom: "env(safe-area-inset-bottom, 0)",
+          height: "100%",
         }}
       >
         <AppProviders>
-          {!hideLayout && <Navigation />}
-          <main className="min-h-screen pt-16 pb-28 md:pb-4">{children}</main>
-          {!hideLayout && (
-            <>
-              <Footer />
-              <div className="md:hidden">
-                <BottomNav />
-              </div>
-            </>
-          )}
+          <div className="flex flex-col h-full min-h-screen">
+            {/* Navigation - only show on regular pages */}
+            {!hideLayout && <Navigation />}
+            
+            {/* Main Content Area */}
+            <main 
+              className={`flex-1 ${!hideLayout ? 'pt-16 md:pt-16' : ''} ${!hideLayout ? 'pb-24 md:pb-4' : ''}`}
+              style={{
+                paddingTop: hideLayout ? '0' : undefined,
+                paddingBottom: hideLayout ? '0' : undefined,
+              }}
+            >
+              {children}
+            </main>
+            
+            {/* Footer and Bottom Nav - only show on regular pages */}
+            {!hideLayout && (
+              <>
+                <div className="md:hidden">
+                  <BottomNav />
+                </div>
+              </>
+            )}
+          </div>
+          
           <PWAInstallPrompt />
+          <UpdatePrompt />
           <OfflineLoader />
         </AppProviders>
 

@@ -48,14 +48,15 @@ export default function ProfilePage() {
     setMatches(fakeMatches);
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      router.replace("/login"); // Redirect to login after logout
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
+const handleLogout = async () => {
+  try {
+    await signOut(auth);
+    router.replace("/welcome"); // ✅ Redirect to welcome page after logout
+  } catch (error) {
+    console.error("Logout error:", error);
+  }
+};
+
 
   if (!isAuthenticated) {
     return (
@@ -172,6 +173,16 @@ export default function ProfilePage() {
               </div>
               <span>→</span>
             </Link>
+            <Link
+  href="/profile/debug"
+  className="flex justify-between items-center text-white hover:text-orange-500 transition-colors"
+>
+  <div>
+    <h3 className="font-semibold">Debug & Cache Settings</h3>
+    <p className="text-gray-400 text-sm">Clear cache and check app version</p>
+  </div>
+  <span>→</span>
+</Link>
 
             {/* ✅ Logout Button */}
             <button
