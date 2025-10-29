@@ -102,7 +102,7 @@ export async function getAppVersion() {
   }
 
   if (navigator.serviceWorker.controller) {
-    return "v1.0.0"; // placeholder
+    return "v1.0.4"; // placeholder
   }
 
   return "Unknown";

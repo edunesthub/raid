@@ -147,12 +147,19 @@ body {
 }
 html,
 body {
-  background: linear-gradient(to bottom right, #000000, #0a0a0a, #1a1a1a);
+  background: radial-gradient(
+    circle at top left,
+    #0d0d0d 0%,
+    #0a0a0a 50%,
+    #000000 100%
+  );
+  background-attachment: fixed;
   color-scheme: dark;
   overscroll-behavior: none;
   height: 100%;
   min-height: 100dvh;
 }
+
 
 /* Ensure all pages display properly in PWA fullscreen */
 .min-h-screen {

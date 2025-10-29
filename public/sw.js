@@ -1,6 +1,6 @@
 // public/sw.js
 
-const CACHE_VERSION = 'v1.0.3'; // 🚀 bump this whenever you deploy
+const CACHE_VERSION = 'v1.0.4'; // 🚀 bump this whenever you deploy
 const STATIC_CACHE = `raid-static-${CACHE_VERSION}`;
 const ASSET_CACHE = `raid-assets-${CACHE_VERSION}`;
 

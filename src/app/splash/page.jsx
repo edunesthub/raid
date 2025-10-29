@@ -9,14 +9,18 @@ export default function SplashPage() {
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    let timeout;
+    console.log('[Splash] Page loaded');
+    
     let hasNavigated = false;
+    let authUnsubscribe;
     
     const navigate = (user) => {
       if (hasNavigated) return;
       hasNavigated = true;
       
+      console.log('[Splash] Navigating...', user ? 'User logged in' : 'No user');
       setIsChecking(false);
+      
       if (user) {
         // User is authenticated, go to home
         router.replace("/");
@@ -26,12 +30,12 @@ export default function SplashPage() {
       }
     };
     
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      // Clear any existing timeout
-      if (timeout) clearTimeout(timeout);
+    // Set up auth state listener
+    authUnsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log('[Splash] Auth state changed:', user?.email || 'No user');
       
-      // Set a minimum display time for splash screen (1.5 seconds)
-      timeout = setTimeout(() => {
+      // Wait minimum 1.5 seconds before navigating
+      setTimeout(() => {
         navigate(user);
       }, 1500);
     });
@@ -39,14 +43,13 @@ export default function SplashPage() {
     // Failsafe: if auth check takes too long (5 seconds), go to welcome
     const failsafe = setTimeout(() => {
       if (!hasNavigated) {
-        console.log("Failsafe triggered - redirecting to welcome");
+        console.log("[Splash] Failsafe triggered - redirecting to welcome");
         navigate(null);
       }
     }, 5000);
 
     return () => {
-      unsubscribe();
-      if (timeout) clearTimeout(timeout);
+      if (authUnsubscribe) authUnsubscribe();
       clearTimeout(failsafe);
     };
   }, [router]);

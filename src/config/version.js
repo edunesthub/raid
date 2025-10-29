@@ -12,14 +12,14 @@
  * - PATCH: Bug fixes
  */
 
-export const APP_VERSION = 'v1.0.1';
+export const APP_VERSION = 'v1.0.4';
 export const BUILD_DATE = new Date().toISOString();
 
 // Update this in public/sw.js CACHE_NAME when you deploy
 // Example: const CACHE_NAME = 'raid-arena-v1.0.0';
 
 export const RELEASE_NOTES = {
-  'v1.0.0': [
+  'v1.0.4': [
     'Initial release',
     'Tournament system',
     'League system',
