@@ -1,30 +1,22 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { useRouter, usePathname } from "next/navigation";
-import { auth } from "../lib/firebase";
+import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase";
 
-export default function SplashScreen() {
-  const [isChecking, setIsChecking] = useState(true);
+export default function SplashPage() {
   const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setTimeout(() => {
-        if (user) {
-          router.replace("/");
-        } else {
-          router.replace("/welcome");
-        }
-        setTimeout(() => setIsChecking(false), 100);
+      const timeout = setTimeout(() => {
+        router.replace(user ? "/" : "/welcome");
       }, 2000);
+      return () => clearTimeout(timeout);
     });
 
     return () => unsubscribe();
   }, [router]);
-
-  if (!isChecking) return null;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-orange-900">
@@ -48,7 +40,7 @@ export default function SplashScreen() {
           </p>
         </div>
 
-        {/* Loading Indicator */}
+        {/* Loading Dots */}
         <div className="flex space-x-2 mt-8">
           <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
           <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse delay-150"></div>

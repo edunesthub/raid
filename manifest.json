@@ -2,7 +2,7 @@
   "name": "Raid Esports Platform",
   "short_name": "Raid",
   "description": "Sleek gaming tournaments and leagues platform",
-  "start_url": "/",
+  "start_url": "/splash",
   "scope": "/",
   "display": "fullscreen",
   "orientation": "portrait",
