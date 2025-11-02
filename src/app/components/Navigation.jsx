@@ -15,7 +15,7 @@ export default function Navigation() {
 
   const publicNavItems = [
     { href: "/", label: "Tournaments", icon: "" },
-    { href: "/clans", label: "Clans", icon: "" }, // Add Clans to public navigation
+    { href: "/clans", label: "Clans", icon: "" },
   ];
 
   const authenticatedNavItems = [
@@ -24,7 +24,6 @@ export default function Navigation() {
     { href: "/leaderboard", label: "Leaderboard", icon: "" },
     { href: "/about", label: "About", icon: "" },
     { href: "/contact", label: "Contact", icon: "" },
-
   ];
 
   const navItems = isAuthenticated ? authenticatedNavItems : publicNavItems;
@@ -32,6 +31,7 @@ export default function Navigation() {
   const handleLogout = () => {
     logout();
     setIsUserMenuOpen(false);
+    setIsMenuOpen(false);
   };
 
   // Don't show navigation on auth pages
@@ -231,8 +231,26 @@ export default function Navigation() {
             } border-t border-gray-800 bg-black/95`}
         >
           <div className="px-4 py-2 space-y-1">
+            {/* Show navigation items for authenticated users */}
+            {isAuthenticated &&
+              authenticatedNavItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`flex items-center space-x-3 px-3 py-3 rounded-lg transition-colors ${pathname === item.href
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-300 hover:text-white hover:bg-gray-800"
+                    }`}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <span className="font-medium">{item.label}</span>
+                </Link>
+              ))}
+
+            {/* Show public nav items for non-authenticated users */}
             {!isAuthenticated &&
-              navItems.map((item) => (
+              publicNavItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -261,14 +279,14 @@ export default function Navigation() {
                   onClick={() => setIsMenuOpen(false)}
                   className="flex items-center space-x-3 px-3 py-3 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors w-full"
                 >
-                  <span className="text-lg"></span>
+                  <span className="text-lg">👤</span>
                   <span className="font-medium">Profile</span>
                 </Link>
                 <button
                   onClick={handleLogout}
                   className="flex items-center space-x-3 px-3 py-3 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors w-full text-left"
                 >
-                  <span className="text-lg"></span>
+                  <span className="text-lg">🚪</span>
                   <span className="font-medium">Logout</span>
                 </button>
               </div>
@@ -279,7 +297,7 @@ export default function Navigation() {
                   onClick={() => setIsMenuOpen(false)}
                   className="flex items-center space-x-3 px-3 py-3 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
                 >
-                  <span className="text-lg"></span>
+                  <span className="text-lg">🔑</span>
                   <span className="font-medium">Login</span>
                 </Link>
                 <Link
@@ -287,7 +305,7 @@ export default function Navigation() {
                   onClick={() => setIsMenuOpen(false)}
                   className="flex items-center space-x-3 px-3 py-3 rounded-lg bg-gradient-to-r from-black to-orange-500 text-white hover:from-gray-900 hover:to-orange-600 transition-colors"
                 >
-                  <span className="text-lg"></span>
+                  <span className="text-lg">✨</span>
                   <span className="font-medium">Sign Up</span>
                 </Link>
               </div>
