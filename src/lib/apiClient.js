@@ -111,18 +111,3 @@ export async function apiFetch(input, init, retry = true) {
   return res;
 }
 
-import { leagueService } from '@/services/leagueService';
-
-export const leagueApiClient = {
-  joinLeague: async (leagueId, userId) => {
-    // In a real application, this would be an API call to your backend
-    // For now, we'll use the mock leagueService
-    return leagueService.joinLeague(leagueId, userId);
-  },
-  getAllLeagues: async () => {
-    return leagueService.getAllLeagues();
-  },
-  getLeagueById: async (id) => {
-    return leagueService.getLeagueById(id);
-  },
-};
