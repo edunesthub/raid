@@ -9,7 +9,7 @@ export default function BottomNav() {
 
   const tabs = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Leagues", href: "/leagues", icon: Trophy },
+    { name: "Tournaments", href: "/tournament", icon: Trophy },
     { name: "Profile", href: "/profile", icon: User },
   ];
 

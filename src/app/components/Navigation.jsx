@@ -19,9 +19,9 @@ export default function Navigation() {
   ];
 
   const authenticatedNavItems = [
-    { href: "/", label: "Tournaments", icon: "" },
-    { href: "/leagues", label: "Leagues", icon: "" },
-    { href: "/deposit", label: "Deposit", icon: "" },
+    { href: "/", label: "Home", icon: "" },
+    { href: "/tournament", label: "Tournaments", icon: "" },
+    { href: "/leaderboard", label: "Leaderboard", icon: "" },
     { href: "/about", label: "About", icon: "" },
     { href: "/contact", label: "Contact", icon: "" },
 

@@ -1,0 +1,199 @@
+# Firebase Tournament Integration Guide
+
+## 🎯 What We've Done
+
+We've replaced all fake tournament data with real Firebase Firestore integration. Here's what's been implemented:
+
+## 📁 New Files Created
+
+### 1. **Tournament Service** (`src/services/tournamentService.js`)
+A comprehensive service class that handles all tournament operations:
+
+- ✅ `getAllTournaments()` - Fetch all tournaments with optional filters
+- ✅ `getTournamentById()` - Get single tournament details
+- ✅ `getFeaturedTournaments()` - Get featured tournaments for homepage
+- ✅ `createTournament()` - Create new tournament (for admins)
+- ✅ `updateTournament()` - Update tournament details
+- ✅ `deleteTournament()` - Delete tournament
+- ✅ `joinTournament()` - User joins tournament
+- ✅ `leaveTournament()` - User leaves tournament
+- ✅ `getUserTournaments()` - Get tournaments user is participating in
+
+### 2. **Tournament Hooks** (`src/hooks/useTournaments.js`)
+React hooks for easy data fetching:
+
+- ✅ `useTournaments(options)` - Fetch tournaments with filters
+- ✅ `useTournament(id)` - Fetch single tournament with join/leave actions
+- ✅ `useFeaturedTournaments(limit)` - Fetch featured tournaments
+
+### 3. **Updated Pages**
+
+#### Home Page (`src/app/page.jsx`)
+- Now fetches real tournaments from Firebase
+- Shows loading state while fetching
+- Displays error messages if fetch fails
+- Shows empty state if no tournaments available
+
+#### Tournament Detail Page (`src/app/tournament/[id]/page.jsx`)
+- Fetches tournament data from Firebase by ID
+- Shows loading spinner while fetching
+- Handles join/leave tournament actions
+- Shows participant status
+- Displays action errors
+
+#### New Tournaments List Page (`src/app/tournaments/page.jsx`)
+- Browse all tournaments
+- Filter by status (registration-open, upcoming, live, completed)
+- Filter by game
+- Clear filters functionality
+- Shows tournament count
+
+## 🗄️ Firebase Structure
+
+Your Firestore collection should be structured like this:
+
+```
+tournaments/
+  └── {tournamentId}/
+      ├── title: string
+      ├── game: string
+      ├── image: string (URL to image)
+      ├── description: string
+      ├── entryFee: number
+      ├── prizePool: number
+      ├── currency: string (e.g., "GHS")
+      ├── startDate: string (ISO 8601 format)
+      ├── endDate: string (ISO 8601 format)
+      ├── maxPlayers: number
+      ├── currentPlayers: number
+      ├── status: string ("registration-open", "upcoming", "live", "completed")
+      ├── format: string (e.g., "Battle Royale", "5v5")
+      ├── region: string
+      ├── participants: array of user IDs
+      ├── rules: array of strings
+      ├── requirements: array of strings
+      ├── prizeDistribution: array of objects
+      │   ├── rank: string
+      │   └── percentage: number
+      ├── organizer: string
+      ├── createdAt: timestamp
+      └── updatedAt: timestamp
+```
+
+## 📝 Sample Tournament Document
+
+```json
+{
+  "title": "CODM Championship 2024",
+  "game": "Call of Duty: Mobile",
+  "image": "/assets/cod.jpg",
+  "description": "The biggest CODM tournament of the year!",
+  "entryFee": 25,
+  "prizePool": 100,
+  "currency": "GHS",
+  "startDate": "2025-04-01T10:00:00Z",
+  "endDate": "2025-04-15T18:00:00Z",
+  "maxPlayers": 100,
+  "currentPlayers": 45,
+  "status": "registration-open",
+  "format": "Battle Royale - Solo",
+  "region": "Ghana",
+  "participants": ["userId1", "userId2", "userId3"],
+  "rules": [
+    "Must be ranked Master or higher",
+    "Device: Mobile/Tablet only",
+    "Must join Discord server"
+  ],
+  "requirements": [
+    "Valid CODM Account",
+    "Discord Account",
+    "Age 16+"
+  ],
+  "prizeDistribution": [
+    { "rank": "1st Place", "percentage": 50 },
+    { "rank": "2nd Place", "percentage": 30 },
+    { "rank": "3rd Place", "percentage": 20 }
+  ],
+  "organizer": "RAID Arena"
+}
+```
+
+## 🚀 How to Use
+
+### Display Tournaments on Homepage
+```javascript
+import { useFeaturedTournaments } from '@/hooks/useTournaments';
+
+function HomePage() {
+  const { tournaments, loading, error } = useFeaturedTournaments(4);
+  
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage error={error} />;
+  
+  return tournaments.map(t => <TournamentCard tournament={t} />);
+}
+```
+
+### Show Tournament Details
+```javascript
+import { useTournament } from '@/hooks/useTournaments';
+
+function TournamentPage({ params }) {
+  const { tournament, joinTournament, leaveTournament } = useTournament(params.id);
+  
+  const handleJoin = async () => {
+    await joinTournament(userId);
+  };
+  
+  return <TournamentDetails tournament={tournament} onJoin={handleJoin} />;
+}
+```
+
+### Filter Tournaments
+```javascript
+import { useTournaments } from '@/hooks/useTournaments';
+
+function TournamentsPage() {
+  const { tournaments } = useTournaments({
+    status: 'registration-open',
+    game: 'PUBG Mobile',
+    orderBy: 'startDate',
+    limit: 10
+  });
+  
+  return tournaments.map(t => <TournamentCard tournament={t} />);
+}
+```
+
+## ✨ Features Implemented
+
+1. **Real-time Data** - Fetches live data from Firebase
+2. **Loading States** - Shows spinners during data fetch
+3. **Error Handling** - Displays user-friendly error messages
+4. **Join/Leave** - Users can join and leave tournaments
+5. **Filters** - Filter by status and game
+6. **Empty States** - Handles no data scenarios gracefully
+7. **Participant Tracking** - Tracks who joined tournaments
+8. **Automatic Updates** - currentPlayers count updates automatically
+
+## 🔧 Next Steps
+
+1. **Add tournament images to Firebase Storage** instead of using local assets
+2. **Create admin panel** to create/edit tournaments
+3. **Add payment integration** for entry fees
+4. **Implement brackets/matchmaking** system
+5. **Add real-time updates** using Firestore listeners
+6. **Add notifications** when tournaments start/end
+
+## 🛠️ Files to Delete
+
+You can now safely delete:
+- `src/data/tournaments.js` (old fake data)
+- `src/app/data/tournaments.js` (if exists)
+
+## 📌 Important Notes
+
+- Make sure Firebase is properly configured in `.env.local`
+- Firestore rules should allow authenticated users to read tournaments
+- Only admins should be able to create/edit tournaments
+- Tournament images should be uploaded to Firebase Storage for production

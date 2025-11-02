@@ -1,38 +1,51 @@
 'use client';
 
 import Link from 'next/link';
-import { getTournamentById } from '@/data/tournaments';
-import { notFound } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { notFound, useRouter } from 'next/navigation';
+import { use, useState } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner.jsx';
-import React from 'react';
+import { useTournament } from '@/hooks/useTournaments';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function TournamentPage({ params }) {
-  const resolvedParams = React.use(params); // ✅ unwrap the params Promise
-  const [tournament, setTournament] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const resolvedParams = use(params);
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
+  const { tournament, loading, error, joinTournament, leaveTournament } = useTournament(resolvedParams?.id);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState(null);
 
-  useEffect(() => {
-    if (!resolvedParams?.id) {
-      setError('Invalid tournament ID');
-      setLoading(false);
+  const handleJoinTournament = async () => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
       return;
     }
 
     try {
-      const data = getTournamentById(resolvedParams.id);
-      if (!data) {
-        notFound();
-      }
-      setTournament(data);
-      setError(null);
+      setActionLoading(true);
+      setActionError(null);
+      await joinTournament(user.id);
+      // Success message could be shown here
     } catch (err) {
-      setError('Failed to load tournament details');
+      setActionError(err.message);
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
-  }, [resolvedParams?.id]);
+  };
+
+  const handleLeaveTournament = async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      setActionLoading(true);
+      setActionError(null);
+      await leaveTournament(user.id);
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -42,11 +55,11 @@ export default function TournamentPage({ params }) {
     );
   }
 
-  if (error) {
+  if (error || !tournament) {
     return (
       <div className="container-mobile min-h-screen py-6">
         <div className="card-raid p-6 text-center">
-          <p className="text-red-500 mb-4">{error}</p>
+          <p className="text-red-500 mb-4">{error || 'Tournament not found'}</p>
           <Link href="/" className="text-blue-400 hover:text-blue-300">
             Return to Tournaments
           </Link>
@@ -55,11 +68,7 @@ export default function TournamentPage({ params }) {
     );
   }
 
-  if (!tournament) {
-    return notFound();
-  }
-
-  const formatCurrency = (amount, currency) => {
+  const formatCurrency = (amount, currency = 'GHS') => {
     if (currency === 'GHS') {
       return `₵${amount.toLocaleString()}`;
     }
@@ -101,6 +110,7 @@ export default function TournamentPage({ params }) {
 
   const progressPercentage = (tournament.currentPlayers / tournament.maxPlayers) * 100;
   const spotsLeft = tournament.maxPlayers - tournament.currentPlayers;
+  const isParticipant = tournament.participants?.includes(user?.id);
 
   return (
     <div className="container-mobile min-h-screen py-6">
@@ -114,6 +124,13 @@ export default function TournamentPage({ params }) {
           Back to Tournaments
         </Link>
       </div>
+
+      {/* Action Error */}
+      {actionError && (
+        <div className="bg-red-600/10 border border-red-600/30 rounded-lg p-4 mb-6">
+          <p className="text-red-400 text-sm">{actionError}</p>
+        </div>
+      )}
 
       {/* Tournament Header */}
       <div className="card-raid p-6 mb-6">
@@ -170,12 +187,26 @@ export default function TournamentPage({ params }) {
           </p>
         </div>
 
-        {/* Action Button */}
+        {/* Action Buttons */}
         <div className="text-center">
           {tournament.status === 'registration-open' && spotsLeft > 0 ? (
-            <button className="btn-raid w-full">
-              Join Tournament - {formatCurrency(tournament.entryFee, tournament.currency)}
-            </button>
+            isParticipant ? (
+              <button 
+                onClick={handleLeaveTournament}
+                disabled={actionLoading}
+                className="btn-raid w-full bg-red-600 hover:bg-red-700"
+              >
+                {actionLoading ? 'Processing...' : 'Leave Tournament'}
+              </button>
+            ) : (
+              <button 
+                onClick={handleJoinTournament}
+                disabled={actionLoading}
+                className="btn-raid w-full"
+              >
+                {actionLoading ? 'Processing...' : `Join Tournament - ${formatCurrency(tournament.entryFee, tournament.currency)}`}
+              </button>
+            )
           ) : tournament.status === 'live' ? (
             <button className="btn-raid w-full bg-green-600 hover:bg-green-700">
               <span className="mr-2">📺</span>
@@ -205,24 +236,43 @@ export default function TournamentPage({ params }) {
       </div>
 
       {/* Tournament Rules */}
-      <div className="card-raid p-6 mb-6">
-        <h2 className="text-xl font-bold text-white mb-4">Rules</h2>
-        <ul className="list-disc list-inside space-y-2 text-gray-300">
-          {tournament.rules.map((rule, index) => (
-            <li key={index}>{rule}</li>
-          ))}
-        </ul>
-      </div>
+      {tournament.rules && tournament.rules.length > 0 && (
+        <div className="card-raid p-6 mb-6">
+          <h2 className="text-xl font-bold text-white mb-4">Rules</h2>
+          <ul className="list-disc list-inside space-y-2 text-gray-300">
+            {tournament.rules.map((rule, index) => (
+              <li key={index}>{rule}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Requirements */}
-      <div className="card-raid p-6">
-        <h2 className="text-xl font-bold text-white mb-4">Requirements</h2>
-        <ul className="list-disc list-inside space-y-2 text-gray-300">
-          {tournament.requirements.map((req, index) => (
-            <li key={index}>{req}</li>
-          ))}
-        </ul>
-      </div>
+      {tournament.requirements && tournament.requirements.length > 0 && (
+        <div className="card-raid p-6">
+          <h2 className="text-xl font-bold text-white mb-4">Requirements</h2>
+          <ul className="list-disc list-inside space-y-2 text-gray-300">
+            {tournament.requirements.map((req, index) => (
+              <li key={index}>{req}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Prize Distribution */}
+      {tournament.prizeDistribution && tournament.prizeDistribution.length > 0 && (
+        <div className="card-raid p-6 mt-6">
+          <h2 className="text-xl font-bold text-white mb-4">Prize Distribution</h2>
+          <div className="space-y-3">
+            {tournament.prizeDistribution.map((prize, index) => (
+              <div key={index} className="flex justify-between items-center bg-gray-800/50 p-3 rounded-lg">
+                <span className="text-gray-300">{prize.rank}</span>
+                <span className="text-white font-bold">{prize.percentage}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

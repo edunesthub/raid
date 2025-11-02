@@ -1,9 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { featuredTournaments } from "@/data/tournaments";
 import TournamentCard from "@/components/TournamentCard.jsx";
+import LoadingSpinner from "@/components/LoadingSpinner.jsx";
+import { useFeaturedTournaments } from "@/hooks/useTournaments";
 
 export default function Home() {
+  const { tournaments, loading, error } = useFeaturedTournaments(4);
+
   // ✅ Use direct public paths instead of imports
   const assets = [
     "/assets/8ball.jpg",
@@ -64,15 +69,53 @@ export default function Home() {
 
         {/* Featured Tournaments */}
         <section className="pb-6">
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-            <span className="mr-2"></span>
-            Raid Tournaments
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredTournaments.map((tournament) => (
-              <TournamentCard key={tournament.id} tournament={tournament} />
-            ))}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-white flex items-center">
+              <span className="mr-2">🏆</span>
+              Raid Tournaments
+            </h2>
+            <Link href="/tournaments" className="text-orange-500 hover:text-orange-400 text-sm">
+              View All →
+            </Link>
           </div>
+
+          {/* Loading State */}
+          {loading && (
+            <div className="flex justify-center items-center py-12">
+              <LoadingSpinner />
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="bg-red-600/10 border border-red-600/30 rounded-lg p-6 text-center">
+              <p className="text-red-400 mb-2">⚠️ Failed to load tournaments</p>
+              <p className="text-gray-400 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Tournaments Grid */}
+          {!loading && !error && tournaments.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {tournaments.map((tournament) => (
+                <TournamentCard key={tournament.id} tournament={tournament} />
+              ))}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && !error && tournaments.length === 0 && (
+            <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-12 text-center">
+              <div className="text-6xl mb-4">🎮</div>
+              <h3 className="text-xl font-bold text-white mb-2">No Tournaments Available</h3>
+              <p className="text-gray-400 mb-6">
+                Check back soon for exciting tournaments!
+              </p>
+              <Link href="/about" className="btn-raid inline-block">
+                Learn More About RAID
+              </Link>
+            </div>
+          )}
         </section>
       </div>
     </div>
