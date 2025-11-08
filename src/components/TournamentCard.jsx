@@ -6,7 +6,7 @@ const TournamentCard = ({ tournament }) => {
   return (
     <div className="bg-raid-gray-dark rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
       <div className="relative h-40 w-full">
-        <Image
+        <img
           src={tournament.image}
           alt={tournament.title}
           fill

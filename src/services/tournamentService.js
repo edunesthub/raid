@@ -53,7 +53,7 @@ class TournamentService {
       startDate: this.convertTimestampToISO(data.start_date),
       endDate: this.convertTimestampToISO(data.end_date),
       currency: 'GHS',
-      participants: data.participants || [],
+      // participants: data.participants || [], this one will be a in it own collection
       rules: data.rules ? [data.rules] : [],
       requirements: [],
       organizer: data.organizer || 'RAID Arena',
