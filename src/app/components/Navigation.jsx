@@ -21,22 +21,13 @@ export default function Navigation() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
 
-const publicNavItems = [
-  { href: "/", label: "Tournaments", icon: <Trophy className="w-5 h-5" /> },
-  { href: "/clans", label: "Clans", icon: <Users className="w-5 h-5" /> },
-];
-
-const authenticatedNavItems = [
-  { href: "/", label: "Home", icon: <Home className="w-5 h-5" /> },
-  { href: "/tournament", label: "Tournaments", icon: <Trophy className="w-5 h-5" /> },
-  { href: "/leaderboard", label: "Leaderboard", icon: <BarChart2 className="w-5 h-5" /> },
-  { href: "/about", label: "About", icon: <FileText className="w-5 h-5" /> },
-  { href: "/contact", label: "Contact", icon: <Phone className="w-5 h-5" /> },
-];
-
-
-
-  const navItems = isAuthenticated ? authenticatedNavItems : publicNavItems;
+  const navItems = [
+    { href: "/", label: "Home", icon: <Home className="w-5 h-5" /> },
+    { href: "/tournament", label: "Tournaments", icon: <Trophy className="w-5 h-5" /> },
+    { href: "/leaderboard", label: "Leaderboard", icon: <BarChart2 className="w-5 h-5" /> },
+    { href: "/about", label: "About", icon: <FileText className="w-5 h-5" /> },
+    { href: "/contact", label: "Contact", icon: <Phone className="w-5 h-5" /> },
+  ];
 
   const handleLogout = () => {
     logout();
@@ -78,13 +69,13 @@ const authenticatedNavItems = [
                       : "text-gray-300 hover:text-white hover:bg-gray-800"
                   }`}
                 >
-<div
-  className={`h-4 w-4 ${
-    pathname === item.href ? "text-white" : "text-orange-400"
-  }`}
->
-  {item.icon}
-</div>
+                  <div
+                    className={`h-4 w-4 ${
+                      pathname === item.href ? "text-white" : "text-orange-400"
+                    }`}
+                  >
+                    {item.icon}
+                  </div>
                   <span>{item.label}</span>
                 </Link>
               ))}
@@ -165,9 +156,6 @@ const authenticatedNavItems = [
                   >
                     Login
                   </Link>
-                  <Link href="/auth/signup" className="btn-raid-outline">
-                    Sign Up
-                  </Link>
                 </div>
               )}
             </div>
@@ -246,122 +234,100 @@ const authenticatedNavItems = [
 
         {/* Side Menu */}
 <div
-  className={`fixed top-0 left-0 h-full w-64 bg-black/70 backdrop-blur-xl border-r border-white/10 shadow-xl transform transition-transform duration-300 z-50 ${
+  className={`fixed top-0 left-0 h-full w-80 bg-black/70 backdrop-blur-xl border-r border-white/10 shadow-xl transform transition-transform duration-300 z-[60] ${
     isMenuOpen ? "translate-x-0" : "-translate-x-full"
   }`}
 >
-  <div className="px-5 py-6 flex flex-col space-y-5">
-    {/* Header with Logo & Close */}
-    <div className="flex items-center justify-between">
-      <Link
-        href="/"
-        onClick={() => setIsMenuOpen(false)}
-        className="flex items-center space-x-2"
-      >
-        <Image
-          src="/assets/raid1.svg"
-          alt="Raid1 Logo"
-          width={28}
-          height={28}
-          className="w-7 h-7"
-        />
-        <span className="text-white text-sm font-semibold tracking-wide">
-          Raid
-        </span>
-      </Link>
-      <button
-        onClick={() => setIsMenuOpen(false)}
-        className="text-orange-400 text-xl font-semibold hover:text-orange-500 transition-all"
-        aria-label="Close menu"
-      >
-        ✕
-      </button>
-    </div>
-
-    {/* Navigation Links */}
-    <div className="flex flex-col space-y-3 mt-4">
-      {navItems.map((item) => {
-        const isActive = pathname === item.href;
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={() => setIsMenuOpen(false)}
-            className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
-              isActive
-                ? "bg-orange-500/20 border-orange-500 text-orange-400"
-                : "bg-white/5 border-transparent text-gray-300 hover:bg-white/10 hover:text-orange-400"
-            }`}
-          >
-            <div className="flex items-center space-x-3">
-<div
-  className={`h-5 w-5 ${
-    isActive ? "text-orange-400" : "text-gray-400"
-  }`}
->
-  {item.icon}
-</div>
-
-              <span className="font-medium text-sm">{item.label}</span>
+          <div className="px-5 py-6 flex flex-col space-y-5">
+            {/* Header with Logo & Close */}
+            <div className="flex items-center justify-between">
+              <Link
+                href="/"
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center space-x-2"
+              >
+                <Image
+                  src="/assets/raid1.svg"
+                  alt="Raid1 Logo"
+                  width={28}
+                  height={28}
+                  className="w-7 h-7"
+                />
+                <span className="text-white text-sm font-semibold tracking-wide">
+                  Raid
+                </span>
+              </Link>
+              <button
+                onClick={() => setIsMenuOpen(false)}
+                className="text-orange-400 text-xl font-semibold hover:text-orange-500 transition-all"
+                aria-label="Close menu"
+              >
+                ✕
+              </button>
             </div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`h-4 w-4 ${
-                isActive ? "text-orange-400" : "text-gray-500"
-              }`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </Link>
-        );
-      })}
-    </div>
-  </div>
-</div>
 
+            {/* Navigation Links */}
+            <div className="flex flex-col space-y-3 mt-4">
+              {navItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                      isActive
+                        ? "bg-orange-500/20 border-orange-500 text-orange-400"
+                        : "bg-white/5 border-transparent text-gray-300 hover:bg-white/10 hover:text-orange-400"
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div
+                        className={`h-5 w-5 ${
+                          isActive ? "text-orange-400" : "text-gray-400"
+                        }`}
+                      >
+                        {item.icon}
+                      </div>
+
+                      <span className="font-medium text-sm">{item.label}</span>
+                    </div>
+                    <ChevronRight
+                      className={`h-4 w-4 ${
+                        isActive ? "text-orange-400" : "text-gray-500"
+                      }`}
+                    />
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Mobile Login Button if not authenticated */}
+            {!isAuthenticated && (
+              <div className="mt-auto">
+                <Link
+                  href="/auth/login"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="w-full block text-center px-4 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+                >
+                  Login
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
       </nav>
 
       {/* Mobile Bottom Navigation */}
-      {isAuthenticated && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-4">
-          <div className="max-w-md mx-auto px-4">
-              <div className="grid grid-cols-3">
-                {authenticatedNavItems
-                  .filter((item) => item.label !== "Deposit")
-                  .map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`flex flex-col items-center justify-center py-2.5 transition-colors ${
-                          isActive
-                            ? "text-orange-500"
-                            : "text-gray-400 hover:text-white"
-                        }`}
-                      >
-                        <span className="text-xs font-semibold tracking-wide">
-                          {item.label}
-                        </span>
-                        <span
-                          className={`mt-1 h-1 w-8 rounded-full ${
-                            isActive ? "bg-orange-500" : "bg-transparent"
-                          }`}
-                        ></span>
-                      </Link>
-                    );
-                  })}
-              </div>
-            </div>
-          </div>
+      {!isAuthenticated && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-4 flex justify-center">
+          <Link
+            href="/auth/login"
+            className="px-6 py-2 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600 transition-colors"
+          >
+            Login
+          </Link>
+        </div>
       )}
     </>
   );
