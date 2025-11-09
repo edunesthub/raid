@@ -5,7 +5,15 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
 import { useAuth } from "../contexts/AuthContext.jsx";
-
+import {
+  Home,
+  Trophy,
+  BarChart2,
+  Users,
+  FileText,
+  Phone,
+  ChevronRight,
+} from "lucide-react";
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -13,18 +21,20 @@ export default function Navigation() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
 
-  const publicNavItems = [
-    { href: "/", label: "Tournaments", icon: "" },
-    { href: "/clans", label: "Clans", icon: "" },
-  ];
+const publicNavItems = [
+  { href: "/", label: "Tournaments", icon: <Trophy className="w-5 h-5" /> },
+  { href: "/clans", label: "Clans", icon: <Users className="w-5 h-5" /> },
+];
 
-  const authenticatedNavItems = [
-    { href: "/", label: "Home", icon: "" },
-    { href: "/tournament", label: "Tournaments", icon: "" },
-    { href: "/leaderboard", label: "Leaderboard", icon: "" },
-    { href: "/about", label: "About", icon: "" },
-    { href: "/contact", label: "Contact", icon: "" },
-  ];
+const authenticatedNavItems = [
+  { href: "/", label: "Home", icon: <Home className="w-5 h-5" /> },
+  { href: "/tournament", label: "Tournaments", icon: <Trophy className="w-5 h-5" /> },
+  { href: "/leaderboard", label: "Leaderboard", icon: <BarChart2 className="w-5 h-5" /> },
+  { href: "/about", label: "About", icon: <FileText className="w-5 h-5" /> },
+  { href: "/contact", label: "Contact", icon: <Phone className="w-5 h-5" /> },
+];
+
+
 
   const navItems = isAuthenticated ? authenticatedNavItems : publicNavItems;
 
@@ -42,7 +52,7 @@ export default function Navigation() {
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-gray-800">
+      <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -54,9 +64,6 @@ export default function Navigation() {
                 height={32}
                 className="h-8 w-8 mr-2"
               />
-              <span className="text-white text-xl font-semibold">
-
-              </span>
             </Link>
 
             {/* Navigation Links */}
@@ -65,12 +72,19 @@ export default function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${pathname === item.href
-                    ? "bg-orange-500 text-white"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
-                    }`}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                    pathname === item.href
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-300 hover:text-white hover:bg-gray-800"
+                  }`}
                 >
-                  <span className="text-sm">{item.icon}</span>
+<div
+  className={`h-4 w-4 ${
+    pathname === item.href ? "text-white" : "text-orange-400"
+  }`}
+>
+  {item.icon}
+</div>
                   <span>{item.label}</span>
                 </Link>
               ))}
@@ -162,7 +176,7 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Navigation Header */}
-      <nav className="md:hidden fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-gray-800">
+      <nav className="md:hidden fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
         <div className="px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -176,27 +190,24 @@ export default function Navigation() {
               />
             </Link>
 
-            {/* Mobile Menu Trigger (profile avatar) */}
+            {/* Mobile Menu Trigger */}
             <div className="flex items-center gap-2">
               {isAuthenticated && (
-                <div className="flex items-center gap-2">
-
-                  <Link
-                    href="/notifications"
-                    className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white relative"
-                    aria-label="Notifications"
+                <Link
+                  href="/notifications"
+                  className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white relative"
+                  aria-label="Notifications"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                    </svg>
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
-                  </Link>
-                </div>
+                    <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                  </svg>
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
+                </Link>
               )}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -225,100 +236,103 @@ export default function Navigation() {
           </div>
         </div>
 
-        {/* Mobile Menu Dropdown */}
-        <div
-          className={`${isMenuOpen ? "block" : "hidden"
-            } border-t border-gray-800 bg-black/95`}
-        >
-          <div className="px-4 py-2 space-y-1">
-            {/* Show navigation items for authenticated users */}
-            {isAuthenticated &&
-              authenticatedNavItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center space-x-3 px-3 py-3 rounded-lg transition-colors ${pathname === item.href
-                    ? "bg-orange-500 text-white"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
-                    }`}
-                >
-                  <span className="text-lg">{item.icon}</span>
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              ))}
+        {/* Mobile Menu Backdrop */}
+        {isMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black/80 z-40"
+            onClick={() => setIsMenuOpen(false)}
+          />
+        )}
 
-            {/* Show public nav items for non-authenticated users */}
-            {!isAuthenticated &&
-              publicNavItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center space-x-3 px-3 py-3 rounded-lg transition-colors ${pathname === item.href
-                    ? "bg-orange-500 text-white"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
-                    }`}
-                >
-                  <span className="text-lg">{item.icon}</span>
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              ))}
+        {/* Side Menu */}
+<div
+  className={`fixed top-0 left-0 h-full w-64 bg-black/70 backdrop-blur-xl border-r border-white/10 shadow-xl transform transition-transform duration-300 z-50 ${
+    isMenuOpen ? "translate-x-0" : "-translate-x-full"
+  }`}
+>
+  <div className="px-5 py-6 flex flex-col space-y-5">
+    {/* Header with Logo & Close */}
+    <div className="flex items-center justify-between">
+      <Link
+        href="/"
+        onClick={() => setIsMenuOpen(false)}
+        className="flex items-center space-x-2"
+      >
+        <Image
+          src="/assets/raid1.svg"
+          alt="Raid1 Logo"
+          width={28}
+          height={28}
+          className="w-7 h-7"
+        />
+        <span className="text-white text-sm font-semibold tracking-wide">
+          Raid
+        </span>
+      </Link>
+      <button
+        onClick={() => setIsMenuOpen(false)}
+        className="text-orange-400 text-xl font-semibold hover:text-orange-500 transition-all"
+        aria-label="Close menu"
+      >
+        ✕
+      </button>
+    </div>
 
-            {/* Mobile Auth Section */}
-            {isAuthenticated ? (
-              <div className="border-t border-gray-700 pt-2 mt-2">
-                <div className="px-3 py-2">
-                  <p className="text-white text-sm font-semibold">
-                    {user?.firstName || user?.username || "User"}
-                  </p>
-                  <p className="text-gray-400 text-xs">{user?.email}</p>
-                </div>
-                <Link
-                  href="/profile"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center space-x-3 px-3 py-3 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors w-full"
-                >
-                  <span className="text-lg">👤</span>
-                  <span className="font-medium">Profile</span>
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center space-x-3 px-3 py-3 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors w-full text-left"
-                >
-                  <span className="text-lg">🚪</span>
-                  <span className="font-medium">Logout</span>
-                </button>
-              </div>
-            ) : (
-              <div className="border-t border-gray-700 pt-2 mt-2 space-y-1">
-                <Link
-                  href="/auth/login"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center space-x-3 px-3 py-3 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
-                >
-                  <span className="text-lg">🔑</span>
-                  <span className="font-medium">Login</span>
-                </Link>
-                <Link
-                  href="/auth/signup"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center space-x-3 px-3 py-3 rounded-lg bg-gradient-to-r from-black to-orange-500 text-white hover:from-gray-900 hover:to-orange-600 transition-colors"
-                >
-                  <span className="text-lg">✨</span>
-                  <span className="font-medium">Sign Up</span>
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
+    {/* Navigation Links */}
+    <div className="flex flex-col space-y-3 mt-4">
+      {navItems.map((item) => {
+        const isActive = pathname === item.href;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={() => setIsMenuOpen(false)}
+            className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+              isActive
+                ? "bg-orange-500/20 border-orange-500 text-orange-400"
+                : "bg-white/5 border-transparent text-gray-300 hover:bg-white/10 hover:text-orange-400"
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+<div
+  className={`h-5 w-5 ${
+    isActive ? "text-orange-400" : "text-gray-400"
+  }`}
+>
+  {item.icon}
+</div>
+
+              <span className="font-medium text-sm">{item.label}</span>
+            </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className={`h-4 w-4 ${
+                isActive ? "text-orange-400" : "text-gray-500"
+              }`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </Link>
+        );
+      })}
+    </div>
+  </div>
+</div>
+
       </nav>
 
-      {/* Mobile Bottom Navigation (modern pill-style) */}
+      {/* Mobile Bottom Navigation */}
       {isAuthenticated && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-4">
           <div className="max-w-md mx-auto px-4">
-            <div className="rounded-2xl border border-gray-800/70 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md shadow-xl">
               <div className="grid grid-cols-3">
                 {authenticatedNavItems
                   .filter((item) => item.label !== "Deposit")
@@ -328,17 +342,19 @@ export default function Navigation() {
                       <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex flex-col items-center justify-center py-2.5 transition-colors ${isActive
-                          ? "text-orange-500"
-                          : "text-gray-400 hover:text-white"
-                          }`}
+                        className={`flex flex-col items-center justify-center py-2.5 transition-colors ${
+                          isActive
+                            ? "text-orange-500"
+                            : "text-gray-400 hover:text-white"
+                        }`}
                       >
                         <span className="text-xs font-semibold tracking-wide">
                           {item.label}
                         </span>
                         <span
-                          className={`mt-1 h-1 w-8 rounded-full ${isActive ? "bg-orange-500" : "bg-transparent"
-                            }`}
+                          className={`mt-1 h-1 w-8 rounded-full ${
+                            isActive ? "bg-orange-500" : "bg-transparent"
+                          }`}
                         ></span>
                       </Link>
                     );
@@ -346,7 +362,6 @@ export default function Navigation() {
               </div>
             </div>
           </div>
-        </div>
       )}
     </>
   );
