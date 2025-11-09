@@ -234,7 +234,7 @@ export default function Navigation() {
 
         {/* Side Menu */}
 <div
-  className={`fixed top-0 left-0 h-full w-80 bg-black/70 backdrop-blur-xl border-r border-white/10 shadow-xl transform transition-transform duration-300 z-[60] ${
+  className={`fixed top-0 left-0 h-full w-80 bg-black/70 backdrop-blur-xl border-r border-white/10 shadow-xl transform transition-transform duration-300 z-[100] ${
     isMenuOpen ? "translate-x-0" : "-translate-x-full"
   }`}
 >
