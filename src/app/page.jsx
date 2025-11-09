@@ -74,7 +74,7 @@ export default function Home() {
               <span className="mr-2">🏆</span>
               Raid Tournaments
             </h2>
-            <Link href="/tournaments" className="text-orange-500 hover:text-orange-400 text-sm">
+            <Link href="/tournament" className="text-orange-500 hover:text-orange-400 text-sm">
               View All →
             </Link>
           </div>
