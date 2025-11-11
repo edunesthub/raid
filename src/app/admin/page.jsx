@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+"use client";
+
+import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   Trophy, 
@@ -14,118 +16,61 @@ import {
   XCircle,
   Search,
   Filter,
-  AlertCircle
+  AlertCircle,
+  DollarSign
 } from 'lucide-react';
+import { 
+  collection, 
+  getDocs, 
+  doc, 
+  updateDoc, 
+  deleteDoc,
+  query,
+  orderBy,
+  where,
+  addDoc,
+  serverTimestamp,
+  Timestamp
+} from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { signOut } from 'firebase/auth';
 
-// Mock Admin Authentication
+// Admin Authentication Hook
 const useAdminAuth = () => {
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const adminData = localStorage.getItem('admin_auth');
-    if (adminData) {
-      setAdmin(JSON.parse(adminData));
-    }
-    setLoading(false);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user && user.email === 'admin@raidarena.com') {
+        setAdmin({
+          id: user.uid,
+          email: user.email,
+          name: user.displayName || 'Admin User',
+          role: 'super_admin'
+        });
+      } else {
+        setAdmin(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const login = (email, password) => {
-    if (email === 'admin@raidarena.com' && password === 'admin123') {
-      const adminData = {
-        id: 'admin_1',
-        email: email,
-        name: 'Admin User',
-        role: 'super_admin'
-      };
-      localStorage.setItem('admin_auth', JSON.stringify(adminData));
-      setAdmin(adminData);
-      return true;
-    }
-    return false;
-  };
-
-  const logout = () => {
-    localStorage.removeItem('admin_auth');
-    setAdmin(null);
-  };
-
-  return { admin, loading, login, logout };
-};
-
-// Login Page
-const AdminLogin = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-
-  const handleSubmit = () => {
-    setError('');
-    if (onLogin(email, password)) {
-      setError('');
-    } else {
-      setError('Invalid credentials. Try: admin@raidarena.com / admin123');
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      setAdmin(null);
+    } catch (error) {
+      console.error('Logout error:', error);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-orange-900 flex items-center justify-center p-4">
-      <div className="bg-gray-800 border border-orange-500/30 rounded-2xl p-8 w-full max-w-md shadow-2xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">RAID Arena</h1>
-          <p className="text-orange-400">Admin Portal</p>
-        </div>
-
-        <div className="space-y-6">
-          {error && (
-            <div className="bg-red-600/10 border border-red-600/30 rounded-lg p-3">
-              <p className="text-red-400 text-sm">{error}</p>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
-              className="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
-              className="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
-            />
-          </div>
-
-          <button
-            onClick={handleSubmit}
-            className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-3 rounded-lg transition-all"
-          >
-            Sign In
-          </button>
-
-          <div className="text-center text-gray-400 text-sm">
-            Demo: admin@raidarena.com / admin123
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return { admin, loading, logout };
 };
 
-// Dashboard Stats Card
+// Stat Card Component
 const StatCard = ({ title, value, icon: Icon, trend, color = "orange" }) => {
   const colorClasses = {
     orange: "bg-orange-500/10 border-orange-500/30 text-orange-400",
@@ -140,7 +85,7 @@ const StatCard = ({ title, value, icon: Icon, trend, color = "orange" }) => {
         <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
           <Icon size={24} />
         </div>
-        {trend && (
+        {trend !== undefined && (
           <span className={`text-sm font-medium ${trend > 0 ? 'text-green-400' : 'text-red-400'}`}>
             {trend > 0 ? '+' : ''}{trend}%
           </span>
@@ -154,59 +99,169 @@ const StatCard = ({ title, value, icon: Icon, trend, color = "orange" }) => {
 
 // Dashboard Component
 const Dashboard = () => {
-  const stats = [
-    { title: "Total Users", value: "2,547", icon: Users, trend: 12, color: "blue" },
-    { title: "Active Tournaments", value: "18", icon: Trophy, trend: 8, color: "orange" },
-    { title: "Total Revenue", value: "₵45,890", icon: BarChart3, trend: 15, color: "green" },
-    { title: "Pending Actions", value: "7", icon: AlertCircle, trend: -3, color: "purple" }
-  ];
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeTournaments: 0,
+    totalRevenue: 0,
+    pendingActions: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDashboardStats();
+  }, []);
+
+  const loadDashboardStats = async () => {
+    try {
+      setLoading(true);
+      
+      // Get users count
+      const usersSnapshot = await getDocs(collection(db, 'users'));
+      const totalUsers = usersSnapshot.size;
+
+      // Get active tournaments
+      const tournamentsRef = collection(db, 'tournaments');
+      const tournamentsSnapshot = await getDocs(tournamentsRef);
+      const activeTournaments = tournamentsSnapshot.docs.filter(doc => {
+        const status = doc.data().status;
+        return status === 'registration-open' || status === 'live';
+      }).length;
+
+      // Calculate total revenue (sum of entry fees * participants)
+      let totalRevenue = 0;
+      tournamentsSnapshot.docs.forEach(doc => {
+        const data = doc.data();
+        totalRevenue += (data.entry_fee || 0) * (data.current_participants || 0);
+      });
+
+      setStats({
+        totalUsers,
+        activeTournaments,
+        totalRevenue,
+        pendingActions: 0
+      });
+    } catch (error) {
+      console.error('Error loading dashboard stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-white">Loading dashboard...</div>;
+  }
 
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-white">Dashboard Overview</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <StatCard key={index} {...stat} />
-        ))}
+        <StatCard 
+          title="Total Users" 
+          value={stats.totalUsers.toLocaleString()} 
+          icon={Users} 
+          trend={12} 
+          color="blue" 
+        />
+        <StatCard 
+          title="Active Tournaments" 
+          value={stats.activeTournaments.toString()} 
+          icon={Trophy} 
+          trend={8} 
+          color="orange" 
+        />
+        <StatCard 
+          title="Total Revenue" 
+          value={`₵${stats.totalRevenue.toLocaleString()}`} 
+          icon={DollarSign} 
+          trend={15} 
+          color="green" 
+        />
+        <StatCard 
+          title="Pending Actions" 
+          value={stats.pendingActions.toString()} 
+          icon={AlertCircle} 
+          color="purple" 
+        />
       </div>
 
       <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-        <h3 className="text-xl font-bold text-white mb-4">Recent Activity</h3>
-        <div className="space-y-4">
-          {[
-            { action: "New tournament created", user: "Admin", time: "5 minutes ago" },
-            { action: "User registration", user: "john@example.com", time: "15 minutes ago" },
-            { action: "Tournament completed", user: "COD Mobile Pro League", time: "1 hour ago" },
-            { action: "Payment received", user: "₵250", time: "2 hours ago" }
-          ].map((activity, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-gray-900/50 rounded-lg">
-              <div>
-                <p className="text-white font-medium">{activity.action}</p>
-                <p className="text-gray-400 text-sm">{activity.user}</p>
-              </div>
-              <span className="text-gray-500 text-sm">{activity.time}</span>
-            </div>
-          ))}
+        <h3 className="text-xl font-bold text-white mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <button className="bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 px-4 rounded-lg transition-all">
+            Create Tournament
+          </button>
+          <button className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg transition-all">
+            View Reports
+          </button>
+          <button className="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg transition-all">
+            Manage Payments
+          </button>
+          <button className="bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-lg transition-all">
+            User Management
+          </button>
         </div>
       </div>
     </div>
   );
 };
 
-// Tournament Management
+// Tournament Management Component
 const TournamentManagement = () => {
-  const [tournaments, setTournaments] = useState([
-    { id: 1, name: "COD Mobile Pro League", game: "Call of Duty Mobile", status: "active", participants: 45, maxParticipants: 64, prize: 5000 },
-    { id: 2, name: "PUBG Championship", game: "PUBG Mobile", status: "upcoming", participants: 32, maxParticipants: 100, prize: 10000 },
-    { id: 3, name: "FIFA Mobile Tournament", game: "FIFA Mobile", status: "completed", participants: 128, maxParticipants: 128, prize: 3000 }
-  ]);
+  const [tournaments, setTournaments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this tournament?')) {
-      setTournaments(tournaments.filter(t => t.id !== id));
+  useEffect(() => {
+    loadTournaments();
+  }, []);
+
+  const loadTournaments = async () => {
+    try {
+      setLoading(true);
+      const tournamentsRef = collection(db, 'tournaments');
+      const q = query(tournamentsRef, orderBy('created_at', 'desc'));
+      const snapshot = await getDocs(q);
+      
+      const tournamentData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().tournament_name || 'Untitled',
+        game: doc.data().game || 'Unknown',
+        status: doc.data().status || 'upcoming',
+        participants: doc.data().current_participants || 0,
+        maxParticipants: doc.data().max_participant || 0,
+        prize: doc.data().first_place || 0,
+        entryFee: doc.data().entry_fee || 0
+      }));
+      
+      setTournaments(tournamentData);
+    } catch (error) {
+      console.error('Error loading tournaments:', error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Are you sure you want to delete this tournament?')) return;
+    
+    try {
+      await deleteDoc(doc(db, 'tournaments', id));
+      setTournaments(tournaments.filter(t => t.id !== id));
+    } catch (error) {
+      console.error('Error deleting tournament:', error);
+      alert('Failed to delete tournament');
+    }
+  };
+
+  const filteredTournaments = tournaments.filter(t => 
+    t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.game.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return <div className="text-white">Loading tournaments...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -218,19 +273,15 @@ const TournamentManagement = () => {
         </button>
       </div>
 
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search tournaments..."
-            className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:border-orange-500"
-          />
-        </div>
-        <button className="flex items-center gap-2 bg-gray-800 border border-gray-600 hover:border-orange-500 text-white px-4 py-3 rounded-lg transition-all">
-          <Filter size={20} />
-          Filters
-        </button>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+        <input
+          type="text"
+          placeholder="Search tournaments..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:border-orange-500"
+        />
       </div>
 
       <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
@@ -247,7 +298,7 @@ const TournamentManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {tournaments.map((tournament) => (
+              {filteredTournaments.map((tournament) => (
                 <tr key={tournament.id} className="border-t border-gray-700 hover:bg-gray-900/50">
                   <td className="p-4">
                     <p className="text-white font-medium">{tournament.name}</p>
@@ -255,8 +306,8 @@ const TournamentManagement = () => {
                   <td className="p-4 text-gray-300">{tournament.game}</td>
                   <td className="p-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      tournament.status === 'active' ? 'bg-green-500/20 text-green-400' :
-                      tournament.status === 'upcoming' ? 'bg-blue-500/20 text-blue-400' :
+                      tournament.status === 'live' ? 'bg-green-500/20 text-green-400' :
+                      tournament.status === 'registration-open' ? 'bg-blue-500/20 text-blue-400' :
                       'bg-gray-500/20 text-gray-400'
                     }`}>
                       {tournament.status}
@@ -272,7 +323,10 @@ const TournamentManagement = () => {
                       <button className="p-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg transition-all">
                         <Edit size={16} />
                       </button>
-                      <button onClick={() => handleDelete(tournament.id)} className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-all">
+                      <button 
+                        onClick={() => handleDelete(tournament.id)} 
+                        className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-all"
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -287,21 +341,47 @@ const TournamentManagement = () => {
   );
 };
 
-// User Management
+// User Management Component
 const UserManagement = () => {
-  const [users, setUsers] = useState([
-    { id: 1, name: "John Doe", email: "john@example.com", status: "active", tournaments: 12, earnings: 5400 },
-    { id: 2, name: "Jane Smith", email: "jane@example.com", status: "active", tournaments: 8, earnings: 3200 },
-    { id: 3, name: "Mike Johnson", email: "mike@example.com", status: "suspended", tournaments: 15, earnings: 7800 }
-  ]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const toggleUserStatus = (id) => {
-    setUsers(users.map(user => 
-      user.id === id 
-        ? { ...user, status: user.status === 'active' ? 'suspended' : 'active' }
-        : user
-    ));
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const usersRef = collection(db, 'users');
+      const snapshot = await getDocs(usersRef);
+      
+      const userData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().username || doc.data().firstName + ' ' + doc.data().lastName || 'Unknown',
+        email: doc.data().email || 'No email',
+        status: 'active',
+        tournaments: 0,
+        earnings: 0
+      }));
+      
+      setUsers(userData);
+    } catch (error) {
+      console.error('Error loading users:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const filteredUsers = users.filter(u => 
+    u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return <div className="text-white">Loading users...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -312,6 +392,8 @@ const UserManagement = () => {
         <input
           type="text"
           placeholder="Search users by name or email..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:border-orange-500"
         />
       </div>
@@ -324,40 +406,25 @@ const UserManagement = () => {
                 <th className="text-left text-gray-300 font-medium p-4">User</th>
                 <th className="text-left text-gray-300 font-medium p-4">Email</th>
                 <th className="text-left text-gray-300 font-medium p-4">Status</th>
-                <th className="text-left text-gray-300 font-medium p-4">Tournaments</th>
-                <th className="text-left text-gray-300 font-medium p-4">Total Earnings</th>
                 <th className="text-left text-gray-300 font-medium p-4">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <tr key={user.id} className="border-t border-gray-700 hover:bg-gray-900/50">
                   <td className="p-4">
                     <p className="text-white font-medium">{user.name}</p>
                   </td>
                   <td className="p-4 text-gray-300">{user.email}</td>
                   <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      user.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                    }`}>
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
                       {user.status}
                     </span>
                   </td>
-                  <td className="p-4 text-gray-300">{user.tournaments}</td>
-                  <td className="p-4 text-white font-medium">₵{user.earnings.toLocaleString()}</td>
                   <td className="p-4">
-                    <div className="flex gap-2">
-                      <button className="p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-all">
-                        <Eye size={16} />
-                      </button>
-                      <button onClick={() => toggleUserStatus(user.id)} className={`p-2 rounded-lg transition-all ${
-                          user.status === 'active' 
-                            ? 'bg-red-500/20 hover:bg-red-500/30 text-red-400'
-                            : 'bg-green-500/20 hover:bg-green-500/30 text-green-400'
-                        }`}>
-                        {user.status === 'active' ? <XCircle size={16} /> : <CheckCircle size={16} />}
-                      </button>
-                    </div>
+                    <button className="p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-all">
+                      <Eye size={16} />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -371,7 +438,7 @@ const UserManagement = () => {
 
 // Main Admin Portal
 const AdminPortal = () => {
-  const { admin, loading, login, logout } = useAdminAuth();
+  const { admin, loading, logout } = useAdminAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
 
   if (loading) {
@@ -383,7 +450,20 @@ const AdminPortal = () => {
   }
 
   if (!admin) {
-    return <AdminLogin onLogin={login} />;
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="bg-gray-800 border border-orange-500/30 rounded-2xl p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">RAID Arena</h1>
+            <p className="text-orange-400">Admin Portal</p>
+          </div>
+          <div className="text-center text-gray-400">
+            <p>Please sign in with admin credentials</p>
+            <p className="text-sm mt-2">admin@raidarena.com</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const menuItems = [
