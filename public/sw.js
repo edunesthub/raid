@@ -1,1 +1,191 @@
-if(!self.define){let e,a={};const s=(s,c)=>(s=new URL(s+".js",c).href,a[s]||new Promise(a=>{if("document"in self){const e=document.createElement("script");e.src=s,e.onload=a,document.head.appendChild(e)}else e=s,importScripts(s),a()}).then(()=>{let e=a[s];if(!e)throw new Error(`Module ${s} didn’t register its module`);return e}));self.define=(c,i)=>{const n=e||("document"in self?document.currentScript.src:"")||location.href;if(a[n])return;let t={};const r=e=>s(e,n),f={module:{uri:n},exports:t,require:r};a[n]=Promise.all(c.map(e=>f[e]||r(e))).then(e=>(i(...e),t))}}define(["./workbox-4754cb34"],function(e){"use strict";importScripts(),self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"/_next/app-build-manifest.json",revision:"ba5b8e2b7a1ab092333385a6182ae2ad"},{url:"/_next/static/chunks/139.7a5a8e93a21948c1.js",revision:"7a5a8e93a21948c1"},{url:"/_next/static/chunks/261b60bd-86170d62ec3dca1b.js",revision:"86170d62ec3dca1b"},{url:"/_next/static/chunks/340-a09be490326d286e.js",revision:"a09be490326d286e"},{url:"/_next/static/chunks/356-5cad24532f4c0e5d.js",revision:"5cad24532f4c0e5d"},{url:"/_next/static/chunks/493-44fd1aacfe833f7d.js",revision:"44fd1aacfe833f7d"},{url:"/_next/static/chunks/4bd1b696-c023c6e3521b1417.js",revision:"c023c6e3521b1417"},{url:"/_next/static/chunks/619-ba102abea3e3d0e4.js",revision:"ba102abea3e3d0e4"},{url:"/_next/static/chunks/646.f342b7cffc01feb0.js",revision:"f342b7cffc01feb0"},{url:"/_next/static/chunks/7508b87c-0866d47f24e031ff.js",revision:"0866d47f24e031ff"},{url:"/_next/static/chunks/978-6ce6ec06c773d453.js",revision:"6ce6ec06c773d453"},{url:"/_next/static/chunks/app/_not-found/page-9d900f5969532ac9.js",revision:"9d900f5969532ac9"},{url:"/_next/static/chunks/app/about/page-86b90c48ea94c920.js",revision:"86b90c48ea94c920"},{url:"/_next/static/chunks/app/auth/login/page-efb415d4a0e9ca29.js",revision:"efb415d4a0e9ca29"},{url:"/_next/static/chunks/app/auth/onboarding/page-ab03f8b04597debe.js",revision:"ab03f8b04597debe"},{url:"/_next/static/chunks/app/auth/reset/page-d5319282f2f2d57d.js",revision:"d5319282f2f2d57d"},{url:"/_next/static/chunks/app/auth/signup/page-110198b3f956839c.js",revision:"110198b3f956839c"},{url:"/_next/static/chunks/app/contact/page-09b180462336c739.js",revision:"09b180462336c739"},{url:"/_next/static/chunks/app/deposit/page-09b180462336c739.js",revision:"09b180462336c739"},{url:"/_next/static/chunks/app/layout-67da7e01a2576cc8.js",revision:"67da7e01a2576cc8"},{url:"/_next/static/chunks/app/leagues/page-87cc0cef7899c583.js",revision:"87cc0cef7899c583"},{url:"/_next/static/chunks/app/notifications/page-59dc286505eb1336.js",revision:"59dc286505eb1336"},{url:"/_next/static/chunks/app/page-64fc3c860af31386.js",revision:"64fc3c860af31386"},{url:"/_next/static/chunks/app/privacy-policy/page-09b180462336c739.js",revision:"09b180462336c739"},{url:"/_next/static/chunks/app/profile/change-password/page-eff649e743ad8835.js",revision:"eff649e743ad8835"},{url:"/_next/static/chunks/app/profile/debug/page-0a4a24b1d26c8736.js",revision:"0a4a24b1d26c8736"},{url:"/_next/static/chunks/app/profile/layout-f1cbae4c95cff893.js",revision:"f1cbae4c95cff893"},{url:"/_next/static/chunks/app/profile/notifications/page-2c61a2b3e0a1c940.js",revision:"2c61a2b3e0a1c940"},{url:"/_next/static/chunks/app/profile/page-131b4f3101c48f32.js",revision:"131b4f3101c48f32"},{url:"/_next/static/chunks/app/profile/privacy/page-4022e8becfdc10a0.js",revision:"4022e8becfdc10a0"},{url:"/_next/static/chunks/app/splash/page-a3ec1915ea6ee017.js",revision:"a3ec1915ea6ee017"},{url:"/_next/static/chunks/app/terms-of-service/page-74b3145fae80bff6.js",revision:"74b3145fae80bff6"},{url:"/_next/static/chunks/app/tournament/%5Bid%5D/page-9ea4f5b6cf1b59f4.js",revision:"9ea4f5b6cf1b59f4"},{url:"/_next/static/chunks/app/wallet/page-09b180462336c739.js",revision:"09b180462336c739"},{url:"/_next/static/chunks/app/welcome/page-33a3b42c483d63a8.js",revision:"33a3b42c483d63a8"},{url:"/_next/static/chunks/framework-c80f5add3549a761.js",revision:"c80f5add3549a761"},{url:"/_next/static/chunks/main-93aff22c209a152a.js",revision:"93aff22c209a152a"},{url:"/_next/static/chunks/main-app-dfcf5cbba760d136.js",revision:"dfcf5cbba760d136"},{url:"/_next/static/chunks/pages/_app-21a0c6b1f968d5de.js",revision:"21a0c6b1f968d5de"},{url:"/_next/static/chunks/pages/_error-cef126a8b214a1a4.js",revision:"cef126a8b214a1a4"},{url:"/_next/static/chunks/polyfills-42372ed130431b0a.js",revision:"846118c33b2c0e922d7b3a7676f81f6f"},{url:"/_next/static/chunks/webpack-e0e8dabfb3c422ba.js",revision:"e0e8dabfb3c422ba"},{url:"/_next/static/css/53e7d146fedc0b32.css",revision:"53e7d146fedc0b32"},{url:"/_next/static/media/4cf2300e9c8272f7-s.p.woff2",revision:"18bae71b1e1b2bb25321090a3b563103"},{url:"/_next/static/media/747892c23ea88013-s.woff2",revision:"a0761690ccf4441ace5cec893b82d4ab"},{url:"/_next/static/media/8d697b304b401681-s.woff2",revision:"cc728f6c0adb04da0dfcb0fc436a8ae5"},{url:"/_next/static/media/93f479601ee12b01-s.p.woff2",revision:"da83d5f06d825c5ae65b7cca706cb312"},{url:"/_next/static/media/9610d9e46709d722-s.woff2",revision:"7b7c0ef93df188a852344fc272fc096b"},{url:"/_next/static/media/ba015fad6dcf6784-s.woff2",revision:"8ea4f719af3312a055caf09f34c89a77"},{url:"/_next/static/o8PmFumpS32OiaRrS4E64/_buildManifest.js",revision:"863a38c6152a24fc9eaae785d00a2049"},{url:"/_next/static/o8PmFumpS32OiaRrS4E64/_ssgManifest.js",revision:"b6652df95db52feb4daf4eca35380933"},{url:"/assets/2kmbile.jpg",revision:"e9514ce9b1fd519c1ed0316d2bea4333"},{url:"/assets/8ball.jpg",revision:"68960d1a1dc43a84f980462bebd78fd0"},{url:"/assets/airtel.png",revision:"99c98d4a1a68ebbcc1428866c636a9e7"},{url:"/assets/airtel.svg",revision:"7d289a50e2aa1be941d264b3555e4ba9"},{url:"/assets/amongus.jpg",revision:"aa059dafecb1cc5b2a7985f2a6a67ac1"},{url:"/assets/brawlhalla.jpg",revision:"1eb250c038bf3b7b6cf6c2787b618364"},{url:"/assets/chess.jpg",revision:"cf38c6819173f7b32c23d1896a0dfb5e"},{url:"/assets/clash.jpg",revision:"3326e530293d42feaebfd157bc297089"},{url:"/assets/cod.jpg",revision:"94fe16d72d33afb3a88f9f75e19fe72d"},{url:"/assets/dream.jpg",revision:"1c8b4452b887f5f54437359b34a1134a"},{url:"/assets/efootball.jpg",revision:"9ab8bd5a923cf7d6c78ba54f76ca4eb8"},{url:"/assets/fifa.jpg",revision:"88d25315d908590689f24657b24f2b5a"},{url:"/assets/freefire.jpg",revision:"4aef9e5e0310245813f37cafab0086f2"},{url:"/assets/insta.svg",revision:"76182f6e202d33d2b4a1a80c0eb84ff6"},{url:"/assets/mortal.jpg",revision:"a4e8d7d8a496961eecded6b6e980db3c"},{url:"/assets/mtn.jpg",revision:"74ffed6a1d983b558d4cffe201cc9652"},{url:"/assets/mtn.svg",revision:"f1f65aafe1e8a4e250235159dd44fbc1"},{url:"/assets/pubg-mobile.jpg",revision:"302a32c3fb8a65d54aecfa32a5534464"},{url:"/assets/raid1.png",revision:"6bbc78be9050850d88a8ad03654b5525"},{url:"/assets/raid1.svg",revision:"370fb61eb08438b543c338acc9e4231e"},{url:"/assets/shawdow.jpg",revision:"f538555974277019da71ad07c18ae5df"},{url:"/assets/telecel (1).svg",revision:"02a8dce796830496f3fb52c7a3a2a04a"},{url:"/assets/telecel.png",revision:"37d15fedf175da8f9558e44ea720bf86"},{url:"/chess.jpg",revision:"5d45d870819f4470cc1c495a33f2a2b9"},{url:"/cod.jpg",revision:"4709b58fe93d0aa0858a18c16d72ddd7"},{url:"/efootball.jpg",revision:"c5eadb3c75141a2431bf01ebb4d9ff78"},{url:"/fifa.jpg",revision:"f2ea1e8ab0c4359a44a6a2f43423e341"},{url:"/file.svg",revision:"d09f95206c3fa0bb9bd9fefabfd0ea71"},{url:"/globe.svg",revision:"2aaafa6a49b6563925fe440891e32717"},{url:"/icon-192.png",revision:"de6b2cf2b0bc64c48823e2f4ff888e01"},{url:"/icon-512.png",revision:"67bb867e877f19e840ede6519bd786a9"},{url:"/icons8-google-logo.svg",revision:"648fa9faea73bcefeebcdd3c28c94c38"},{url:"/next.svg",revision:"8e061864f388b47f33a1c3780831193e"},{url:"/pubg-mobile.jpg",revision:"08d666682d70ff82c40e8d7faa8357a2"},{url:"/vercel.svg",revision:"c0af2f507b369b085b35ef4bbe3bcf1e"},{url:"/window.svg",revision:"a2760511c65806022ad20adf74370ff3"}],{ignoreURLParametersMatching:[]}),e.cleanupOutdatedCaches(),e.registerRoute("/",new e.NetworkFirst({cacheName:"start-url",plugins:[{cacheWillUpdate:async({request:e,response:a,event:s,state:c})=>a&&"opaqueredirect"===a.type?new Response(a.body,{status:200,statusText:"OK",headers:a.headers}):a}]}),"GET"),e.registerRoute(/^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,new e.CacheFirst({cacheName:"google-fonts-webfonts",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:31536e3})]}),"GET"),e.registerRoute(/^https:\/\/fonts\.(?:googleapis)\.com\/.*/i,new e.StaleWhileRevalidate({cacheName:"google-fonts-stylesheets",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:604800})]}),"GET"),e.registerRoute(/\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,new e.StaleWhileRevalidate({cacheName:"static-font-assets",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:604800})]}),"GET"),e.registerRoute(/\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,new e.StaleWhileRevalidate({cacheName:"static-image-assets",plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\/_next\/image\?url=.+$/i,new e.StaleWhileRevalidate({cacheName:"next-image",plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:mp3|wav|ogg)$/i,new e.CacheFirst({cacheName:"static-audio-assets",plugins:[new e.RangeRequestsPlugin,new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:mp4)$/i,new e.CacheFirst({cacheName:"static-video-assets",plugins:[new e.RangeRequestsPlugin,new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:js)$/i,new e.StaleWhileRevalidate({cacheName:"static-js-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:css|less)$/i,new e.StaleWhileRevalidate({cacheName:"static-style-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\/_next\/data\/.+\/.+\.json$/i,new e.StaleWhileRevalidate({cacheName:"next-data",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:json|xml|csv)$/i,new e.NetworkFirst({cacheName:"static-data-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>{if(!(self.origin===e.origin))return!1;const a=e.pathname;return!a.startsWith("/api/auth/")&&!!a.startsWith("/api/")},new e.NetworkFirst({cacheName:"apis",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:16,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>{if(!(self.origin===e.origin))return!1;return!e.pathname.startsWith("/api/")},new e.NetworkFirst({cacheName:"others",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>!(self.origin===e.origin),new e.NetworkFirst({cacheName:"cross-origin",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:3600})]}),"GET")});
+// public/sw.js - Service Worker for RAID Arena
+const CACHE_NAME = 'raid-arena-v1.0.4';
+const RUNTIME_CACHE = 'raid-runtime-v1.0.4';
+
+// Assets to cache on install
+const STATIC_ASSETS = [
+  '/',
+  '/splash',
+  '/welcome',
+  '/auth/login',
+  '/auth/signup',
+  '/tournament',
+  '/profile',
+  '/leaderboard',
+  '/about',
+  '/contact',
+  '/assets/raid1.svg',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/manifest.json'
+];
+
+// Install event - cache static assets
+self.addEventListener('install', (event) => {
+  console.log('[SW] Installing service worker...');
+  
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('[SW] Caching static assets');
+        return cache.addAll(STATIC_ASSETS);
+      })
+      .then(() => {
+        console.log('[SW] Service worker installed successfully');
+        return self.skipWaiting(); // Activate immediately
+      })
+      .catch((error) => {
+        console.error('[SW] Installation failed:', error);
+      })
+  );
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating service worker...');
+  
+  event.waitUntil(
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE) {
+              console.log('[SW] Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        console.log('[SW] Service worker activated');
+        return self.clients.claim(); // Take control immediately
+      })
+  );
+});
+
+// Fetch event - serve from cache, fallback to network
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Skip cross-origin requests
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  // Skip Chrome extension requests
+  if (url.protocol === 'chrome-extension:') {
+    return;
+  }
+
+  // Skip Firebase and API calls (always fetch fresh)
+  if (
+    url.pathname.startsWith('/__') ||
+    url.pathname.includes('firestore.googleapis.com') ||
+    url.pathname.includes('firebase') ||
+    url.pathname.includes('/api/')
+  ) {
+    return;
+  }
+
+  event.respondWith(
+    caches.match(request)
+      .then((cachedResponse) => {
+        if (cachedResponse) {
+          console.log('[SW] Serving from cache:', request.url);
+          return cachedResponse;
+        }
+
+        // Clone the request
+        return fetch(request.clone())
+          .then((response) => {
+            // Don't cache if not successful
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+
+            // Cache successful responses
+            const responseToCache = response.clone();
+            
+            caches.open(RUNTIME_CACHE)
+              .then((cache) => {
+                console.log('[SW] Caching new resource:', request.url);
+                cache.put(request, responseToCache);
+              });
+
+            return response;
+          })
+          .catch((error) => {
+            console.log('[SW] Fetch failed, serving offline page:', error);
+            
+            // Return offline page for navigation requests
+            if (request.destination === 'document') {
+              return caches.match('/');
+            }
+            
+            return new Response('Offline', {
+              status: 503,
+              statusText: 'Service Unavailable'
+            });
+          });
+      })
+  );
+});
+
+// Listen for messages from the client
+self.addEventListener('message', (event) => {
+  console.log('[SW] Received message:', event.data);
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] Skipping waiting...');
+    self.skipWaiting();
+  }
+  
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    console.log('[SW] Clearing all caches...');
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            return caches.delete(cacheName);
+          })
+        );
+      })
+    );
+  }
+});
+
+// Handle push notifications (future enhancement)
+self.addEventListener('push', (event) => {
+  console.log('[SW] Push notification received');
+  
+  if (event.data) {
+    const data = event.data.json();
+    const options = {
+      body: data.body,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      vibrate: [100, 50, 100],
+      data: {
+        dateOfArrival: Date.now(),
+        primaryKey: 1
+      }
+    };
+    
+    event.waitUntil(
+      self.registration.showNotification(data.title, options)
+    );
+  }
+});
+
+// Handle notification clicks
+self.addEventListener('notificationclick', (event) => {
+  console.log('[SW] Notification clicked');
+  event.notification.close();
+  
+  event.waitUntil(
+    clients.openWindow('/')
+  );
+});
+
+console.log('[SW] Service worker script loaded');

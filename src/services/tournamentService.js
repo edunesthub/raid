@@ -1,4 +1,4 @@
-// src/services/tournamentService.js
+// src/services/tournamentService.js - FIXED VERSION
 import { 
   collection, 
   doc, 
@@ -13,11 +13,14 @@ import {
   deleteDoc,
   serverTimestamp,
   increment,
-  Timestamp
+  Timestamp,
+  runTransaction,
+  setDoc
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 const TOURNAMENTS_COLLECTION = 'tournaments';
+const PARTICIPANTS_COLLECTION = 'tournament_participants';
 
 class TournamentService {
   /**
@@ -26,6 +29,9 @@ class TournamentService {
   convertTimestampToISO(timestamp) {
     if (!timestamp) return null;
     if (timestamp instanceof Timestamp) {
+      return timestamp.toDate().toISOString();
+    }
+    if (timestamp.toDate) {
       return timestamp.toDate().toISOString();
     }
     return timestamp;
@@ -53,7 +59,6 @@ class TournamentService {
       startDate: this.convertTimestampToISO(data.start_date),
       endDate: this.convertTimestampToISO(data.end_date),
       currency: 'GHS',
-      // participants: data.participants || [], this one will be a in it own collection
       rules: data.rules ? [data.rules] : [],
       requirements: [],
       organizer: data.organizer || 'RAID Arena',
@@ -82,6 +87,37 @@ class TournamentService {
   }
 
   /**
+   * Check if user is participant in tournament
+   */
+  async isUserParticipant(tournamentId, userId) {
+    try {
+      const participantRef = doc(db, PARTICIPANTS_COLLECTION, `${tournamentId}_${userId}`);
+      const participantDoc = await getDoc(participantRef);
+      return participantDoc.exists();
+    } catch (error) {
+      console.error('Error checking participant status:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get tournament participants
+   */
+  async getTournamentParticipants(tournamentId) {
+    try {
+      const q = query(
+        collection(db, PARTICIPANTS_COLLECTION),
+        where('tournamentId', '==', tournamentId)
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => doc.data().userId);
+    } catch (error) {
+      console.error('Error fetching participants:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get all tournaments with optional filters
    */
   async getAllTournaments(options = {}) {
@@ -103,7 +139,18 @@ class TournamentService {
       }
 
       const snapshot = await getDocs(q);
-      const tournaments = snapshot.docs.map(doc => this.transformTournamentDoc(doc));
+      const tournaments = await Promise.all(
+        snapshot.docs.map(async (doc) => {
+          const tournament = this.transformTournamentDoc(doc);
+          
+          // Get actual participants if userId provided
+          if (options.userId) {
+            tournament.isUserParticipant = await this.isUserParticipant(tournament.id, options.userId);
+          }
+          
+          return tournament;
+        })
+      );
 
       // Filter by status if specified (done client-side since status is calculated)
       if (options.status && options.status !== 'all') {
@@ -120,7 +167,7 @@ class TournamentService {
   /**
    * Get tournament by ID
    */
-  async getTournamentById(tournamentId) {
+  async getTournamentById(tournamentId, userId = null) {
     try {
       const tournamentDoc = doc(db, TOURNAMENTS_COLLECTION, tournamentId);
       const snapshot = await getDoc(tournamentDoc);
@@ -129,7 +176,17 @@ class TournamentService {
         return null;
       }
 
-      return this.transformTournamentDoc(snapshot);
+      const tournament = this.transformTournamentDoc(snapshot);
+      
+      // Get participants list
+      tournament.participants = await this.getTournamentParticipants(tournamentId);
+      
+      // Check if current user is participant
+      if (userId) {
+        tournament.isUserParticipant = tournament.participants.includes(userId);
+      }
+
+      return tournament;
     } catch (error) {
       console.error('Error fetching tournament:', error);
       throw new Error('Failed to fetch tournament');
@@ -139,9 +196,12 @@ class TournamentService {
   /**
    * Get featured tournaments (registration open or upcoming)
    */
-  async getFeaturedTournaments(limitCount = 4) {
+  async getFeaturedTournaments(limitCount = 4, userId = null) {
     try {
-      const tournaments = await this.getAllTournaments({ limit: limitCount * 2 });
+      const tournaments = await this.getAllTournaments({ 
+        limit: limitCount * 2,
+        userId 
+      });
       
       // Filter for registration-open and upcoming, then limit
       const featured = tournaments
@@ -158,9 +218,9 @@ class TournamentService {
   /**
    * Search tournaments by name or game
    */
-  async searchTournaments(searchTerm) {
+  async searchTournaments(searchTerm, userId = null) {
     try {
-      const tournaments = await this.getAllTournaments();
+      const tournaments = await this.getAllTournaments({ userId });
       
       if (!searchTerm) return tournaments;
 
@@ -177,36 +237,59 @@ class TournamentService {
   }
 
   /**
-   * Join tournament
+   * Join tournament - IMPROVED WITH TRANSACTION
    */
   async joinTournament(tournamentId, userId) {
+    const tournamentRef = doc(db, TOURNAMENTS_COLLECTION, tournamentId);
+    const participantRef = doc(db, PARTICIPANTS_COLLECTION, `${tournamentId}_${userId}`);
+
     try {
-      const tournamentDoc = doc(db, TOURNAMENTS_COLLECTION, tournamentId);
-      
-      const snapshot = await getDoc(tournamentDoc);
-      if (!snapshot.exists()) {
-        throw new Error('Tournament not found');
-      }
+      await runTransaction(db, async (transaction) => {
+        // Get current tournament data
+        const tournamentDoc = await transaction.get(tournamentRef);
+        
+        if (!tournamentDoc.exists()) {
+          throw new Error('Tournament not found');
+        }
 
-      const data = snapshot.data();
-      const currentParticipants = data.current_participants || 0;
-      const maxParticipants = data.max_participant || 0;
+        const tournamentData = tournamentDoc.data();
+        const currentCount = tournamentData.current_participants || 0;
+        const maxCount = tournamentData.max_participant || 0;
 
-      if (currentParticipants >= maxParticipants) {
-        throw new Error('Tournament is full');
-      }
+        // Check if tournament is full
+        if (currentCount >= maxCount) {
+          throw new Error('Tournament is full');
+        }
 
-      const participants = data.participants || [];
-      if (participants.includes(userId)) {
-        throw new Error('Already joined this tournament');
-      }
+        // Check if already joined
+        const participantDoc = await transaction.get(participantRef);
+        if (participantDoc.exists()) {
+          throw new Error('Already joined this tournament');
+        }
 
-      await updateDoc(tournamentDoc, {
-        participants: [...participants, userId],
-        current_participants: increment(1),
-        updated_at: serverTimestamp()
+        // Check tournament status
+        const status = this.determineStatus(tournamentData);
+        if (status !== 'registration-open' && status !== 'upcoming') {
+          throw new Error('Tournament registration is closed');
+        }
+
+        // Add participant record
+        transaction.set(participantRef, {
+          tournamentId,
+          userId,
+          joinedAt: serverTimestamp(),
+          status: 'active',
+          paymentStatus: 'pending'
+        });
+
+        // Update tournament participant count
+        transaction.update(tournamentRef, {
+          current_participants: increment(1),
+          updated_at: serverTimestamp()
+        });
       });
 
+      console.log('Successfully joined tournament:', tournamentId);
       return true;
     } catch (error) {
       console.error('Error joining tournament:', error);
@@ -215,30 +298,45 @@ class TournamentService {
   }
 
   /**
-   * Leave tournament
+   * Leave tournament - IMPROVED WITH TRANSACTION
    */
   async leaveTournament(tournamentId, userId) {
+    const tournamentRef = doc(db, TOURNAMENTS_COLLECTION, tournamentId);
+    const participantRef = doc(db, PARTICIPANTS_COLLECTION, `${tournamentId}_${userId}`);
+
     try {
-      const tournamentDoc = doc(db, TOURNAMENTS_COLLECTION, tournamentId);
-      
-      const snapshot = await getDoc(tournamentDoc);
-      if (!snapshot.exists()) {
-        throw new Error('Tournament not found');
-      }
+      await runTransaction(db, async (transaction) => {
+        // Check if user is participant
+        const participantDoc = await transaction.get(participantRef);
+        if (!participantDoc.exists()) {
+          throw new Error('Not a participant in this tournament');
+        }
 
-      const data = snapshot.data();
-      const participants = data.participants || [];
-      
-      if (!participants.includes(userId)) {
-        throw new Error('Not a participant in this tournament');
-      }
+        // Get tournament data
+        const tournamentDoc = await transaction.get(tournamentRef);
+        if (!tournamentDoc.exists()) {
+          throw new Error('Tournament not found');
+        }
 
-      await updateDoc(tournamentDoc, {
-        participants: participants.filter(id => id !== userId),
-        current_participants: increment(-1),
-        updated_at: serverTimestamp()
+        const tournamentData = tournamentDoc.data();
+        const status = this.determineStatus(tournamentData);
+
+        // Check if tournament has started
+        if (status === 'live' || status === 'completed') {
+          throw new Error('Cannot leave tournament after it has started');
+        }
+
+        // Delete participant record
+        transaction.delete(participantRef);
+
+        // Update tournament participant count
+        transaction.update(tournamentRef, {
+          current_participants: increment(-1),
+          updated_at: serverTimestamp()
+        });
       });
 
+      console.log('Successfully left tournament:', tournamentId);
       return true;
     } catch (error) {
       console.error('Error leaving tournament:', error);
@@ -251,15 +349,25 @@ class TournamentService {
    */
   async getUserTournaments(userId) {
     try {
-      const tournamentRef = collection(db, TOURNAMENTS_COLLECTION);
+      // Get user's participant records
       const q = query(
-        tournamentRef,
-        where('participants', 'array-contains', userId),
-        orderBy('start_date', 'desc')
+        collection(db, PARTICIPANTS_COLLECTION),
+        where('userId', '==', userId)
       );
 
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => this.transformTournamentDoc(doc));
+      const tournamentIds = snapshot.docs.map(doc => doc.data().tournamentId);
+
+      if (tournamentIds.length === 0) {
+        return [];
+      }
+
+      // Get tournament details for each ID
+      const tournaments = await Promise.all(
+        tournamentIds.map(id => this.getTournamentById(id, userId))
+      );
+
+      return tournaments.filter(t => t !== null);
     } catch (error) {
       console.error('Error fetching user tournaments:', error);
       throw new Error('Failed to fetch user tournaments');
