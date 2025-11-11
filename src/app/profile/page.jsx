@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -8,20 +8,25 @@ import { signOut } from "firebase/auth";
 import { auth, db } from "../../lib/firebase";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/utils/formatters.js";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
-import { Pencil } from "lucide-react"; // 🖊️ import icon
+import { collection, query, where, getDocs, orderBy, doc, setDoc } from "firebase/firestore";
+import { Camera, ChevronRight, LogOut, Settings, User, Trophy, Calendar } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, isAuthenticated } = useAuth();
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef(null);
   const router = useRouter();
 
-  useEffect(() => {
-    if (user) fetchUserTournaments();
-  }, [user]);
+useEffect(() => {
+  if (user?.uid) fetchUserTournaments();
+}, [user?.uid]);
+
 
   const fetchUserTournaments = async () => {
+    if (!user?.uid) return;
+
     try {
       setLoading(true);
       const q = query(
@@ -42,6 +47,56 @@ export default function ProfilePage() {
     }
   };
 
+const handleAvatarUpload = async (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return alert("No file selected.");
+
+  try {
+    setUploadingAvatar(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "raid_avatars");
+    formData.append("folder", "avatars");
+
+    const cloudName = "drgz6qqo5"; // ⚠️ double-check in your Cloudinary dashboard
+
+    const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+    const res = await fetch(url, { method: "POST", body: formData });
+
+    const text = await res.text(); // get raw text first
+    console.log("Cloudinary raw response:", text.slice(0, 500)); // ✅ See what's returned
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error("Cloudinary returned non-JSON data. Check preset or cloud name.");
+    }
+
+    if (!data.secure_url) {
+      throw new Error("Cloudinary response missing secure_url. Response: " + JSON.stringify(data));
+    }
+
+// After Cloudinary upload
+const avatarUrl = data.secure_url; // or data.url
+const userRef = doc(db, "users", user.uid);
+await setDoc(userRef, { avatarUrl, updatedAt: new Date() }, { merge: true });
+
+// Update the user in React state (if your auth context supports it)
+if (user) user.avatarUrl = avatarUrl;
+    alert("Avatar updated successfully!");
+    window.location.reload();
+  } catch (err) {
+    console.error("Error uploading avatar:", err);
+    alert(err.message || "Upload failed. See console for details.");
+  } finally {
+    setUploadingAvatar(false);
+  }
+};
+
+
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -55,19 +110,26 @@ export default function ProfilePage() {
     return (
       <div className="container-mobile min-h-screen flex items-center justify-center py-6">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Access Denied</h2>
-          <p className="text-gray-400 mb-6">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+            <User className="w-10 h-10 text-gray-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">Access Denied</h2>
+          <p className="text-gray-400 mb-8">
             Please log in to view your profile.
           </p>
-          <Link href="/auth/login" className="btn-raid">
-            Login
+          <Link href="/auth/login" className="btn-raid inline-block">
+            Sign In
           </Link>
         </div>
       </div>
     );
   }
 
-  if (!user) return <p className="text-white">Loading profile...</p>;
+  if (!user) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  );
 
   const upcomingMatches = matches.filter(
     (m) => m.status === "upcoming" || m.status === "registration-open"
@@ -75,182 +137,247 @@ export default function ProfilePage() {
   const recentMatches = matches.filter((m) => m.status === "completed");
 
   return (
-    <div className="container-mobile min-h-screen py-6 text-white">
-      <div className="max-w-3xl mx-auto">
-{/* Avatar + Details */}
-<div className="flex flex-col items-center mb-6">
-  <div className="relative w-24 h-24 rounded-full overflow-hidden mb-3 border-4 border-orange-500">
-    {user.avatarUrl ? (
-      <Image
-        src={user.avatarUrl}
-        alt="Profile Avatar"
-        fill
-        className="object-cover"
-      />
-    ) : (
-      <div className="w-full h-full bg-gradient-to-r from-black to-orange-500 flex items-center justify-center">
-        <span className="text-white text-3xl font-bold">
-          {user.firstName?.charAt(0) || user.email?.charAt(0) || "U"}
-        </span>
-      </div>
-    )}
+    <div className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black">
+      {/* Header with Avatar */}
+      <div className="relative">
+        {/* Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-orange-600/20 via-transparent to-transparent h-64"></div>
+        
+        <div className="relative container-mobile py-12">
+          <div className="flex flex-col items-center">
+            {/* Avatar with Upload */}
+            <div className="relative group mb-6">
+              <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white/10 shadow-2xl">
+{user.avatarUrl && typeof user.avatarUrl === "string" ? (
+  <Image
+    src={user.avatarUrl}
+    alt="Profile Avatar"
+    fill
+    className="object-cover"
+  />
+) : (
+  <div className="w-full h-full bg-gradient-to-br from-orange-600 to-orange-400 flex items-center justify-center">
+    <span className="text-white text-4xl font-bold">
+      {user.firstName?.charAt(0) || user.email?.charAt(0) || "U"}
+    </span>
   </div>
+)}
 
-{/* Username + Pencil */}
-<div className="relative inline-block">
-  <h1 className="text-3xl font-bold">{user.username}</h1>
-  <Link
-    href="/profile/edit"
-    className="absolute -top-2 -right-7 p-1 rounded-full hover:bg-orange-600/20 transition-colors"
-  >
-    <Pencil size={20} className="text-orange-400 hover:text-orange-500" />
-  </Link>
-</div>
+              </div>
+              
+              {/* Upload Button Overlay */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+              >
+                {uploadingAvatar ? (
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <Camera className="w-8 h-8 text-white" />
+                )}
+              </button>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+            </div>
 
+            {/* User Info */}
+            <h1 className="text-3xl font-bold text-white mb-2">{user.username}</h1>
+            <p className="text-gray-400 text-sm mb-1">{user.email}</p>
+            {user.contact && (
+              <p className="text-gray-500 text-sm">{user.contact}</p>
+            )}
+          </div>
+        </div>
+      </div>
 
-  <p className="text-gray-400 text-sm">{user.email}</p>
-  {user.contact && (
-    <p className="text-gray-400 text-sm">{user.contact}</p>
-  )}
-</div>
-
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 gap-4 mb-8">
-          <div className="card-raid p-4 text-center">
-            <p className="text-2xl font-bold text-orange-400">
-              {loading ? "..." : matches.length}
-            </p>
-            <p className="text-gray-400 text-sm">Tournaments Played</p>
+      <div className="container-mobile pb-24">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 gap-4 mb-8 -mt-8">
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-xl rounded-3xl p-6 border border-white/5 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm mb-1">Tournaments</p>
+                <p className="text-4xl font-bold text-white">
+                  {loading ? "..." : matches.length}
+                </p>
+              </div>
+              <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center">
+                <Trophy className="w-8 h-8 text-orange-500" />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Matches */}
-        <h2 className="text-xl font-bold mb-2">Upcoming Matches</h2>
-        {loading ? (
-          <p className="text-gray-400 mb-6">Loading matches...</p>
-        ) : upcomingMatches.length > 0 ? (
-          upcomingMatches.map((m) => (
-            <div
-              key={m.id}
-              className="card-raid p-4 mb-2 border border-orange-500/30 rounded-xl hover:border-orange-500/60 transition-all duration-200"
-            >
-              <p className="font-semibold">{m.name}</p>
-              <p className="text-gray-400 text-sm">
-                {m.date ? new Date(m.date).toDateString() : "TBD"}
-              </p>
-              <p className="text-orange-400">{m.game}</p>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-400 mb-6">No upcoming matches</p>
-        )}
-
-        <h2 className="text-xl font-bold mt-6 mb-2">Recent Matches</h2>
-        {recentMatches.length > 0 ? (
-          recentMatches.map((m) => (
-            <div
-              key={m.id}
-              className="card-raid p-4 mb-2 border border-orange-500/30 rounded-xl hover:border-orange-500/60 transition-all duration-200"
-            >
-              <p className="font-semibold">{m.name}</p>
-              <p className="text-gray-400 text-sm">
-                {m.date ? new Date(m.date).toDateString() : "TBD"}
-              </p>
-              <p className="text-orange-400">{m.game}</p>
-              {m.placement && (
-                <p className="text-green-400">{m.placement}</p>
-              )}
-              {m.earnings > 0 && (
-                <p className="text-gray-300">
-                  Earnings: {formatCurrency(m.earnings)}
-                </p>
-              )}
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-400 mb-6">No recent matches</p>
-        )}
-
-        {/* Settings & Actions */}
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-            Settings & Actions
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 px-1">
+            Quick Actions
           </h2>
-          <div className="card-raid p-4 space-y-2">
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl overflow-hidden border border-white/5 shadow-xl">
             <Link
               href="/profile/edit"
-              className="flex justify-between items-center text-white hover:text-orange-500 transition-colors"
+              className="flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 transition-colors active:bg-white/10"
             >
-              <div>
-                <h3 className="font-semibold">Edit Profile</h3>
-                <p className="text-gray-400 text-sm">
-                  Update your account information
-                </p>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                  <User className="w-5 h-5 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-white font-medium">Edit Profile</p>
+                  <p className="text-gray-500 text-sm">Update your information</p>
+                </div>
               </div>
-              <span>→</span>
+              <ChevronRight className="w-5 h-5 text-gray-600" />
             </Link>
+
             <Link
               href="/profile/change-password"
-              className="flex justify-between items-center text-white hover:text-orange-500 transition-colors"
+              className="flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 transition-colors active:bg-white/10"
             >
-              <div>
-                <h3 className="font-semibold">Change Password</h3>
-                <p className="text-gray-400 text-sm">
-                  Update your account security
-                </p>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                  <Settings className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-white font-medium">Change Password</p>
+                  <p className="text-gray-500 text-sm">Update your security</p>
+                </div>
               </div>
-              <span>→</span>
+              <ChevronRight className="w-5 h-5 text-gray-600" />
             </Link>
 
             <Link
               href="/profile/notifications"
-              className="flex justify-between items-center text-white hover:text-orange-500 transition-colors"
+              className="flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 transition-colors active:bg-white/10"
             >
-              <div>
-                <h3 className="font-semibold">Notification Preferences</h3>
-                <p className="text-gray-400 text-sm">
-                  Manage your notification settings
-                </p>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-white font-medium">Notifications</p>
+                  <p className="text-gray-500 text-sm">Manage preferences</p>
+                </div>
               </div>
-              <span>→</span>
+              <ChevronRight className="w-5 h-5 text-gray-600" />
             </Link>
 
             <Link
               href="/profile/privacy"
-              className="flex justify-between items-center text-white hover:text-orange-500 transition-colors"
+              className="flex items-center justify-between p-5 hover:bg-white/5 transition-colors active:bg-white/10"
             >
-              <div>
-                <h3 className="font-semibold">Privacy Settings</h3>
-                <p className="text-gray-400 text-sm">
-                  Control your profile visibility
-                </p>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-white font-medium">Privacy</p>
+                  <p className="text-gray-500 text-sm">Control your data</p>
+                </div>
               </div>
-              <span>→</span>
+              <ChevronRight className="w-5 h-5 text-gray-600" />
             </Link>
-
-            <Link
-              href="/profile/debug"
-              className="flex justify-between items-center text-white hover:text-orange-500 transition-colors"
-            >
-              <div>
-                <h3 className="font-semibold">Debug & Cache Settings</h3>
-                <p className="text-gray-400 text-sm">
-                  Clear cache and check app version
-                </p>
-              </div>
-              <span>→</span>
-            </Link>
-
-            {/* Logout */}
-            <button
-              onClick={handleLogout}
-              className="w-full mt-4 py-2 bg-orange-600 hover:bg-orange-700 rounded-lg text-white font-semibold transition-all duration-200"
-            >
-              Log Out
-            </button>
           </div>
         </div>
+
+        {/* Upcoming Tournaments */}
+        {upcomingMatches.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 px-1">
+              Upcoming Tournaments
+            </h2>
+            <div className="space-y-3">
+              {upcomingMatches.map((m) => (
+                <div
+                  key={m.id}
+                  className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-5 border border-white/5 shadow-xl hover:border-orange-500/30 transition-all"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-white font-semibold">{m.name}</p>
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                      Upcoming
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                    <Calendar className="w-4 h-4" />
+                    <p>{m.date ? new Date(m.date).toDateString() : "TBD"}</p>
+                  </div>
+                  <p className="text-orange-400 font-medium">{m.game}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recent Tournaments */}
+        {recentMatches.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 px-1">
+              Recent Tournaments
+            </h2>
+            <div className="space-y-3">
+              {recentMatches.map((m) => (
+                <div
+                  key={m.id}
+                  className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-5 border border-white/5 shadow-xl"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-white font-semibold">{m.name}</p>
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-700/50 text-gray-400">
+                      Completed
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                    <Calendar className="w-4 h-4" />
+                    <p>{m.date ? new Date(m.date).toDateString() : "TBD"}</p>
+                  </div>
+                  <p className="text-orange-400 font-medium mb-2">{m.game}</p>
+                  {m.placement && (
+                    <p className="text-green-400 text-sm font-medium">{m.placement}</p>
+                  )}
+                  {m.earnings > 0 && (
+                    <p className="text-gray-300 text-sm">
+                      Earnings: {formatCurrency(m.earnings)}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {matches.length === 0 && !loading && (
+          <div className="text-center py-12">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+              <Trophy className="w-10 h-10 text-gray-600" />
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">No Tournaments Yet</h3>
+            <p className="text-gray-400 mb-6">Join your first tournament to get started!</p>
+            <Link href="/tournament" className="btn-raid inline-block">
+              Browse Tournaments
+            </Link>
+          </div>
+        )}
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-3 bg-gradient-to-br from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold py-4 rounded-2xl transition-all shadow-xl active:scale-95"
+        >
+          <LogOut className="w-5 h-5" />
+          Sign Out
+        </button>
       </div>
     </div>
   );
