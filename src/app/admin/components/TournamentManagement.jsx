@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from "react";
 import {
@@ -8,9 +8,10 @@ import {
   query,
   doc,
   deleteDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Plus, Search, Edit, Eye, Trash2, X } from "lucide-react";
+import { Plus, Search, Edit, Eye, Trash2, X, Calendar } from "lucide-react";
 import TournamentForm from "./TournamentForm";
 
 export default function TournamentManagement() {
@@ -19,6 +20,19 @@ export default function TournamentManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [selectedTournament, setSelectedTournament] = useState(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusUpdate, setStatusUpdate] = useState({
+    tournamentId: null,
+    currentStatus: "",
+    newStatus: "",
+  });
+
+  const statusOptions = [
+    { value: "registration-open", label: "Registration Open", color: "bg-blue-500" },
+    { value: "upcoming", label: "Upcoming", color: "bg-yellow-500" },
+    { value: "live", label: "Live", color: "bg-green-500" },
+    { value: "completed", label: "Completed", color: "bg-gray-500" },
+  ];
 
   useEffect(() => {
     loadTournaments();
@@ -50,6 +64,51 @@ export default function TournamentManagement() {
       console.error("Error deleting:", error);
       alert("Failed to delete tournament");
     }
+  };
+
+  const openStatusModal = (tournament) => {
+    setStatusUpdate({
+      tournamentId: tournament.id,
+      currentStatus: tournament.status || "completed",
+      newStatus: tournament.status || "completed",
+    });
+    setShowStatusModal(true);
+  };
+
+  const handleStatusChange = async () => {
+    if (!statusUpdate.tournamentId) return;
+
+    try {
+      const tournamentRef = doc(db, "tournaments", statusUpdate.tournamentId);
+      await updateDoc(tournamentRef, {
+        status: statusUpdate.newStatus,
+        updated_at: new Date(),
+      });
+
+      // Update local state
+      setTournaments(tournaments.map(t => 
+        t.id === statusUpdate.tournamentId 
+          ? { ...t, status: statusUpdate.newStatus }
+          : t
+      ));
+
+      setShowStatusModal(false);
+      alert("Tournament status updated successfully!");
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("Failed to update tournament status");
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    const statusOption = statusOptions.find(s => s.value === status);
+    if (!statusOption) return <span className="text-gray-400">Unknown</span>;
+    
+    return (
+      <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${statusOption.color}`}>
+        {statusOption.label}
+      </span>
+    );
   };
 
   const filtered = tournaments.filter(
@@ -114,16 +173,31 @@ export default function TournamentManagement() {
               <tr key={t.id} className="border-t border-gray-700 hover:bg-gray-900/50 transition-all">
                 <td className="p-4 text-white font-medium">{t.tournament_name}</td>
                 <td className="p-4 text-gray-300">{t.game}</td>
-                <td className="p-4 text-gray-400">{t.status}</td>
+                <td className="p-4">
+                  <button
+                    onClick={() => openStatusModal(t)}
+                    className="hover:scale-105 transition-transform"
+                  >
+                    {getStatusBadge(t.status || "completed")}
+                  </button>
+                </td>
                 <td className="p-4 text-gray-400">{t.current_participants}/{t.max_participant}</td>
                 <td className="p-4 text-gray-400">₵{t.entry_fee}</td>
                 <td className="p-4 flex gap-2">
+                  <button
+                    onClick={() => openStatusModal(t)}
+                    className="p-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition"
+                    title="Change Status"
+                  >
+                    <Calendar size={14} />
+                  </button>
                   <button
                     onClick={() => {
                       setSelectedTournament(t);
                       setShowForm(true);
                     }}
                     className="p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition"
+                    title="View"
                   >
                     <Eye size={14} />
                   </button>
@@ -133,12 +207,14 @@ export default function TournamentManagement() {
                       setShowForm(true);
                     }}
                     className="p-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg transition"
+                    title="Edit"
                   >
                     <Edit size={14} />
                   </button>
                   <button
                     onClick={() => handleDelete(t.id)}
                     className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition"
+                    title="Delete"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -155,7 +231,9 @@ export default function TournamentManagement() {
           <div key={t.id} className="bg-gray-800 rounded-2xl p-4 shadow-md hover:shadow-lg transition">
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-white font-semibold">{t.tournament_name}</h3>
-              <span className="text-gray-400 text-sm">{t.status}</span>
+              <button onClick={() => openStatusModal(t)}>
+                {getStatusBadge(t.status || "completed")}
+              </button>
             </div>
             <div className="text-gray-300 text-sm mb-2">
               Game: <span className="text-white">{t.game}</span>
@@ -168,26 +246,23 @@ export default function TournamentManagement() {
             </div>
             <div className="flex gap-2 mt-2">
               <button
+                onClick={() => openStatusModal(t)}
+                className="flex-1 p-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg text-center transition flex items-center justify-center gap-1"
+              >
+                <Calendar size={16} /> Status
+              </button>
+              <button
                 onClick={() => {
                   setSelectedTournament(t);
                   setShowForm(true);
                 }}
-                className="flex-1 p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-center transition"
+                className="flex-1 p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-center transition flex items-center justify-center gap-1"
               >
                 <Eye size={16} /> View
               </button>
               <button
-                onClick={() => {
-                  setSelectedTournament(t);
-                  setShowForm(true);
-                }}
-                className="flex-1 p-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg text-center transition"
-              >
-                <Edit size={16} /> Edit
-              </button>
-              <button
                 onClick={() => handleDelete(t.id)}
-                className="flex-1 p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-center transition"
+                className="flex-1 p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-center transition flex items-center justify-center gap-1"
               >
                 <Trash2 size={16} /> Delete
               </button>
@@ -196,7 +271,78 @@ export default function TournamentManagement() {
         ))}
       </div>
 
-      {/* Modal Form */}
+      {/* Status Change Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 rounded-3xl p-6 w-full max-w-md relative shadow-2xl border border-gray-700">
+            <button
+              onClick={() => setShowStatusModal(false)}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white"
+            >
+              <X size={24} />
+            </button>
+
+            <h3 className="text-2xl font-bold text-white mb-6">Change Tournament Status</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">
+                  Current Status
+                </label>
+                <div className="p-3 bg-gray-800 rounded-lg">
+                  {getStatusBadge(statusUpdate.currentStatus)}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">
+                  New Status
+                </label>
+                <select
+                  value={statusUpdate.newStatus}
+                  onChange={(e) => setStatusUpdate({ ...statusUpdate, newStatus: e.target.value })}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
+                >
+                  {statusOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <p className="text-blue-400 text-sm">
+                  <strong>Note:</strong> Changing the status will affect user's ability to join the tournament:
+                </p>
+                <ul className="text-blue-300 text-xs mt-2 space-y-1">
+                  <li>• <strong>Registration Open:</strong> Users can join</li>
+                  <li>• <strong>Upcoming:</strong> Users can join</li>
+                  <li>• <strong>Live:</strong> Tournament in progress</li>
+                  <li>• <strong>Completed:</strong> Tournament ended</li>
+                </ul>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowStatusModal(false)}
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 rounded-xl transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleStatusChange}
+                  className="flex-1 bg-orange-600 hover:bg-orange-500 text-white font-semibold py-3 rounded-xl transition"
+                >
+                  Update Status
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tournament Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-gray-900 rounded-3xl p-6 w-full max-w-2xl relative shadow-2xl border border-gray-700">

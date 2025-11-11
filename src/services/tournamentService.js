@@ -69,22 +69,32 @@ class TournamentService {
     };
   }
 
-  /**
-   * Determine tournament status based on dates
-   */
-  determineStatus(data) {
-    const now = new Date();
-    const startDate = data.start_date?.toDate ? data.start_date.toDate() : new Date(data.start_date);
-    const endDate = data.end_date?.toDate ? data.end_date.toDate() : new Date(data.end_date);
-    
-    if (now < startDate) {
-      return 'registration-open';
-    } else if (now >= startDate && now <= endDate) {
-      return 'live';
-    } else {
-      return 'completed';
-    }
+/**
+ * Determine tournament status based on data
+ */
+determineStatus(data) {
+  // If status is manually set, use that
+  if (data.status && ['registration-open', 'upcoming', 'live', 'completed'].includes(data.status)) {
+    return data.status;
   }
+
+  // Otherwise, determine from dates
+  if (!data.start_date || !data.end_date) {
+    return 'registration-open'; // Default to registration open if no dates
+  }
+
+  const now = new Date();
+  const startDate = data.start_date?.toDate ? data.start_date.toDate() : new Date(data.start_date);
+  const endDate = data.end_date?.toDate ? data.end_date.toDate() : new Date(data.end_date);
+  
+  if (now < startDate) {
+    return 'registration-open';
+  } else if (now >= startDate && now <= endDate) {
+    return 'live';
+  } else {
+    return 'completed';
+  }
+}
 
   /**
    * Check if user is participant in tournament
