@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 export default function EditProfilePage() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
+
   const [formData, setFormData] = useState({
     username: '',
     firstName: '',
@@ -23,25 +24,26 @@ export default function EditProfilePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  // Avatar states
+  const [avatarUrl, setAvatarUrl] = useState(''); 
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = React.useRef(null);
+
   // Load profile from Firebase
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        // Wait for user to be loaded
         if (!user?.id) {
           console.log('Waiting for user to load...');
           setLoading(false);
           return;
         }
 
-        console.log('Loading profile for user:', user.id);
         const docRef = doc(db, "users", user.id);
         const docSnap = await getDoc(docRef);
-        
+
         if (docSnap.exists()) {
           const data = docSnap.data();
-          console.log('Profile data loaded:', data);
-          
           setFormData({
             username: data.username || '',
             firstName: data.firstName || '',
@@ -50,9 +52,11 @@ export default function EditProfilePage() {
             email: data.email || user.email || '',
             bio: data.bio || '',
           });
+
+          // Set avatar if exists
+          if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
         } else {
-          console.log('No profile document found, using auth user data');
-          // Set defaults from auth user
+          // Defaults from auth user
           setFormData({
             username: user.username || '',
             firstName: user.firstName || '',
@@ -70,7 +74,6 @@ export default function EditProfilePage() {
       }
     };
 
-    // Only load profile if user is authenticated
     if (isAuthenticated && user) {
       loadProfile();
     } else {
@@ -78,71 +81,102 @@ export default function EditProfilePage() {
     }
   }, [user, isAuthenticated]);
 
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     if (error) setError('');
     if (success) setSuccess(false);
   };
 
-const handleSave = async (e) => {
-  e.preventDefault();
-if (!user?.id) {
-  setError('You must be logged in to update your profile');
-  return;
-}
+  // Handle avatar upload
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploadingAvatar(true);
 
+      const formDataCloud = new FormData();
+      formDataCloud.append('file', file);
+      formDataCloud.append('upload_preset', 'raid_avatars');
+      formDataCloud.append('folder', 'avatars');
 
-  // Ensure all fields are strings
-  const safeFormData = {
-    username: formData.username || "",
-    firstName: formData.firstName || "",
-    lastName: formData.lastName || "",
-    contact: formData.contact || "",
-    email: formData.email || "",
-    bio: formData.bio || "",
+      const cloudName = 'drgz6qqo5';
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: 'POST',
+        body: formDataCloud
+      });
+      const data = await res.json();
+
+      if (!data.secure_url) throw new Error('Upload failed');
+
+      setAvatarUrl(data.secure_url);
+
+      if (user?.id) {
+        const userRef = doc(db, 'users', user.id);
+        await updateDoc(userRef, { avatarUrl: data.secure_url, updatedAt: new Date() });
+      }
+    } catch (err) {
+      console.error('Error uploading avatar:', err);
+      setError(err.message || 'Avatar upload failed.');
+    } finally {
+      setUploadingAvatar(false);
+    }
   };
 
-  // Validation
-  if (!safeFormData.username.trim()) {
-    setError('Username is required');
-    return;
-  }
-  if (!safeFormData.email.trim()) {
-    setError('Email is required');
-    return;
-  }
+  // Handle save
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!user?.id) {
+      setError('You must be logged in to update your profile');
+      return;
+    }
 
-  try {
-    setSaving(true);
-    setError('');
+    const safeFormData = {
+      username: formData.username || "",
+      firstName: formData.firstName || "",
+      lastName: formData.lastName || "",
+      contact: formData.contact || "",
+      email: formData.email || "",
+      bio: formData.bio || "",
+    };
 
-const userRef = doc(db, 'users', user.id);
+    if (!safeFormData.username.trim()) {
+      setError('Username is required');
+      return;
+    }
+    if (!safeFormData.email.trim()) {
+      setError('Email is required');
+      return;
+    }
 
-    await updateDoc(userRef, {
-      username: safeFormData.username.trim(),
-      firstName: safeFormData.firstName.trim(),
-      lastName: safeFormData.lastName.trim(),
-      contact: safeFormData.contact.trim(),
-      email: safeFormData.email.trim(),
-      bio: safeFormData.bio.trim(),
-      updatedAt: new Date(),
-    });
+    try {
+      setSaving(true);
+      setError('');
 
-    setSuccess(true);
+      const userRef = doc(db, 'users', user.id);
 
-    setTimeout(() => {
-      router.push('/profile');
-    }, 1500);
-  } catch (err) {
-    console.error('Error saving profile:', err);
-    setError(err.message || 'Failed to save profile. Please try again.');
-  } finally {
-    setSaving(false);
-  }
-};
+      await updateDoc(userRef, {
+        username: safeFormData.username.trim(),
+        firstName: safeFormData.firstName.trim(),
+        lastName: safeFormData.lastName.trim(),
+        contact: safeFormData.contact.trim(),
+        email: safeFormData.email.trim(),
+        bio: safeFormData.bio.trim(),
+        updatedAt: new Date(),
+      });
 
+      setSuccess(true);
+      setTimeout(() => {
+        router.push('/profile');
+      }, 1500);
+    } catch (err) {
+      console.error('Error saving profile:', err);
+      setError(err.message || 'Failed to save profile. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // Redirect if not authenticated
   if (!isAuthenticated) {
@@ -196,6 +230,37 @@ const userRef = doc(db, 'users', user.id);
           <p className="text-red-400 text-center">{error}</p>
         </div>
       )}
+
+      {/* Avatar */}
+      <div className="mb-6 relative">
+        <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-orange-500 mx-auto mb-4">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="Avatar" className="object-cover w-full h-full" />
+          ) : (
+            <div className="w-full h-full bg-gray-700 flex items-center justify-center text-white text-4xl font-bold">
+              {formData.firstName?.charAt(0) || 'U'}
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center hover:bg-orange-600 transition"
+        >
+          {uploadingAvatar ? (
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            '📷'
+          )}
+        </button>
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept="image/*"
+          onChange={handleAvatarUpload}
+          className="hidden"
+        />
+      </div>
 
       {/* Form Card */}
       <form

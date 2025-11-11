@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -8,21 +8,18 @@ import { signOut } from "firebase/auth";
 import { auth, db } from "../../lib/firebase";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/utils/formatters.js";
-import { collection, query, where, getDocs, orderBy, doc, setDoc } from "firebase/firestore";
-import { Camera, ChevronRight, LogOut, Settings, User, Trophy, Calendar } from "lucide-react";
+import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { Pencil, ChevronRight, LogOut, Settings, User, Trophy, Calendar } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, isAuthenticated } = useAuth();
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const fileInputRef = useRef(null);
   const router = useRouter();
 
-useEffect(() => {
-  if (user?.uid) fetchUserTournaments();
-}, [user?.uid]);
-
+  useEffect(() => {
+    if (user?.uid) fetchUserTournaments();
+  }, [user?.uid]);
 
   const fetchUserTournaments = async () => {
     if (!user?.uid) return;
@@ -47,56 +44,6 @@ useEffect(() => {
     }
   };
 
-const handleAvatarUpload = async (event) => {
-  const file = event.target.files?.[0];
-  if (!file) return alert("No file selected.");
-
-  try {
-    setUploadingAvatar(true);
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "raid_avatars");
-    formData.append("folder", "avatars");
-
-    const cloudName = "drgz6qqo5"; // ⚠️ double-check in your Cloudinary dashboard
-
-    const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-    const res = await fetch(url, { method: "POST", body: formData });
-
-    const text = await res.text(); // get raw text first
-    console.log("Cloudinary raw response:", text.slice(0, 500)); // ✅ See what's returned
-
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      throw new Error("Cloudinary returned non-JSON data. Check preset or cloud name.");
-    }
-
-    if (!data.secure_url) {
-      throw new Error("Cloudinary response missing secure_url. Response: " + JSON.stringify(data));
-    }
-
-// After Cloudinary upload
-const avatarUrl = data.secure_url; // or data.url
-const userRef = doc(db, "users", user.uid);
-await setDoc(userRef, { avatarUrl, updatedAt: new Date() }, { merge: true });
-
-// Update the user in React state (if your auth context supports it)
-if (user) user.avatarUrl = avatarUrl;
-    alert("Avatar updated successfully!");
-    window.location.reload();
-  } catch (err) {
-    console.error("Error uploading avatar:", err);
-    alert(err.message || "Upload failed. See console for details.");
-  } finally {
-    setUploadingAvatar(false);
-  }
-};
-
-
-
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -114,9 +61,7 @@ if (user) user.avatarUrl = avatarUrl;
             <User className="w-10 h-10 text-gray-600" />
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">Access Denied</h2>
-          <p className="text-gray-400 mb-8">
-            Please log in to view your profile.
-          </p>
+          <p className="text-gray-400 mb-8">Please log in to view your profile.</p>
           <Link href="/auth/login" className="btn-raid inline-block">
             Sign In
           </Link>
@@ -125,11 +70,12 @@ if (user) user.avatarUrl = avatarUrl;
     );
   }
 
-  if (!user) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  );
+  if (!user)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
 
   const upcomingMatches = matches.filter(
     (m) => m.status === "upcoming" || m.status === "registration-open"
@@ -140,59 +86,43 @@ if (user) user.avatarUrl = avatarUrl;
     <div className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black">
       {/* Header with Avatar */}
       <div className="relative">
-        {/* Gradient Background */}
         <div className="absolute inset-0 bg-gradient-to-b from-orange-600/20 via-transparent to-transparent h-64"></div>
-        
+
         <div className="relative container-mobile py-12">
           <div className="flex flex-col items-center">
-            {/* Avatar with Upload */}
-            <div className="relative group mb-6">
+            {/* Avatar display only */}
+            <div className="relative mb-6">
               <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white/10 shadow-2xl">
-{user.avatarUrl && typeof user.avatarUrl === "string" ? (
-  <Image
-    src={user.avatarUrl}
-    alt="Profile Avatar"
-    fill
-    className="object-cover"
-  />
-) : (
-  <div className="w-full h-full bg-gradient-to-br from-orange-600 to-orange-400 flex items-center justify-center">
-    <span className="text-white text-4xl font-bold">
-      {user.firstName?.charAt(0) || user.email?.charAt(0) || "U"}
-    </span>
-  </div>
-)}
-
-              </div>
-              
-              {/* Upload Button Overlay */}
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingAvatar}
-                className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-              >
-                {uploadingAvatar ? (
-                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                {user.avatarUrl && typeof user.avatarUrl === "string" ? (
+                  <Image
+                    src={user.avatarUrl}
+                    alt="Profile Avatar"
+                    fill
+                    className="object-cover"
+                  />
                 ) : (
-                  <Camera className="w-8 h-8 text-white" />
+                  <div className="w-full h-full bg-gradient-to-br from-orange-600 to-orange-400 flex items-center justify-center">
+                    <span className="text-white text-4xl font-bold">
+                      {user.firstName?.charAt(0) || user.email?.charAt(0) || "U"}
+                    </span>
+                  </div>
                 )}
-              </button>
-              
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarUpload}
-                className="hidden"
-              />
+
+                {/* Pencil icon linking to edit profile */}
+                <Link
+                  href="/profile/edit"
+                  className="absolute bottom-2 right-2 bg-black/70 border border-white/10 rounded-full p-2 shadow-lg hover:bg-orange-500 transition-all"
+                  aria-label="Edit profile"
+                >
+                  <Pencil className="w-4 h-4 text-white" />
+                </Link>
+              </div>
             </div>
 
             {/* User Info */}
             <h1 className="text-3xl font-bold text-white mb-2">{user.username}</h1>
             <p className="text-gray-400 text-sm mb-1">{user.email}</p>
-            {user.contact && (
-              <p className="text-gray-500 text-sm">{user.contact}</p>
-            )}
+            {user.contact && <p className="text-gray-500 text-sm">{user.contact}</p>}
           </div>
         </div>
       </div>
@@ -259,8 +189,18 @@ if (user) user.avatarUrl = avatarUrl;
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  <svg
+                    className="w-5 h-5 text-green-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                    />
                   </svg>
                 </div>
                 <div>
@@ -277,8 +217,18 @@ if (user) user.avatarUrl = avatarUrl;
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  <svg
+                    className="w-5 h-5 text-yellow-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
                   </svg>
                 </div>
                 <div>
@@ -291,7 +241,7 @@ if (user) user.avatarUrl = avatarUrl;
           </div>
         </div>
 
-        {/* Upcoming Tournaments */}
+        {/* Tournaments */}
         {upcomingMatches.length > 0 && (
           <div className="mb-8">
             <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 px-1">
@@ -320,7 +270,6 @@ if (user) user.avatarUrl = avatarUrl;
           </div>
         )}
 
-        {/* Recent Tournaments */}
         {recentMatches.length > 0 && (
           <div className="mb-8">
             <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 px-1">
