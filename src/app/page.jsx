@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import TournamentCard from "@/components/TournamentCard.jsx";
 import LoadingSpinner from "@/components/LoadingSpinner.jsx";
+import UserSearchBar from "@/components/UserSearchBar.jsx"; // Add this
 import { useFeaturedTournaments } from "@/hooks/useTournaments";
 
 export default function Home() {
@@ -43,6 +44,9 @@ export default function Home() {
             </p>
           </div>
         </div>
+
+                <UserSearchBar />
+
 
         {/* Images Carousel Section */}
         <section className="mb-8">
