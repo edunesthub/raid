@@ -95,7 +95,6 @@ const UserSearchBar = () => {
   };
 
   const handleUserClick = (user) => {
-    // Navigate to user profile or handle user selection
     window.location.href = `/users/${user.id}`;
   };
 
@@ -116,7 +115,6 @@ const UserSearchBar = () => {
           className="w-full bg-gray-800/50 border border-gray-700 rounded-xl pl-12 pr-12 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
         />
 
-        {/* Clear Button */}
         {searchQuery && (
           <button
             onClick={handleClearSearch}
@@ -126,7 +124,6 @@ const UserSearchBar = () => {
           </button>
         )}
 
-        {/* Loading Spinner */}
         {isSearching && (
           <div className="absolute right-12 top-1/2 -translate-y-1/2">
             <Loader className="w-5 h-5 text-orange-500 animate-spin" />
@@ -150,7 +147,6 @@ const UserSearchBar = () => {
                   onClick={() => handleUserClick(user)}
                   className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 transition-colors text-left"
                 >
-                  {/* Avatar */}
                   <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-r from-black to-orange-500">
                     {user.avatarUrl ? (
                       <img
@@ -167,7 +163,6 @@ const UserSearchBar = () => {
                     )}
                   </div>
 
-                  {/* User Info */}
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-semibold truncate">
                       {user.username || 'Unknown User'}
@@ -175,14 +170,8 @@ const UserSearchBar = () => {
                     <p className="text-gray-400 text-sm truncate">
                       {user.email}
                     </p>
-                    {(user.firstName || user.lastName) && (
-                      <p className="text-gray-500 text-xs truncate">
-                        {user.firstName} {user.lastName}
-                      </p>
-                    )}
                   </div>
 
-                  {/* Arrow Icon */}
                   <div className="flex-shrink-0">
                     <svg
                       className="w-5 h-5 text-gray-400"

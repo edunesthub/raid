@@ -1,13 +1,14 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { useParams } from 'next/navigation';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { ArrowLeft, Trophy, Award, Calendar, Mail, Phone } from 'lucide-react';
 import Link from 'next/link';
 
-const UserProfilePage = () => {
+export default function UserProfilePage() {
   const params = useParams();
-  const router = useRouter();
   const userId = params?.id;
 
   const [user, setUser] = useState(null);
@@ -29,7 +30,6 @@ const UserProfilePage = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch user profile
       const userDoc = await getDoc(doc(db, 'users', userId));
       if (!userDoc.exists()) {
         setError('User not found');
@@ -39,7 +39,6 @@ const UserProfilePage = () => {
       const userData = { id: userDoc.id, ...userDoc.data() };
       setUser(userData);
 
-      // Fetch user stats
       const statsDoc = await getDoc(doc(db, 'userStats', userId));
       if (statsDoc.exists()) {
         setStats(statsDoc.data());
@@ -85,7 +84,6 @@ const UserProfilePage = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-white py-6 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Back Button */}
         <Link
           href="/"
           className="inline-flex items-center text-gray-400 hover:text-white transition-colors mb-6"
@@ -94,10 +92,8 @@ const UserProfilePage = () => {
           Back to Home
         </Link>
 
-        {/* Profile Header */}
         <div className="card-raid p-6 mb-6">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            {/* Avatar */}
             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-orange-500 flex-shrink-0">
               {user.avatarUrl ? (
                 <img
@@ -114,7 +110,6 @@ const UserProfilePage = () => {
               )}
             </div>
 
-            {/* User Info */}
             <div className="flex-1 text-center md:text-left">
               <h1 className="text-3xl font-bold text-white mb-2">
                 {user.username || 'Unknown User'}
@@ -132,7 +127,6 @@ const UserProfilePage = () => {
                 </p>
               )}
 
-              {/* Contact Info */}
               <div className="flex flex-col sm:flex-row gap-4 text-sm">
                 {user.email && (
                   <div className="flex items-center justify-center md:justify-start text-gray-400">
@@ -158,7 +152,6 @@ const UserProfilePage = () => {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="card-raid p-6 text-center">
             <Trophy className="w-8 h-8 text-orange-500 mx-auto mb-2" />
@@ -185,7 +178,6 @@ const UserProfilePage = () => {
           </div>
         </div>
 
-        {/* Additional Info */}
         <div className="card-raid p-6">
           <h2 className="text-xl font-bold text-white mb-4">About</h2>
           {user.bio ? (
@@ -197,6 +189,4 @@ const UserProfilePage = () => {
       </div>
     </div>
   );
-};
-
-export default UserProfilePage;
+}
