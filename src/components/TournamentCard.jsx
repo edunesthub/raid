@@ -14,19 +14,25 @@ const TournamentCard = ({ tournament }) => {
           alt={tournament.title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        <span
-          className={`absolute top-3 right-3 px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-full text-white shadow-md ${
-            tournament.status === "live"
-              ? "bg-green-500/90"
-              : tournament.status === "registration-open"
-              ? "bg-blue-500/90"
-              : "bg-yellow-500/90"
-          }`}
-        >
-          {tournament.status === "registration-open"
-            ? "REG OPEN"
-            : tournament.status.toUpperCase()}
-        </span>
+<span
+  className={`absolute top-3 right-3 px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-full text-white shadow-md ${
+    tournament.status === "live"
+      ? "bg-green-500/90 animate-pulse"
+      : tournament.status === "registration-open"
+      ? "bg-blue-500/90"
+      : tournament.status === "upcoming"
+      ? "bg-yellow-500/90"
+      : "bg-gray-500/90"
+  }`}
+>
+  {tournament.status === "registration-open"
+    ? "🔥 OPEN"
+    : tournament.status === "live"
+    ? "🔴 LIVE"
+    : tournament.status === "upcoming"
+    ? "⏰ SOON"
+    : "✅ ENDED"}
+</span>
       </div>
 
       {/* CONTENT */}

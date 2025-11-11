@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { notFound, useRouter } from 'next/navigation';
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner.jsx';
 import { useTournament } from '@/hooks/useTournaments';
 import { useAuth } from '@/hooks/useAuth';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function TournamentPage({ params }) {
   const resolvedParams = use(params);
@@ -14,6 +16,24 @@ export default function TournamentPage({ params }) {
   const { tournament, loading, error, joinTournament, leaveTournament } = useTournament(resolvedParams?.id);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState(null);
+  const [isParticipant, setIsParticipant] = useState(false);
+
+  // Check if user is participant
+  useEffect(() => {
+    const checkParticipation = async () => {
+      if (!user || !resolvedParams?.id) return;
+      
+      try {
+        const participantRef = doc(db, 'tournament_participants', `${resolvedParams.id}_${user.id}`);
+        const participantDoc = await getDoc(participantRef);
+        setIsParticipant(participantDoc.exists());
+      } catch (err) {
+        console.error('Error checking participation:', err);
+      }
+    };
+
+    checkParticipation();
+  }, [user, resolvedParams?.id, tournament]);
 
   const handleJoinTournament = async () => {
     if (!isAuthenticated) {
@@ -25,9 +45,10 @@ export default function TournamentPage({ params }) {
       setActionLoading(true);
       setActionError(null);
       await joinTournament(user.id);
-      // Success message could be shown here
+      setIsParticipant(true);
     } catch (err) {
       setActionError(err.message);
+      alert(err.message || 'Failed to join tournament');
     } finally {
       setActionLoading(false);
     }
@@ -36,12 +57,16 @@ export default function TournamentPage({ params }) {
   const handleLeaveTournament = async () => {
     if (!isAuthenticated) return;
 
+    if (!confirm('Are you sure you want to leave this tournament?')) return;
+
     try {
       setActionLoading(true);
       setActionError(null);
       await leaveTournament(user.id);
+      setIsParticipant(false);
     } catch (err) {
       setActionError(err.message);
+      alert(err.message || 'Failed to leave tournament');
     } finally {
       setActionLoading(false);
     }
@@ -60,7 +85,7 @@ export default function TournamentPage({ params }) {
       <div className="container-mobile min-h-screen py-6">
         <div className="card-raid p-6 text-center">
           <p className="text-red-500 mb-4">{error || 'Tournament not found'}</p>
-          <Link href="/" className="text-blue-400 hover:text-blue-300">
+          <Link href="/tournament" className="text-blue-400 hover:text-blue-300">
             Return to Tournaments
           </Link>
         </div>
@@ -79,6 +104,7 @@ export default function TournamentPage({ params }) {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'TBA';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -90,34 +116,57 @@ export default function TournamentPage({ params }) {
     });
   };
 
-  const getStatusColor = (status) => {
+  const getStatusConfig = (status) => {
     switch (status) {
-      case 'live': return 'bg-green-600';
-      case 'registration-open': return 'bg-blue-600';
-      case 'upcoming': return 'bg-yellow-600';
-      default: return 'bg-gray-600';
+      case 'registration-open':
+        return {
+          color: 'bg-blue-600',
+          text: 'REGISTRATION OPEN',
+          icon: '🔥',
+          description: 'Join now!'
+        };
+      case 'upcoming':
+        return {
+          color: 'bg-yellow-600',
+          text: 'UPCOMING',
+          icon: '⏰',
+          description: 'Starting soon'
+        };
+      case 'live':
+        return {
+          color: 'bg-green-600',
+          text: 'LIVE NOW',
+          icon: '🔴',
+          description: 'Tournament in progress'
+        };
+      case 'completed':
+        return {
+          color: 'bg-gray-600',
+          text: 'COMPLETED',
+          icon: '✅',
+          description: 'Tournament ended'
+        };
+      default:
+        return {
+          color: 'bg-gray-600',
+          text: status?.toUpperCase() || 'UNKNOWN',
+          icon: '❓',
+          description: ''
+        };
     }
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'live': return 'LIVE NOW';
-      case 'registration-open': return 'REGISTRATION OPEN';
-      case 'upcoming': return 'UPCOMING';
-      default: return status.toUpperCase();
-    }
-  };
-
+  const statusConfig = getStatusConfig(tournament.status);
   const progressPercentage = (tournament.currentPlayers / tournament.maxPlayers) * 100;
   const spotsLeft = tournament.maxPlayers - tournament.currentPlayers;
-  const isParticipant = tournament.participants?.includes(user?.id);
+  const canJoin = (tournament.status === 'registration-open' || tournament.status === 'upcoming') && spotsLeft > 0;
 
   return (
     <div className="container-mobile min-h-screen py-6">
       {/* Back Button */}
       <div className="mb-6">
         <Link
-          href="/"
+          href="/tournament"
           className="inline-flex items-center text-gray-400 hover:text-white transition-colors"
         >
           <span className="mr-2">←</span>
@@ -132,6 +181,16 @@ export default function TournamentPage({ params }) {
         </div>
       )}
 
+      {/* Success Message for Participants */}
+      {isParticipant && (
+        <div className="bg-green-600/10 border border-green-600/30 rounded-lg p-4 mb-6">
+          <p className="text-green-400 text-sm flex items-center">
+            <span className="mr-2">✅</span>
+            You are registered for this tournament!
+          </p>
+        </div>
+      )}
+
       {/* Tournament Header */}
       <div className="card-raid p-6 mb-6">
         <div className="flex justify-between items-start mb-4">
@@ -141,9 +200,15 @@ export default function TournamentPage({ params }) {
               <p className="text-gray-400">{tournament.game}</p>
             </div>
           </div>
-          <div className={`px-3 py-1 rounded-full text-sm font-bold text-white ${getStatusColor(tournament.status)}`}>
-            {getStatusText(tournament.status)}
+          <div className={`px-4 py-2 rounded-full text-sm font-bold text-white ${statusConfig.color} flex items-center gap-2 animate-pulse`}>
+            <span>{statusConfig.icon}</span>
+            {statusConfig.text}
           </div>
+        </div>
+
+        {/* Status Description */}
+        <div className="bg-gray-800/50 rounded-lg p-3 mb-4">
+          <p className="text-gray-300 text-sm">{statusConfig.description}</p>
         </div>
 
         <p className="text-gray-300 mb-6">{tournament.description}</p>
@@ -182,47 +247,77 @@ export default function TournamentPage({ params }) {
               style={{ width: `${progressPercentage}%` }}
             ></div>
           </div>
-          <p className="text-gray-400 text-sm">
-            {spotsLeft > 0 ? `${spotsLeft} spots remaining` : 'Tournament is full!'}
-          </p>
+          {spotsLeft > 0 ? (
+            <p className="text-gray-400 text-sm">
+              🔥 {spotsLeft} {spotsLeft === 1 ? 'spot' : 'spots'} remaining!
+            </p>
+          ) : (
+            <p className="text-red-400 text-sm">❌ Tournament is full!</p>
+          )}
         </div>
 
         {/* Action Buttons */}
         <div className="text-center">
-          {tournament.status === 'registration-open' && spotsLeft > 0 ? (
+          {tournament.status === 'completed' ? (
+            <div className="bg-gray-700/50 rounded-lg p-4">
+              <p className="text-gray-400">This tournament has ended</p>
+            </div>
+          ) : tournament.status === 'live' ? (
+            <div className="bg-green-600/20 border border-green-600/50 rounded-lg p-4">
+              <p className="text-green-400 font-semibold mb-2">🔴 Tournament is Live!</p>
+              {isParticipant ? (
+                <p className="text-gray-300 text-sm">Good luck! Check your email for match details.</p>
+              ) : (
+                <p className="text-gray-400 text-sm">Registration is closed</p>
+              )}
+            </div>
+          ) : canJoin ? (
             isParticipant ? (
-              <button 
-                onClick={handleLeaveTournament}
-                disabled={actionLoading}
-                className="btn-raid w-full bg-red-600 hover:bg-red-700"
-              >
-                {actionLoading ? 'Processing...' : 'Leave Tournament'}
-              </button>
+              <div className="space-y-3">
+                <div className="bg-green-600/20 border border-green-600/50 rounded-lg p-4">
+                  <p className="text-green-400 font-semibold">✅ You're In!</p>
+                  <p className="text-gray-300 text-sm mt-1">You're registered for this tournament</p>
+                </div>
+                <button 
+                  onClick={handleLeaveTournament}
+                  disabled={actionLoading}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {actionLoading ? 'Processing...' : 'Leave Tournament'}
+                </button>
+              </div>
             ) : (
               <button 
                 onClick={handleJoinTournament}
-                disabled={actionLoading}
-                className="btn-raid w-full"
+                disabled={actionLoading || spotsLeft === 0}
+                className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
               >
-                {actionLoading ? 'Processing...' : `Join Tournament - ${formatCurrency(tournament.entryFee, tournament.currency)}`}
+                {actionLoading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                    </svg>
+                    Joining...
+                  </span>
+                ) : (
+                  `Join Tournament - ${formatCurrency(tournament.entryFee, tournament.currency)}`
+                )}
               </button>
             )
-          ) : tournament.status === 'live' ? (
-            <button className="btn-raid w-full bg-green-600 hover:bg-green-700">
-              <span className="mr-2">📺</span>
-              Watch Live
-            </button>
           ) : (
-            <button className="btn-raid w-full opacity-50 cursor-not-allowed" disabled>
-              Registration Closed
-            </button>
+            <div className="bg-gray-700/50 rounded-lg p-4">
+              <p className="text-gray-400">
+                {spotsLeft === 0 ? '❌ Tournament is full' : '🔒 Registration is closed'}
+              </p>
+            </div>
           )}
         </div>
       </div>
 
       {/* Tournament Schedule */}
       <div className="card-raid p-6 mb-6">
-        <h2 className="text-xl font-bold text-white mb-4">Schedule</h2>
+        <h2 className="text-xl font-bold text-white mb-4">📅 Schedule</h2>
         <div className="space-y-4">
           <div>
             <h3 className="text-gray-400 text-sm mb-1">Start Date</h3>
@@ -238,7 +333,7 @@ export default function TournamentPage({ params }) {
       {/* Tournament Rules */}
       {tournament.rules && tournament.rules.length > 0 && (
         <div className="card-raid p-6 mb-6">
-          <h2 className="text-xl font-bold text-white mb-4">Rules</h2>
+          <h2 className="text-xl font-bold text-white mb-4">📜 Rules</h2>
           <ul className="list-disc list-inside space-y-2 text-gray-300">
             {tournament.rules.map((rule, index) => (
               <li key={index}>{rule}</li>
@@ -249,8 +344,8 @@ export default function TournamentPage({ params }) {
 
       {/* Requirements */}
       {tournament.requirements && tournament.requirements.length > 0 && (
-        <div className="card-raid p-6">
-          <h2 className="text-xl font-bold text-white mb-4">Requirements</h2>
+        <div className="card-raid p-6 mb-6">
+          <h2 className="text-xl font-bold text-white mb-4">✅ Requirements</h2>
           <ul className="list-disc list-inside space-y-2 text-gray-300">
             {tournament.requirements.map((req, index) => (
               <li key={index}>{req}</li>
@@ -261,13 +356,13 @@ export default function TournamentPage({ params }) {
 
       {/* Prize Distribution */}
       {tournament.prizeDistribution && tournament.prizeDistribution.length > 0 && (
-        <div className="card-raid p-6 mt-6">
-          <h2 className="text-xl font-bold text-white mb-4">Prize Distribution</h2>
+        <div className="card-raid p-6">
+          <h2 className="text-xl font-bold text-white mb-4">🏆 Prize Distribution</h2>
           <div className="space-y-3">
             {tournament.prizeDistribution.map((prize, index) => (
-              <div key={index} className="flex justify-between items-center bg-gray-800/50 p-3 rounded-lg">
-                <span className="text-gray-300">{prize.rank}</span>
-                <span className="text-white font-bold">{prize.percentage}%</span>
+              <div key={index} className="flex justify-between items-center bg-gray-800/50 p-4 rounded-lg">
+                <span className="text-gray-300 font-semibold">{prize.rank}</span>
+                <span className="text-white font-bold text-lg">{prize.percentage}%</span>
               </div>
             ))}
           </div>
