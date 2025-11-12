@@ -127,21 +127,6 @@ export default function UserProfilePage() {
                 </p>
               )}
 
-              <div className="flex flex-col sm:flex-row gap-4 text-sm">
-                {user.email && (
-                  <div className="flex items-center justify-center md:justify-start text-gray-400">
-                    <Mail className="w-4 h-4 mr-2" />
-                    {user.email}
-                  </div>
-                )}
-                {user.contact && (
-                  <div className="flex items-center justify-center md:justify-start text-gray-400">
-                    <Phone className="w-4 h-4 mr-2" />
-                    {user.contact}
-                  </div>
-                )}
-              </div>
-
               {user.createdAt && (
                 <div className="flex items-center justify-center md:justify-start text-gray-500 text-sm mt-2">
                   <Calendar className="w-4 h-4 mr-2" />
@@ -178,14 +163,6 @@ export default function UserProfilePage() {
           </div>
         </div>
 
-        <div className="card-raid p-6">
-          <h2 className="text-xl font-bold text-white mb-4">About</h2>
-          {user.bio ? (
-            <p className="text-gray-300">{user.bio}</p>
-          ) : (
-            <p className="text-gray-500 italic">This user hasn't added a bio yet.</p>
-          )}
-        </div>
       </div>
     </div>
   );
