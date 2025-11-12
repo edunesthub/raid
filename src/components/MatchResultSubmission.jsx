@@ -139,10 +139,10 @@ userScore: form.score ? Number(form.score) : null,
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+<div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center sm:p-4 p-2">
+  <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full sm:max-w-2xl max-w-full sm:max-h-[90vh] h-[95vh] sm:h-auto overflow-y-auto flex flex-col">
         {/* Header */}
-        <div className="sticky top-0 bg-gray-900 border-b border-gray-700 p-6 flex items-center justify-between">
+<div className="sticky top-0 bg-gray-900 border-b border-gray-700 p-4 sm:p-6 flex items-center justify-between">
           <div>
             <h3 className="text-xl font-bold text-white">Submit Match Results</h3>
             <p className="text-gray-400 text-sm mt-1">{tournamentName}</p>
@@ -157,7 +157,7 @@ userScore: form.score ? Number(form.score) : null,
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+<form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6 pb-32">
 
 
           {/* Screenshot Upload */}
@@ -173,7 +173,7 @@ userScore: form.score ? Number(form.score) : null,
                     <img
                       src={preview}
                       alt={`Screenshot ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg border border-gray-700"
+className="w-full h-28 sm:h-32 object-cover rounded-xl border border-gray-700"
                     />
                     <button
                       type="button"
@@ -286,7 +286,7 @@ userScore: form.score ? Number(form.score) : null,
           </div>
 
           {/* Submit Button */}
-          <div className="flex gap-3 pt-4">
+<div className="flex flex-col sm:flex-row gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
