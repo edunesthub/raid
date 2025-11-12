@@ -1,3 +1,4 @@
+// Update: src/app/admin/components/TournamentManagement.jsx
 'use client';
 
 import { useEffect, useState } from "react";
@@ -11,8 +12,9 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Plus, Search, Edit, Eye, Trash2, X, Calendar } from "lucide-react";
+import { Plus, Search, Edit, Eye, Trash2, X, Calendar, Users as UsersIcon } from "lucide-react";
 import TournamentForm from "./TournamentForm";
+import TournamentParticipants from "./TournamentParticipants";
 
 export default function TournamentManagement() {
   const [tournaments, setTournaments] = useState([]);
@@ -21,6 +23,8 @@ export default function TournamentManagement() {
   const [showForm, setShowForm] = useState(false);
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showParticipantsModal, setShowParticipantsModal] = useState(false);
+  const [selectedTournamentId, setSelectedTournamentId] = useState(null);
   const [statusUpdate, setStatusUpdate] = useState({
     tournamentId: null,
     currentStatus: "",
@@ -75,6 +79,11 @@ export default function TournamentManagement() {
     setShowStatusModal(true);
   };
 
+  const openParticipantsModal = (tournamentId) => {
+    setSelectedTournamentId(tournamentId);
+    setShowParticipantsModal(true);
+  };
+
   const handleStatusChange = async () => {
     if (!statusUpdate.tournamentId) return;
 
@@ -85,7 +94,6 @@ export default function TournamentManagement() {
         updated_at: new Date(),
       });
 
-      // Update local state
       setTournaments(tournaments.map(t => 
         t.id === statusUpdate.tournamentId 
           ? { ...t, status: statusUpdate.newStatus }
@@ -181,7 +189,15 @@ export default function TournamentManagement() {
                     {getStatusBadge(t.status || "completed")}
                   </button>
                 </td>
-                <td className="p-4 text-gray-400">{t.current_participants}/{t.max_participant}</td>
+                <td className="p-4 text-gray-400">
+                  <button
+                    onClick={() => openParticipantsModal(t.id)}
+                    className="flex items-center gap-2 hover:text-orange-400 transition-colors"
+                  >
+                    <UsersIcon size={16} />
+                    {t.current_participants}/{t.max_participant}
+                  </button>
+                </td>
                 <td className="p-4 text-gray-400">₵{t.entry_fee}</td>
                 <td className="p-4 flex gap-2">
                   <button
@@ -192,14 +208,11 @@ export default function TournamentManagement() {
                     <Calendar size={14} />
                   </button>
                   <button
-                    onClick={() => {
-                      setSelectedTournament(t);
-                      setShowForm(true);
-                    }}
+                    onClick={() => openParticipantsModal(t.id)}
                     className="p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition"
-                    title="View"
+                    title="View Participants"
                   >
-                    <Eye size={14} />
+                    <UsersIcon size={14} />
                   </button>
                   <button
                     onClick={() => {
@@ -239,7 +252,13 @@ export default function TournamentManagement() {
               Game: <span className="text-white">{t.game}</span>
             </div>
             <div className="text-gray-300 text-sm mb-2">
-              Participants: <span className="text-white">{t.current_participants}/{t.max_participant}</span>
+              <button
+                onClick={() => openParticipantsModal(t.id)}
+                className="flex items-center gap-2 hover:text-orange-400 transition-colors"
+              >
+                <UsersIcon size={16} />
+                Participants: <span className="text-white">{t.current_participants}/{t.max_participant}</span>
+              </button>
             </div>
             <div className="text-gray-300 text-sm mb-2">
               Entry Fee: <span className="text-white">₵{t.entry_fee}</span>
@@ -252,13 +271,10 @@ export default function TournamentManagement() {
                 <Calendar size={16} /> Status
               </button>
               <button
-                onClick={() => {
-                  setSelectedTournament(t);
-                  setShowForm(true);
-                }}
+                onClick={() => openParticipantsModal(t.id)}
                 className="flex-1 p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-center transition flex items-center justify-center gap-1"
               >
-                <Eye size={16} /> View
+                <UsersIcon size={16} /> Users
               </button>
               <button
                 onClick={() => handleDelete(t.id)}
@@ -311,18 +327,6 @@ export default function TournamentManagement() {
                 </select>
               </div>
 
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                <p className="text-blue-400 text-sm">
-                  <strong>Note:</strong> Changing the status will affect user's ability to join the tournament:
-                </p>
-                <ul className="text-blue-300 text-xs mt-2 space-y-1">
-                  <li>• <strong>Registration Open:</strong> Users can join</li>
-                  <li>• <strong>Upcoming:</strong> Users can join</li>
-                  <li>• <strong>Live:</strong> Tournament in progress</li>
-                  <li>• <strong>Completed:</strong> Tournament ended</li>
-                </ul>
-              </div>
-
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => setShowStatusModal(false)}
@@ -340,6 +344,17 @@ export default function TournamentManagement() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Participants Modal */}
+      {showParticipantsModal && selectedTournamentId && (
+        <TournamentParticipants
+          tournamentId={selectedTournamentId}
+          onClose={() => {
+            setShowParticipantsModal(false);
+            setSelectedTournamentId(null);
+          }}
+        />
       )}
 
       {/* Tournament Form Modal */}
