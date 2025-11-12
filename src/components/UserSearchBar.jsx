@@ -111,7 +111,7 @@ const UserSearchBar = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => searchQuery && setShowResults(true)}
-          placeholder="Search users by username or email..."
+          placeholder="Search users by username or full name..."
           className="w-full bg-gray-800/50 border border-gray-700 rounded-xl pl-12 pr-12 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
         />
 
@@ -157,7 +157,7 @@ const UserSearchBar = () => {
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <span className="text-white font-bold text-lg">
-                          {user.username?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                          {user.username?.charAt(0).toUpperCase() || user.firstName?.charAt(0).toUpperCase() || user.lastName?.charAt(0).toUpperCase()}
                         </span>
                       </div>
                     )}
@@ -168,7 +168,7 @@ const UserSearchBar = () => {
                       {user.username || 'Unknown User'}
                     </p>
                     <p className="text-gray-400 text-sm truncate">
-                      {user.email}
+                      {user.firstName} {user.lastName}
                     </p>
                   </div>
 
