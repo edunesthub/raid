@@ -6,7 +6,7 @@ import { use, useState, useEffect } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner.jsx';
 import { useTournament } from '@/hooks/useTournaments';
 import { useAuth } from '@/hooks/useAuth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export default function TournamentPage({ params }) {
@@ -35,24 +35,37 @@ export default function TournamentPage({ params }) {
     checkParticipation();
   }, [user, resolvedParams?.id, tournament]);
 
-  const handleJoinTournament = async () => {
-    if (!isAuthenticated) {
-      router.push('/auth/login');
-      return;
-    }
+const handleJoinTournament = async () => {
+  if (!isAuthenticated) {
+    router.push('/auth/login');
+    return;
+  }
 
-    try {
-      setActionLoading(true);
-      setActionError(null);
-      await joinTournament(user.id);
-      setIsParticipant(true);
-    } catch (err) {
-      setActionError(err.message);
-      alert(err.message || 'Failed to join tournament');
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  try {
+    setActionLoading(true);
+    setActionError(null);
+    await joinTournament(user.id);
+    setIsParticipant(true);
+
+    // ✅ Create a Firestore notification for this user
+    const notifRef = collection(db, 'notifications');
+    await addDoc(notifRef, {
+      userId: user.id,
+      title: 'Tournament Joined 🎮',
+      message: `You successfully joined "${tournament.title}". Good luck!`,
+      tournamentId: tournament.id,
+      timestamp: serverTimestamp(),
+      read: false,
+    });
+
+  } catch (err) {
+    setActionError(err.message);
+    alert(err.message || 'Failed to join tournament');
+  } finally {
+    setActionLoading(false);
+  }
+};
+
 
   const handleLeaveTournament = async () => {
     if (!isAuthenticated) return;
