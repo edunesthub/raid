@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import NotificationBadge from "@/components/NotificationBadge";
 import {
   Home,
   Trophy,
@@ -13,6 +14,7 @@ import {
   FileText,
   Phone,
   ChevronRight,
+  Bell,
 } from "lucide-react";
 
 export default function Navigation() {
@@ -75,21 +77,8 @@ export default function Navigation() {
               {isAuthenticated ? (
                 <div className="relative">
                   <div className="flex items-center space-x-2">
-                    <Link
-                      href="/notifications"
-                      className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white relative"
-                      aria-label="Notifications"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                      </svg>
-                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
-                    </Link>
+                    {/* ✅ NEW: NotificationBadge Component */}
+                    <NotificationBadge />
 
                     <button
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -168,20 +157,7 @@ export default function Navigation() {
 
           <div className="flex items-center gap-2">
             {isAuthenticated && (
-              <Link
-                href="/notifications"
-                className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white relative"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                </svg>
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
-              </Link>
+              <NotificationBadge />
             )}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -257,6 +233,29 @@ export default function Navigation() {
                 </Link>
               );
             })}
+
+            {/* ✅ Add Notifications Link for Mobile */}
+            {isAuthenticated && (
+              <Link
+                href="/notifications"
+                onClick={() => setIsMenuOpen(false)}
+                className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                  pathname === "/notifications"
+                    ? "bg-orange-500/20 border-orange-500 text-orange-400"
+                    : "bg-white/5 border-transparent text-gray-300 hover:bg-white/10 hover:text-orange-400"
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <Bell className="w-5 h-5" />
+                  <span className="font-medium text-sm">Notifications</span>
+                </div>
+                <ChevronRight
+                  className={`h-4 w-4 ${
+                    pathname === "/notifications" ? "text-orange-400" : "text-gray-500"
+                  }`}
+                />
+              </Link>
+            )}
           </div>
         </div>
 
