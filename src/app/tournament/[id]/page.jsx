@@ -8,6 +8,7 @@ import { useTournament } from '@/hooks/useTournaments';
 import { useAuth } from '@/hooks/useAuth';
 import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import MatchResultSubmission from '@/components/MatchResultSubmission';
 
 export default function TournamentPage({ params }) {
   const resolvedParams = use(params);
@@ -17,6 +18,7 @@ export default function TournamentPage({ params }) {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState(null);
   const [isParticipant, setIsParticipant] = useState(false);
+  const [showResultsModal, setShowResultsModal] = useState(false);
 
   // Check if user is participant
   useEffect(() => {
@@ -35,37 +37,36 @@ export default function TournamentPage({ params }) {
     checkParticipation();
   }, [user, resolvedParams?.id, tournament]);
 
-const handleJoinTournament = async () => {
-  if (!isAuthenticated) {
-    router.push('/auth/login');
-    return;
-  }
+  const handleJoinTournament = async () => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
 
-  try {
-    setActionLoading(true);
-    setActionError(null);
-    await joinTournament(user.id);
-    setIsParticipant(true);
+    try {
+      setActionLoading(true);
+      setActionError(null);
+      await joinTournament(user.id);
+      setIsParticipant(true);
 
-    // ✅ Create a Firestore notification for this user
-    const notifRef = collection(db, 'notifications');
-    await addDoc(notifRef, {
-      userId: user.id,
-      title: 'Tournament Joined 🎮',
-      message: `You successfully joined "${tournament.title}". Good luck!`,
-      tournamentId: tournament.id,
-      timestamp: serverTimestamp(),
-      read: false,
-    });
+      // ✅ Create a Firestore notification for this user
+      const notifRef = collection(db, 'notifications');
+      await addDoc(notifRef, {
+        userId: user.id,
+        title: 'Tournament Joined 🎮',
+        message: `You successfully joined "${tournament.title}". Good luck!`,
+        tournamentId: tournament.id,
+        timestamp: serverTimestamp(),
+        read: false,
+      });
 
-  } catch (err) {
-    setActionError(err.message);
-    alert(err.message || 'Failed to join tournament');
-  } finally {
-    setActionLoading(false);
-  }
-};
-
+    } catch (err) {
+      setActionError(err.message);
+      alert(err.message || 'Failed to join tournament');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const handleLeaveTournament = async () => {
     if (!isAuthenticated) return;
@@ -226,26 +227,6 @@ const handleJoinTournament = async () => {
 
         <p className="text-gray-300 mb-6">{tournament.description}</p>
 
-        {/* Tournament Info Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div className="bg-gray-800/50 p-4 rounded-lg">
-            <h3 className="text-gray-400 text-sm mb-1">Prize Pool</h3>
-            <p className="text-3xl font-extrabold text-green-400">
-              {formatCurrency(tournament.prizePool, tournament.currency)}
-            </p>
-          </div>
-          <div className="bg-gray-800/50 p-4 rounded-lg">
-            <h3 className="text-gray-400 text-sm mb-1">Entry Fee</h3>
-            <p className="text-2xl font-bold text-white">
-              {formatCurrency(tournament.entryFee, tournament.currency)}
-            </p>
-          </div>
-          <div className="bg-gray-800/50 p-4 rounded-lg">
-            <h3 className="text-gray-400 text-sm mb-1">Format</h3>
-            <p className="text-white font-semibold">{tournament.format}</p>
-          </div>
-        </div>
-
         {/* Registration Progress */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
@@ -279,7 +260,18 @@ const handleJoinTournament = async () => {
             <div className="bg-green-600/20 border border-green-600/50 rounded-lg p-4">
               <p className="text-green-400 font-semibold mb-2">🔴 Tournament is Live!</p>
               {isParticipant ? (
-                <p className="text-gray-300 text-sm">Good luck! Check your email for match details.</p>
+                <>
+                  <p className="text-gray-300 text-sm mb-3">Good luck! Check your email for match details.</p>
+                  
+                  {/* ✅ Submit Results Button */}
+                  <button
+                    onClick={() => setShowResultsModal(true)}
+                    className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg mt-2 flex items-center justify-center gap-2"
+                  >
+                    <span>📸</span>
+                    Submit Match Results
+                  </button>
+                </>
               ) : (
                 <p className="text-gray-400 text-sm">Registration is closed</p>
               )}
@@ -380,6 +372,19 @@ const handleJoinTournament = async () => {
             ))}
           </div>
         </div>
+      )}
+
+      {/* ✅ Results Submission Modal */}
+      {showResultsModal && (
+        <MatchResultSubmission
+          tournamentId={tournament.id}
+          tournamentName={tournament.title}
+          onClose={() => setShowResultsModal(false)}
+          onSubmitted={() => {
+            setShowResultsModal(false);
+            // Optional: Refresh tournament data here if needed
+          }}
+        />
       )}
     </div>
   );

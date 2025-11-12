@@ -6,6 +6,8 @@ import useAdminAuth from "./hooks/useAdminAuth";
 import Dashboard from "./components/Dashboard";
 import TournamentManagement from "./components/TournamentManagement";
 import UserManagement from "./components/UserManagement";
+import ResultsVerification from './components/ResultsVerification';
+import { ClipboardCheck } from 'lucide-react'; // Add this to existing icon imports
 
 export default function AdminPortal() {
   const { admin, loading, logout } = useAdminAuth();
@@ -15,13 +17,14 @@ export default function AdminPortal() {
   if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>;
   if (!admin) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Please login as admin</div>;
 
-  const menuItems = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "tournaments", label: "Tournaments", icon: Trophy },
-    { id: "users", label: "Users", icon: Users },
-    { id: "analytics", label: "Analytics", icon: BarChart3 },
-    { id: "settings", label: "Settings", icon: Settings },
-  ];
+const menuItems = [
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "tournaments", label: "Tournaments", icon: Trophy },
+  { id: "results", label: "Match Results", icon: ClipboardCheck }, // ← ADD THIS
+  { id: "users", label: "Users", icon: Users },
+  { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "settings", label: "Settings", icon: Settings },
+];
 
   const handleTabClick = (id) => {
     setActiveTab(id);
@@ -86,6 +89,7 @@ export default function AdminPortal() {
         {activeTab === "users" && <UserManagement />}
         {activeTab === "analytics" && <div className="text-white p-4">Analytics coming soon...</div>}
         {activeTab === "settings" && <div className="text-white p-4">Settings coming soon...</div>}
+      {activeTab === "results" && <ResultsVerification />}
       </div>
     </div>
   );
