@@ -6,6 +6,7 @@ import { useAuth } from "../../contexts/AuthContext.jsx";
 import { db } from "../../../lib/firebase";
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
+import { usernameService } from '@/services/usernameService';
 
 export default function EditProfilePage() {
   const { user, isAuthenticated } = useAuth();
@@ -150,9 +151,33 @@ export default function EditProfilePage() {
       return;
     }
 
+        // ✅ Validate username format
+    const formatValidation = usernameService.validateUsernameFormat(safeFormData.username);
+    if (!formatValidation.isValid) {
+      setError(formatValidation.error);
+      return;
+    }
+
     try {
       setSaving(true);
       setError('');
+
+            // ✅ Check if username is available (excluding current user)
+      const isAvailable = await usernameService.isUsernameAvailable(
+        safeFormData.username, 
+        user.id
+      );
+      
+      if (!isAvailable) {
+        setError("Username is already taken. Please choose another one.");
+        
+        // Generate suggestions
+        const suggestions = await usernameService.generateSuggestions(safeFormData.username);
+        if (suggestions.length > 0) {
+          setError(`Username is taken. Try: ${suggestions.join(', ')}`);
+        }
+        return;
+      }
 
       const userRef = doc(db, 'users', user.id);
 

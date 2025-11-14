@@ -6,6 +6,8 @@ import { auth } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Image from "next/image";
+import { usernameService } from '@/services/usernameService';
+
 
 const raid1Logo = "/assets/raid1.svg";
 
@@ -32,12 +34,32 @@ export default function OnboardingPage() {
       return;
     }
 
+      // ✅ Validate username format
+    const formatValidation = usernameService.validateUsernameFormat(formData.username);
+    if (!formatValidation.isValid) {
+      setError(formatValidation.error);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const user = auth.currentUser;
       if (!user) {
         setError("No user found. Please sign up again.");
+        return;
+      }
+
+            // ✅ Check if username is available
+      const isAvailable = await usernameService.isUsernameAvailable(formData.username);
+      if (!isAvailable) {
+        setError("Username is already taken. Please choose another one.");
+        
+        // Generate suggestions
+        const suggestions = await usernameService.generateSuggestions(formData.username);
+        if (suggestions.length > 0) {
+          setError(`Username is taken. Try: ${suggestions.join(', ')}`);
+        }
         return;
       }
 
