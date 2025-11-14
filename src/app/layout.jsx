@@ -10,6 +10,7 @@ import OfflineLoader from "../components/OfflineLoader";
 import UpdatePrompt from "@/components/UpdatePrompt"; 
 import BottomNav from "../components/BottomNav";
 import { usePathname } from "next/navigation";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
