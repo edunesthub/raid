@@ -1,4 +1,3 @@
-// Update: src/app/admin/components/TournamentManagement.jsx
 'use client';
 
 import { useEffect, useState } from "react";
@@ -12,7 +11,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Plus, Search, Edit, Eye, Trash2, X, Calendar, Users as UsersIcon } from "lucide-react";
+import { Plus, Search, Edit, Eye, Trash2, X, Calendar, Users as UsersIcon, Zap } from "lucide-react";
 import TournamentForm from "./TournamentForm";
 import TournamentParticipants from "./TournamentParticipants";
 
@@ -108,6 +107,25 @@ export default function TournamentManagement() {
     }
   };
 
+  const handleGenerateBracket = async (tournamentId) => {
+    if (!confirm('Generate bracket for this tournament? This will randomly match all participants and start the tournament.')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { tournamentService } = await import('@/services/tournamentService');
+      const result = await tournamentService.generateBracket(tournamentId);
+      alert(`Bracket generated successfully! ${result.matches.length} matches created for Round 1.`);
+      loadTournaments();
+    } catch (error) {
+      console.error('Error generating bracket:', error);
+      alert(error.message || 'Failed to generate bracket');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusOption = statusOptions.find(s => s.value === status);
     if (!statusOption) return <span className="text-gray-400">Unknown</span>;
@@ -173,6 +191,7 @@ export default function TournamentManagement() {
               <th className="text-left p-4">Status</th>
               <th className="text-left p-4">Participants</th>
               <th className="text-left p-4">Entry Fee</th>
+              <th className="text-left p-4">Bracket</th>
               <th className="text-left p-4">Actions</th>
             </tr>
           </thead>
@@ -199,7 +218,23 @@ export default function TournamentManagement() {
                   </button>
                 </td>
                 <td className="p-4 text-gray-400">₵{t.entry_fee}</td>
+                <td className="p-4">
+                  {t.bracketGenerated ? (
+                    <span className="text-green-400 text-xs">✓ Generated</span>
+                  ) : (
+                    <span className="text-gray-500 text-xs">Not Generated</span>
+                  )}
+                </td>
                 <td className="p-4 flex gap-2">
+                  {!t.bracketGenerated && t.status === 'live' && (
+                    <button
+                      onClick={() => handleGenerateBracket(t.id)}
+                      className="p-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition"
+                      title="Generate Bracket"
+                    >
+                      <Zap size={14} />
+                    </button>
+                  )}
                   <button
                     onClick={() => openStatusModal(t)}
                     className="p-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition"
@@ -263,7 +298,22 @@ export default function TournamentManagement() {
             <div className="text-gray-300 text-sm mb-2">
               Entry Fee: <span className="text-white">₵{t.entry_fee}</span>
             </div>
+            <div className="text-gray-300 text-sm mb-4">
+              Bracket: {t.bracketGenerated ? (
+                <span className="text-green-400">✓ Generated</span>
+              ) : (
+                <span className="text-gray-500">Not Generated</span>
+              )}
+            </div>
             <div className="flex gap-2 mt-2">
+              {!t.bracketGenerated && t.status === 'live' && (
+                <button
+                  onClick={() => handleGenerateBracket(t.id)}
+                  className="flex-1 p-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg text-center transition flex items-center justify-center gap-1"
+                >
+                  <Zap size={16} /> Generate
+                </button>
+              )}
               <button
                 onClick={() => openStatusModal(t)}
                 className="flex-1 p-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg text-center transition flex items-center justify-center gap-1"

@@ -1,13 +1,16 @@
+// src/app/admin/page.jsx - UPDATED
 "use client";
 
 import { useState } from "react";
-import { LayoutDashboard, Trophy, Users, BarChart3, Settings, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Trophy, Users, BarChart3, Settings, LogOut, Menu, X, Gamepad2 } from "lucide-react";
 import useAdminAuth from "./hooks/useAdminAuth";
 import Dashboard from "./components/Dashboard";
 import TournamentManagement from "./components/TournamentManagement";
 import UserManagement from "./components/UserManagement";
 import ResultsVerification from './components/ResultsVerification';
-import { ClipboardCheck } from 'lucide-react'; // Add this to existing icon imports
+import ResultsManagement from './components/ResultsManagement';
+import NonBracketResults from './components/NonBracketResults';
+import { ClipboardCheck, Award } from 'lucide-react';
 
 export default function AdminPortal() {
   const { admin, loading, logout } = useAdminAuth();
@@ -17,18 +20,20 @@ export default function AdminPortal() {
   if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>;
   if (!admin) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Please login as admin</div>;
 
-const menuItems = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "tournaments", label: "Tournaments", icon: Trophy },
-  { id: "results", label: "Match Results", icon: ClipboardCheck }, // ← ADD THIS
-  { id: "users", label: "Users", icon: Users },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "settings", label: "Settings", icon: Settings },
-];
+  const menuItems = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "tournaments", label: "Tournaments", icon: Trophy },
+    { id: "results-management", label: "Bracket Results", icon: Gamepad2 },
+    { id: "non-bracket-results", label: "Battle Royale", icon: Award },
+    { id: "results", label: "Verify Results", icon: ClipboardCheck },
+    { id: "users", label: "Users", icon: Users },
+    { id: "analytics", label: "Analytics", icon: BarChart3 },
+    { id: "settings", label: "Settings", icon: Settings },
+  ];
 
   const handleTabClick = (id) => {
     setActiveTab(id);
-    setSidebarOpen(false); // auto-close sidebar on mobile
+    setSidebarOpen(false);
   };
 
   return (
@@ -36,7 +41,7 @@ const menuItems = [
       {/* Mobile Header */}
       <div className="lg:hidden bg-gray-900 border-b border-gray-800 p-4 flex items-center justify-between sticky top-0 z-50">
         <div>
-          <h1 className="text-lg font-bold text-white">RAID Arena</h1>
+          <h1 className="text-lg font-bold text-white">RAID ARENA</h1>
           <p className="text-orange-400 text-xs">{menuItems.find(item => item.id === activeTab)?.label} Portal</p>
         </div>
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-white hover:bg-gray-800 rounded-lg">
@@ -51,7 +56,7 @@ const menuItems = [
       <div className={`fixed lg:static inset-y-0 left-0 w-64 bg-gray-900 border-r border-gray-800 flex flex-col transform transition-transform duration-300 z-50 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
         {/* Desktop Logo */}
         <div className="hidden lg:block p-6 border-b border-gray-800">
-          <h1 className="text-xl font-bold text-white">RAID Arena</h1>
+          <h1 className="text-xl font-bold text-white">RAID ARENA</h1>
           <p className="text-orange-400 text-sm">Admin Portal</p>
         </div>
 
@@ -86,10 +91,11 @@ const menuItems = [
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
         {activeTab === "dashboard" && <Dashboard />}
         {activeTab === "tournaments" && <TournamentManagement />}
+        {activeTab === "results-management" && <ResultsManagement />}
+        {activeTab === "results" && <ResultsVerification />}
         {activeTab === "users" && <UserManagement />}
         {activeTab === "analytics" && <div className="text-white p-4">Analytics coming soon...</div>}
         {activeTab === "settings" && <div className="text-white p-4">Settings coming soon...</div>}
-      {activeTab === "results" && <ResultsVerification />}
       </div>
     </div>
   );

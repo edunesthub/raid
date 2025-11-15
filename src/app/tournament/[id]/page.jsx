@@ -1,9 +1,11 @@
+// src/app/tournament/[id]/page.jsx - UPDATED WITH BRACKET
 'use client';
 
 import Link from 'next/link';
 import { notFound, useRouter } from 'next/navigation';
 import { use, useState, useEffect } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner.jsx';
+import TournamentBracket from '@/components/TournamentBracket';
 import { useTournament } from '@/hooks/useTournaments';
 import { useAuth } from '@/hooks/useAuth';
 import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -19,8 +21,8 @@ export default function TournamentPage({ params }) {
   const [actionError, setActionError] = useState(null);
   const [isParticipant, setIsParticipant] = useState(false);
   const [showResultsModal, setShowResultsModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('details'); // 'details' or 'bracket'
 
-  // Check if user is participant
   useEffect(() => {
     const checkParticipation = async () => {
       if (!user || !resolvedParams?.id) return;
@@ -49,7 +51,6 @@ export default function TournamentPage({ params }) {
       await joinTournament(user.id);
       setIsParticipant(true);
 
-      // ✅ Create a Firestore notification for this user
       const notifRef = collection(db, 'notifications');
       await addDoc(notifRef, {
         userId: user.id,
@@ -174,10 +175,10 @@ export default function TournamentPage({ params }) {
   const progressPercentage = (tournament.currentPlayers / tournament.maxPlayers) * 100;
   const spotsLeft = tournament.maxPlayers - tournament.currentPlayers;
   const canJoin = (tournament.status === 'registration-open' || tournament.status === 'upcoming') && spotsLeft > 0;
+  const showBracket = tournament.bracketGenerated && (tournament.status === 'live' || tournament.status === 'completed');
 
   return (
     <div className="container-mobile min-h-screen py-6">
-      {/* Back Button */}
       <div className="mb-6">
         <Link
           href="/tournament"
@@ -188,14 +189,12 @@ export default function TournamentPage({ params }) {
         </Link>
       </div>
 
-      {/* Action Error */}
       {actionError && (
         <div className="bg-red-600/10 border border-red-600/30 rounded-lg p-4 mb-6">
           <p className="text-red-400 text-sm">{actionError}</p>
         </div>
       )}
 
-      {/* Success Message for Participants */}
       {isParticipant && (
         <div className="bg-green-600/10 border border-green-600/30 rounded-lg p-4 mb-6">
           <p className="text-green-400 text-sm flex items-center">
@@ -220,14 +219,12 @@ export default function TournamentPage({ params }) {
           </div>
         </div>
 
-        {/* Status Description */}
         <div className="bg-gray-800/50 rounded-lg p-3 mb-4">
           <p className="text-gray-300 text-sm">{statusConfig.description}</p>
         </div>
 
         <p className="text-gray-300 mb-6">{tournament.description}</p>
 
-        {/* Registration Progress */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <span className="text-gray-400 text-sm">Players Registered</span>
@@ -261,9 +258,8 @@ export default function TournamentPage({ params }) {
               <p className="text-green-400 font-semibold mb-2">🔴 Tournament is Live!</p>
               {isParticipant ? (
                 <>
-                  <p className="text-gray-300 text-sm mb-3">Good luck! Check your email for match details.</p>
+                  <p className="text-gray-300 text-sm mb-3">Good luck! Check the bracket below for your matches.</p>
                   
-                  {/* ✅ Submit Results Button */}
                   <button
                     onClick={() => setShowResultsModal(true)}
                     className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg mt-2 flex items-center justify-center gap-2"
@@ -320,61 +316,96 @@ export default function TournamentPage({ params }) {
         </div>
       </div>
 
-      {/* Tournament Schedule */}
-      <div className="card-raid p-6 mb-6">
-        <h2 className="text-xl font-bold text-white mb-4">📅 Schedule</h2>
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-gray-400 text-sm mb-1">Start Date</h3>
-            <p className="text-white">{formatDate(tournament.startDate)}</p>
+      {/* Tabs for Details and Bracket */}
+      {showBracket && (
+        <div className="mb-6">
+          <div className="flex gap-2 bg-gray-800 border border-gray-700 rounded-xl p-1">
+            <button
+              onClick={() => setActiveTab('details')}
+              className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${
+                activeTab === 'details'
+                  ? 'bg-orange-500 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Details
+            </button>
+            <button
+              onClick={() => setActiveTab('bracket')}
+              className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${
+                activeTab === 'bracket'
+                  ? 'bg-orange-500 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Bracket
+            </button>
           </div>
-          <div>
-            <h3 className="text-gray-400 text-sm mb-1">End Date</h3>
-            <p className="text-white">{formatDate(tournament.endDate)}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Tournament Rules */}
-      {tournament.rules && tournament.rules.length > 0 && (
-        <div className="card-raid p-6 mb-6">
-          <h2 className="text-xl font-bold text-white mb-4">📜 Rules</h2>
-          <ul className="list-disc list-inside space-y-2 text-gray-300">
-            {tournament.rules.map((rule, index) => (
-              <li key={index}>{rule}</li>
-            ))}
-          </ul>
         </div>
       )}
 
-      {/* Requirements */}
-      {tournament.requirements && tournament.requirements.length > 0 && (
-        <div className="card-raid p-6 mb-6">
-          <h2 className="text-xl font-bold text-white mb-4">✅ Requirements</h2>
-          <ul className="list-disc list-inside space-y-2 text-gray-300">
-            {tournament.requirements.map((req, index) => (
-              <li key={index}>{req}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Prize Distribution */}
-      {tournament.prizeDistribution && tournament.prizeDistribution.length > 0 && (
-        <div className="card-raid p-6">
-          <h2 className="text-xl font-bold text-white mb-4">🏆 Prize Distribution</h2>
-          <div className="space-y-3">
-            {tournament.prizeDistribution.map((prize, index) => (
-              <div key={index} className="flex justify-between items-center bg-gray-800/50 p-4 rounded-lg">
-                <span className="text-gray-300 font-semibold">{prize.rank}</span>
-                <span className="text-white font-bold text-lg">{prize.percentage}%</span>
+      {/* Content based on active tab */}
+      {activeTab === 'bracket' && showBracket ? (
+        <TournamentBracket tournamentId={tournament.id} />
+      ) : (
+        <>
+          {/* Tournament Schedule */}
+          <div className="card-raid p-6 mb-6">
+            <h2 className="text-xl font-bold text-white mb-4">📅 Schedule</h2>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-gray-400 text-sm mb-1">Start Date</h3>
+                <p className="text-white">{formatDate(tournament.startDate)}</p>
               </div>
-            ))}
+              <div>
+                <h3 className="text-gray-400 text-sm mb-1">End Date</h3>
+                <p className="text-white">{formatDate(tournament.endDate)}</p>
+              </div>
+            </div>
           </div>
-        </div>
+
+          {/* Tournament Rules */}
+          {tournament.rules && tournament.rules.length > 0 && (
+            <div className="card-raid p-6 mb-6">
+              <h2 className="text-xl font-bold text-white mb-4">📜 Rules</h2>
+              <ul className="list-disc list-inside space-y-2 text-gray-300">
+                {tournament.rules.map((rule, index) => (
+                  <li key={index}>{rule}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Requirements */}
+          {tournament.requirements && tournament.requirements.length > 0 && (
+            <div className="card-raid p-6 mb-6">
+              <h2 className="text-xl font-bold text-white mb-4">✅ Requirements</h2>
+              <ul className="list-disc list-inside space-y-2 text-gray-300">
+                {tournament.requirements.map((req, index) => (
+                  <li key={index}>{req}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Prize Distribution */}
+          {tournament.prizeDistribution && tournament.prizeDistribution.length > 0 && (
+            <div className="card-raid p-6">
+              <h2 className="text-xl font-bold text-white mb-4">🏆 Prize Distribution</h2>
+              <div className="space-y-3">
+                {tournament.prizeDistribution.map((prize, index) => (
+                  <div key={index} className="flex justify-between items-center bg-gray-800/50 p-4 rounded-lg">
+                    <span className="text-gray-300 font-semibold">{prize.rank}</span>
+                    <span className="text-white font-bold text-lg">{prize.percentage}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
-      {/* ✅ Results Submission Modal */}
+      {/* Results Submission Modal */}
       {showResultsModal && (
         <MatchResultSubmission
           tournamentId={tournament.id}
@@ -382,7 +413,6 @@ export default function TournamentPage({ params }) {
           onClose={() => setShowResultsModal(false)}
           onSubmitted={() => {
             setShowResultsModal(false);
-            // Optional: Refresh tournament data here if needed
           }}
         />
       )}
