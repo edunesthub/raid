@@ -1,4 +1,4 @@
-// src/app/tournament/[id]/page.jsx - UPDATED WITH BRACKET
+// src/app/tournament/[id]/page.jsx - ENHANCED WITH WINNER DISPLAY
 'use client';
 
 import Link from 'next/link';
@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import MatchResultSubmission from '@/components/MatchResultSubmission';
+import { Trophy, Medal, Award, Crown, Star, Users, Calendar, Clock, Target } from 'lucide-react';
 
 export default function TournamentPage({ params }) {
   const resolvedParams = use(params);
@@ -21,7 +22,9 @@ export default function TournamentPage({ params }) {
   const [actionError, setActionError] = useState(null);
   const [isParticipant, setIsParticipant] = useState(false);
   const [showResultsModal, setShowResultsModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('details'); // 'details' or 'bracket'
+  const [activeTab, setActiveTab] = useState('details');
+  const [winnerData, setWinnerData] = useState(null);
+  const [placementData, setPlacementData] = useState({ first: null, second: null, third: null });
 
   useEffect(() => {
     const checkParticipation = async () => {
@@ -38,6 +41,53 @@ export default function TournamentPage({ params }) {
 
     checkParticipation();
   }, [user, resolvedParams?.id, tournament]);
+
+  // Load winner and placement data
+  useEffect(() => {
+    const loadWinnerData = async () => {
+      if (!tournament || tournament.status !== 'completed') return;
+
+      try {
+        // Load winner
+        if (tournament.winnerId) {
+          const winnerDoc = await getDoc(doc(db, 'users', tournament.winnerId));
+          if (winnerDoc.exists()) {
+            setWinnerData({ id: winnerDoc.id, ...winnerDoc.data() });
+          }
+        }
+
+        // Load placements
+        const placements = { first: null, second: null, third: null };
+        
+        if (tournament.winnerId) {
+          const firstDoc = await getDoc(doc(db, 'users', tournament.winnerId));
+          if (firstDoc.exists()) {
+            placements.first = { id: firstDoc.id, ...firstDoc.data() };
+          }
+        }
+
+        if (tournament.secondPlaceId) {
+          const secondDoc = await getDoc(doc(db, 'users', tournament.secondPlaceId));
+          if (secondDoc.exists()) {
+            placements.second = { id: secondDoc.id, ...secondDoc.data() };
+          }
+        }
+
+        if (tournament.thirdPlaceId) {
+          const thirdDoc = await getDoc(doc(db, 'users', tournament.thirdPlaceId));
+          if (thirdDoc.exists()) {
+            placements.third = { id: thirdDoc.id, ...thirdDoc.data() };
+          }
+        }
+
+        setPlacementData(placements);
+      } catch (err) {
+        console.error('Error loading winner data:', err);
+      }
+    };
+
+    loadWinnerData();
+  }, [tournament]);
 
   const handleJoinTournament = async () => {
     if (!isAuthenticated) {
@@ -177,6 +227,127 @@ export default function TournamentPage({ params }) {
   const canJoin = (tournament.status === 'registration-open' || tournament.status === 'upcoming') && spotsLeft > 0;
   const showBracket = tournament.bracketGenerated && (tournament.status === 'live' || tournament.status === 'completed');
 
+  // Winner Podium Component
+  const WinnerPodium = () => {
+    if (!placementData.first) return null;
+
+    return (
+      <div className="mb-8">
+        <div className="bg-gradient-to-br from-yellow-500/20 via-orange-500/10 to-transparent rounded-2xl p-8 border border-yellow-500/30">
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-bold text-white mb-2 flex items-center justify-center gap-3">
+              <Trophy className="w-8 h-8 text-yellow-400" />
+              Tournament Champions
+              <Trophy className="w-8 h-8 text-yellow-400" />
+            </h2>
+            <p className="text-gray-400">The best of the best</p>
+          </div>
+
+          {/* Podium */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            {/* 2nd Place */}
+            {placementData.second && (
+              <div className="order-2 md:order-1 flex flex-col items-center">
+                <div className="relative mb-4">
+                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-400 shadow-2xl">
+                    {placementData.second.avatarUrl ? (
+                      <img 
+                        src={placementData.second.avatarUrl} 
+                        alt={placementData.second.username}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-r from-gray-600 to-gray-400 flex items-center justify-center">
+                        <span className="text-white text-3xl font-bold">
+                          {placementData.second.username?.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gray-400 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg border-4 border-gray-900">
+                    2
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-1">{placementData.second.username}</h3>
+                <p className="text-gray-400 text-sm mb-2">2nd Place</p>
+                <div className="bg-gray-400/20 px-4 py-2 rounded-full">
+                  <Medal className="w-5 h-5 text-gray-400 inline mr-2" />
+                  <span className="text-gray-300 font-semibold">Silver</span>
+                </div>
+              </div>
+            )}
+
+            {/* 1st Place */}
+            <div className="order-1 md:order-2 flex flex-col items-center transform md:scale-110">
+              <div className="relative mb-4">
+                <div className="absolute -inset-2 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 rounded-full blur-xl animate-pulse"></div>
+                <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-yellow-400 shadow-2xl">
+                  {placementData.first.avatarUrl ? (
+                    <img 
+                      src={placementData.first.avatarUrl} 
+                      alt={placementData.first.username}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-r from-yellow-600 to-yellow-400 flex items-center justify-center">
+                      <span className="text-white text-4xl font-bold">
+                        {placementData.first.username?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+                  <Crown className="w-12 h-12 text-yellow-400 animate-bounce" />
+                </div>
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-yellow-400 text-gray-900 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl border-4 border-gray-900">
+                  1
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-1">{placementData.first.username}</h3>
+              <p className="text-yellow-400 text-sm mb-2 font-semibold">🏆 CHAMPION</p>
+              <div className="bg-yellow-400/20 px-6 py-3 rounded-full border-2 border-yellow-400/50">
+                <Trophy className="w-6 h-6 text-yellow-400 inline mr-2" />
+                <span className="text-yellow-400 font-bold text-lg">Winner</span>
+              </div>
+            </div>
+
+            {/* 3rd Place */}
+            {placementData.third && (
+              <div className="order-3 flex flex-col items-center">
+                <div className="relative mb-4">
+                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-orange-600 shadow-2xl">
+                    {placementData.third.avatarUrl ? (
+                      <img 
+                        src={placementData.third.avatarUrl} 
+                        alt={placementData.third.username}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-r from-orange-700 to-orange-500 flex items-center justify-center">
+                        <span className="text-white text-3xl font-bold">
+                          {placementData.third.username?.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-orange-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg border-4 border-gray-900">
+                    3
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-1">{placementData.third.username}</h3>
+                <p className="text-gray-400 text-sm mb-2">3rd Place</p>
+                <div className="bg-orange-600/20 px-4 py-2 rounded-full">
+                  <Medal className="w-5 h-5 text-orange-600 inline mr-2" />
+                  <span className="text-orange-400 font-semibold">Bronze</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="container-mobile min-h-screen py-6">
       <div className="mb-6">
@@ -195,13 +366,18 @@ export default function TournamentPage({ params }) {
         </div>
       )}
 
-      {isParticipant && (
+      {isParticipant && tournament.status !== 'completed' && (
         <div className="bg-green-600/10 border border-green-600/30 rounded-lg p-4 mb-6">
           <p className="text-green-400 text-sm flex items-center">
             <span className="mr-2">✅</span>
             You are registered for this tournament!
           </p>
         </div>
+      )}
+
+      {/* Winner Announcement */}
+      {tournament.status === 'completed' && placementData.first && (
+        <WinnerPodium />
       )}
 
       {/* Tournament Header */}
@@ -225,37 +401,71 @@ export default function TournamentPage({ params }) {
 
         <p className="text-gray-300 mb-6">{tournament.description}</p>
 
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-400 text-sm">Players Registered</span>
-            <span className="text-white font-semibold">
-              {tournament.currentPlayers} / {tournament.maxPlayers}
-            </span>
+        {/* Tournament Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+            <Users className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-white">{tournament.currentPlayers}</p>
+            <p className="text-gray-400 text-sm">Players</p>
           </div>
-          <div className="w-full bg-gray-800 rounded-full h-3 mb-2">
-            <div
-              className="bg-gradient-to-r from-black to-orange-500 h-3 rounded-full transition-all duration-300"
-              style={{ width: `${progressPercentage}%` }}
-            ></div>
+          <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+            <Trophy className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-white">{formatCurrency(tournament.prizePool)}</p>
+            <p className="text-gray-400 text-sm">Prize Pool</p>
           </div>
-          {spotsLeft > 0 ? (
-            <p className="text-gray-400 text-sm">
-              🔥 {spotsLeft} {spotsLeft === 1 ? 'spot' : 'spots'} remaining!
-            </p>
-          ) : (
-            <p className="text-red-400 text-sm">❌ Tournament is full!</p>
-          )}
+          <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+            <Target className="w-6 h-6 text-green-400 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-white">{formatCurrency(tournament.entryFee)}</p>
+            <p className="text-gray-400 text-sm">Entry Fee</p>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+            <Calendar className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-white">{tournament.format}</p>
+            <p className="text-gray-400 text-sm">Format</p>
+          </div>
         </div>
+
+        {tournament.status !== 'completed' && (
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-gray-400 text-sm">Players Registered</span>
+              <span className="text-white font-semibold">
+                {tournament.currentPlayers} / {tournament.maxPlayers}
+              </span>
+            </div>
+            <div className="w-full bg-gray-800 rounded-full h-3 mb-2">
+              <div
+                className="bg-gradient-to-r from-black to-orange-500 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
+            {spotsLeft > 0 ? (
+              <p className="text-gray-400 text-sm">
+                🔥 {spotsLeft} {spotsLeft === 1 ? 'spot' : 'spots'} remaining!
+              </p>
+            ) : (
+              <p className="text-red-400 text-sm">❌ Tournament is full!</p>
+            )}
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="text-center">
           {tournament.status === 'completed' ? (
             <div className="bg-gray-700/50 rounded-lg p-4">
-              <p className="text-gray-400">This tournament has ended</p>
+              <Trophy className="w-12 h-12 text-yellow-400 mx-auto mb-2" />
+              <p className="text-gray-400 font-semibold">This tournament has ended</p>
+              <p className="text-gray-500 text-sm mt-1">Thanks to all participants!</p>
             </div>
           ) : tournament.status === 'live' ? (
             <div className="bg-green-600/20 border border-green-600/50 rounded-lg p-4">
-              <p className="text-green-400 font-semibold mb-2">🔴 Tournament is Live!</p>
+              <p className="text-green-400 font-semibold mb-2 flex items-center justify-center gap-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                Tournament is Live!
+              </p>
               {isParticipant ? (
                 <>
                   <p className="text-gray-300 text-sm mb-3">Good luck! Check the bracket below for your matches.</p>
@@ -351,7 +561,10 @@ export default function TournamentPage({ params }) {
         <>
           {/* Tournament Schedule */}
           <div className="card-raid p-6 mb-6">
-            <h2 className="text-xl font-bold text-white mb-4">📅 Schedule</h2>
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <Calendar className="w-6 h-6 text-orange-500" />
+              Schedule
+            </h2>
             <div className="space-y-4">
               <div>
                 <h3 className="text-gray-400 text-sm mb-1">Start Date</h3>

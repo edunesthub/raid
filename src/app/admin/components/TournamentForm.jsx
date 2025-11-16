@@ -1,11 +1,14 @@
+// src/app/admin/components/TournamentForm.jsx - WORKING EDIT
 "use client";
 
-import { useState, useRef } from "react";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { useState, useRef, useEffect } from "react";
+import { addDoc, collection, serverTimestamp, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { X, Upload, Image as ImageIcon } from "lucide-react";
+import { X, Upload, Image as ImageIcon, Save, Plus } from "lucide-react";
 
-export default function TournamentForm({ onClose, onCreated }) {
+export default function TournamentForm({ tournament, onClose, onCreated }) {
+  const isEditing = !!tournament;
+  
   const [form, setForm] = useState({
     tournament_name: "",
     game: "",
@@ -13,12 +16,42 @@ export default function TournamentForm({ onClose, onCreated }) {
     max_participant: "",
     first_place: "",
     description: "",
+    format: "Battle Royale",
   });
+  
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [tournamentFlyer, setTournamentFlyer] = useState(null);
+  const [existingFlyerUrl, setExistingFlyerUrl] = useState(null);
   const fileInputRef = useRef(null);
+
+  const tournamentFormats = [
+    { value: "Battle Royale", label: "Battle Royale", description: "Free-for-all, winner selected manually" },
+    { value: "Bracket", label: "Bracket/Knockout", description: "1v1 elimination bracket" },
+    { value: "Round Robin", label: "Round Robin", description: "Everyone plays everyone" },
+    { value: "Swiss", label: "Swiss System", description: "Paired based on performance" },
+  ];
+
+  // Load tournament data if editing
+  useEffect(() => {
+    if (tournament) {
+      setForm({
+        tournament_name: tournament.tournament_name || "",
+        game: tournament.game || "",
+        entry_fee: tournament.entry_fee?.toString() || "",
+        max_participant: tournament.max_participant?.toString() || "",
+        first_place: tournament.first_place?.toString() || "",
+        description: tournament.description || "",
+        format: tournament.format || "Battle Royale",
+      });
+      
+      if (tournament.tournament_flyer) {
+        setExistingFlyerUrl(tournament.tournament_flyer);
+        setImagePreview(tournament.tournament_flyer);
+      }
+    }
+  }, [tournament]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -28,36 +61,33 @@ export default function TournamentForm({ onClose, onCreated }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       alert('Please select an image file');
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('Image size should be less than 5MB');
       return;
     }
 
-    // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result);
     };
     reader.readAsDataURL(file);
 
-    // Store file for upload
     setTournamentFlyer(file);
+    setExistingFlyerUrl(null); // Clear existing URL if new file selected
   };
 
   const uploadImageToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'raid_tournaments'); // You'll need to create this preset
+    formData.append('upload_preset', 'raid_tournaments');
     formData.append('folder', 'tournaments');
 
-    const cloudName = 'drgz6qqo5'; // Replace with your Cloudinary cloud name
+    const cloudName = 'drgz6qqo5';
     
     try {
       const response = await fetch(
@@ -90,16 +120,16 @@ export default function TournamentForm({ onClose, onCreated }) {
 
     setLoading(true);
     try {
-      let flyerUrl = null;
+      let flyerUrl = existingFlyerUrl; // Keep existing URL if no new image
 
-      // Upload image to Cloudinary if selected
+      // Upload new image if selected
       if (tournamentFlyer) {
         setUploadingImage(true);
         flyerUrl = await uploadImageToCloudinary(tournamentFlyer);
         setUploadingImage(false);
       }
 
-      await addDoc(collection(db, "tournaments"), {
+      const tournamentData = {
         tournament_name: form.tournament_name,
         game: form.game,
         description: form.description || "",
@@ -107,36 +137,71 @@ export default function TournamentForm({ onClose, onCreated }) {
         max_participant: Number(form.max_participant) || 0,
         first_place: Number(form.first_place) || 0,
         tournament_flyer: flyerUrl,
-        current_participants: 0,
-        status: "registration-open",
-        created_at: serverTimestamp(),
-      });
+        format: form.format,
+        updated_at: serverTimestamp(),
+      };
+
+      if (isEditing) {
+        // UPDATE existing tournament
+        const tournamentRef = doc(db, "tournaments", tournament.id);
+        await updateDoc(tournamentRef, tournamentData);
+        alert("Tournament updated successfully!");
+      } else {
+        // CREATE new tournament
+        await addDoc(collection(db, "tournaments"), {
+          ...tournamentData,
+          current_participants: 0,
+          status: "registration-open",
+          bracketGenerated: false,
+          currentRound: 0,
+          totalRounds: 0,
+          created_at: serverTimestamp(),
+        });
+        alert("Tournament created successfully!");
+      }
 
       onCreated();
       onClose();
     } catch (error) {
       console.error(error);
-      alert("Failed to create tournament: " + error.message);
+      alert(`Failed to ${isEditing ? 'update' : 'create'} tournament: ` + error.message);
     } finally {
       setLoading(false);
       setUploadingImage(false);
     }
   };
 
+  const selectedFormat = tournamentFormats.find(f => f.value === form.format);
+
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative">
-        <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-white">
-          <X size={18} />
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-2xl my-8 p-6 relative">
+        <button 
+          onClick={onClose} 
+          className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors"
+        >
+          <X size={20} />
         </button>
 
-        <h3 className="text-xl font-bold text-white mb-4">Create Tournament</h3>
+        <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+          {isEditing ? (
+            <>
+              <Save className="w-6 h-6 text-orange-500" />
+              Edit Tournament
+            </>
+          ) : (
+            <>
+              <Plus className="w-6 h-6 text-orange-500" />
+              Create Tournament
+            </>
+          )}
+        </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Image Upload Section */}
           <div className="space-y-2">
             <label className="block text-sm text-gray-300 font-medium">
-              Tournament Flyer (Optional)
+              Tournament Flyer {!isEditing && "(Optional)"}
             </label>
             
             <div 
@@ -174,75 +239,166 @@ export default function TournamentForm({ onClose, onCreated }) {
           </div>
 
           {/* Tournament Name */}
-          <input
-            name="tournament_name"
-            placeholder="Tournament Name *"
-            value={form.tournament_name}
-            onChange={handleChange}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
-            required
-          />
-
-          {/* Game Name */}
-          <input
-            name="game"
-            placeholder="Game Name *"
-            value={form.game}
-            onChange={handleChange}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
-            required
-          />
-
-          {/* Description */}
-          <textarea
-            name="description"
-            placeholder="Tournament Description"
-            value={form.description}
-            onChange={handleChange}
-            rows="3"
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm resize-none"
-          />
-
-          {/* Entry Fee and Max Participants */}
-          <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm text-gray-300 font-medium mb-2">
+              Tournament Name *
+            </label>
             <input
-              type="number"
-              name="entry_fee"
-              placeholder="Entry Fee (₵)"
-              value={form.entry_fee}
+              name="tournament_name"
+              placeholder="e.g., RAID Championship 2024"
+              value={form.tournament_name}
               onChange={handleChange}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
-            />
-            <input
-              type="number"
-              name="max_participant"
-              placeholder="Max Participants"
-              value={form.max_participant}
-              onChange={handleChange}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition"
+              required
             />
           </div>
 
-          {/* First Place Prize */}
-          <input
-            type="number"
-            name="first_place"
-            placeholder="First Place Prize (₵)"
-            value={form.first_place}
-            onChange={handleChange}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
-          />
+          {/* Game Name */}
+          <div>
+            <label className="block text-sm text-gray-300 font-medium mb-2">
+              Game Name *
+            </label>
+            <input
+              name="game"
+              placeholder="e.g., PUBG Mobile, Call of Duty Mobile"
+              value={form.game}
+              onChange={handleChange}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition"
+              required
+            />
+          </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading || uploadingImage}
-            className={`w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 rounded-lg transition-colors ${
-              (loading || uploadingImage) ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            {uploadingImage ? "Uploading Image..." : loading ? "Creating..." : "Create Tournament"}
-          </button>
+          {/* Tournament Format */}
+          <div>
+            <label className="block text-sm text-gray-300 font-medium mb-2">
+              Tournament Format *
+            </label>
+            <select
+              name="format"
+              value={form.format}
+              onChange={handleChange}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition"
+              required
+            >
+              {tournamentFormats.map(format => (
+                <option key={format.value} value={format.value}>
+                  {format.label}
+                </option>
+              ))}
+            </select>
+            {selectedFormat && (
+              <p className="text-gray-400 text-xs mt-2 flex items-start gap-1">
+                <span className="text-blue-400">ℹ️</span>
+                {selectedFormat.description}
+              </p>
+            )}
+            <div className="mt-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+              <p className="text-blue-400 text-xs">
+                {form.format === "Bracket" 
+                  ? "⚡ Bracket will be auto-generated when tournament goes live" 
+                  : "📋 Winners will be selected manually by admin after completion"}
+              </p>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm text-gray-300 font-medium mb-2">
+              Description
+            </label>
+            <textarea
+              name="description"
+              placeholder="Enter tournament description, rules, and requirements..."
+              value={form.description}
+              onChange={handleChange}
+              rows="4"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm resize-none focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition"
+            />
+          </div>
+
+          {/* Entry Fee and Max Participants */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-300 font-medium mb-2">
+                Entry Fee (₵)
+              </label>
+              <input
+                type="number"
+                name="entry_fee"
+                placeholder="0"
+                value={form.entry_fee}
+                onChange={handleChange}
+                min="0"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-300 font-medium mb-2">
+                Max Participants
+              </label>
+              <input
+                type="number"
+                name="max_participant"
+                placeholder="16"
+                value={form.max_participant}
+                onChange={handleChange}
+                min="2"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition"
+              />
+            </div>
+          </div>
+
+          {/* First Place Prize */}
+          <div>
+            <label className="block text-sm text-gray-300 font-medium mb-2">
+              First Place Prize (₵)
+            </label>
+            <input
+              type="number"
+              name="first_place"
+              placeholder="1000"
+              value={form.first_place}
+              onChange={handleChange}
+              min="0"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition"
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading || uploadingImage}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading || uploadingImage}
+              className={`flex-1 bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 ${
+                (loading || uploadingImage) ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
+              }`}
+            >
+              {uploadingImage ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Uploading Image...
+                </>
+              ) : loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  {isEditing ? 'Updating...' : 'Creating...'}
+                </>
+              ) : (
+                <>
+                  {isEditing ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                  {isEditing ? 'Update Tournament' : 'Create Tournament'}
+                </>
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </div>
