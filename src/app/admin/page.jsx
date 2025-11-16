@@ -1,4 +1,4 @@
-// src/app/admin/page.jsx - WITH WINNER SELECTION
+// src/app/admin/page.jsx - UPDATED WITH STATS UTILITY
 "use client";
 
 import { useState } from "react";
@@ -14,7 +14,8 @@ import {
   Gamepad2,
   Award,
   ClipboardCheck,
-  Crown
+  Crown,
+  Calculator // NEW: Stats utility icon
 } from "lucide-react";
 import useAdminAuth from "./hooks/useAdminAuth";
 import Dashboard from "./components/Dashboard";
@@ -24,6 +25,10 @@ import ResultsVerification from './components/ResultsVerification';
 import ResultsManagement from './components/ResultsManagement';
 import NonBracketResults from './components/NonBracketResults';
 import WinnerSelection from './components/WinnerSelection';
+import dynamic from 'next/dynamic';
+
+// Lazy load the stats page
+const AdminStatsUtility = dynamic(() => import('./stats/page'), { ssr: false });
 
 export default function AdminPortal() {
   const { admin, loading, logout } = useAdminAuth();
@@ -41,6 +46,7 @@ export default function AdminPortal() {
     { id: "winner-selection", label: "Select Winners", icon: Crown },
     { id: "results", label: "Verify Results", icon: ClipboardCheck },
     { id: "users", label: "Users", icon: Users },
+    { id: "stats-utility", label: "Stats Utility", icon: Calculator }, // NEW
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "settings", label: "Settings", icon: Settings },
   ];
@@ -110,6 +116,7 @@ export default function AdminPortal() {
         {activeTab === "winner-selection" && <WinnerSelection />}
         {activeTab === "results" && <ResultsVerification />}
         {activeTab === "users" && <UserManagement />}
+        {activeTab === "stats-utility" && <AdminStatsUtility />}
         {activeTab === "analytics" && <div className="text-white p-4">Analytics coming soon...</div>}
         {activeTab === "settings" && <div className="text-white p-4">Settings coming soon...</div>}
       </div>

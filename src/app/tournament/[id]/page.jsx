@@ -414,7 +414,7 @@ export default function TournamentPage({ params }) {
             </div>
 
             {/* Mobile: Stacked layout */}
-            <div className="sm:hidden space-y-4">
+            <div className="sm:hidden space-y-6">
               <WinnerCard player={placementData.first} stats={winnerStats.first} placement="first" />
               {placementData.second && (
                 <WinnerCard player={placementData.second} stats={winnerStats.second} placement="second" />
