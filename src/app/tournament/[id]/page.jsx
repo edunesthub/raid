@@ -56,35 +56,70 @@ export default function TournamentPage({ params }) {
     checkParticipation();
   }, [user, resolvedParams?.id, tournament]);
 
-  // Load winner and placement data
+// Load winner and placement data
   useEffect(() => {
     const loadWinnerData = async () => {
-      if (!tournament || tournament.status !== 'completed') return;
+      if (!tournament) return;
+      
+      // Only load if tournament is completed AND has winner data
+      if (tournament.status !== 'completed') {
+        setPlacementData({ first: null, second: null, third: null });
+        return;
+      }
 
       try {
         const placements = { first: null, second: null, third: null };
         
-        if (tournament.winnerId) {
-          const firstDoc = await getDoc(doc(db, 'users', tournament.winnerId));
+        // Get raw tournament data to access winnerId fields
+        const tournamentRef = doc(db, 'tournaments', resolvedParams.id);
+        const tournamentSnap = await getDoc(tournamentRef);
+        
+        if (!tournamentSnap.exists()) {
+          console.log('Tournament document not found');
+          return;
+        }
+        
+        const rawData = tournamentSnap.data();
+        console.log('Raw tournament data:', {
+          winnerId: rawData.winnerId,
+          secondPlaceId: rawData.secondPlaceId,
+          thirdPlaceId: rawData.thirdPlaceId
+        });
+        
+        // Load first place
+        if (rawData.winnerId) {
+          const firstDoc = await getDoc(doc(db, 'users', rawData.winnerId));
           if (firstDoc.exists()) {
             placements.first = { id: firstDoc.id, ...firstDoc.data() };
+            console.log('First place loaded:', placements.first.username);
+          } else {
+            console.log('First place user not found:', rawData.winnerId);
           }
         }
 
-        if (tournament.secondPlaceId) {
-          const secondDoc = await getDoc(doc(db, 'users', tournament.secondPlaceId));
+        // Load second place
+        if (rawData.secondPlaceId) {
+          const secondDoc = await getDoc(doc(db, 'users', rawData.secondPlaceId));
           if (secondDoc.exists()) {
             placements.second = { id: secondDoc.id, ...secondDoc.data() };
+            console.log('Second place loaded:', placements.second.username);
+          } else {
+            console.log('Second place user not found:', rawData.secondPlaceId);
           }
         }
 
-        if (tournament.thirdPlaceId) {
-          const thirdDoc = await getDoc(doc(db, 'users', tournament.thirdPlaceId));
+        // Load third place
+        if (rawData.thirdPlaceId) {
+          const thirdDoc = await getDoc(doc(db, 'users', rawData.thirdPlaceId));
           if (thirdDoc.exists()) {
             placements.third = { id: thirdDoc.id, ...thirdDoc.data() };
+            console.log('Third place loaded:', placements.third.username);
+          } else {
+            console.log('Third place user not found:', rawData.thirdPlaceId);
           }
         }
 
+        console.log('Final placement data:', placements);
         setPlacementData(placements);
       } catch (err) {
         console.error('Error loading winner data:', err);
@@ -92,7 +127,7 @@ export default function TournamentPage({ params }) {
     };
 
     loadWinnerData();
-  }, [tournament]);
+  }, [tournament, resolvedParams.id]);
 
   const handleJoinTournament = async () => {
     if (!isAuthenticated) {
@@ -371,10 +406,7 @@ export default function TournamentPage({ params }) {
         </div>
       )}
 
-      {/* Winner Announcement */}
-      {tournament.status === 'completed' && placementData.first && (
-        <WinnerPodium />
-      )}
+
 
       {/* Tournament Hero Section */}
       <div className={`card-raid p-6 mb-6 bg-gradient-to-br ${statusConfig.gradient} relative overflow-hidden`}>
@@ -554,6 +586,12 @@ export default function TournamentPage({ params }) {
           </div>
         </div>
       </div>
+
+
+            {/* Winner Announcement */}
+      {tournament.status === 'completed' && placementData.first && (
+        <WinnerPodium />
+      )}
 
       {/* Tabs for Details and Bracket */}
       {showBracket && (
