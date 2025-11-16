@@ -1,8 +1,21 @@
-// src/app/admin/page.jsx - UPDATED
+// src/app/admin/page.jsx - WITH WINNER SELECTION
 "use client";
 
 import { useState } from "react";
-import { LayoutDashboard, Trophy, Users, BarChart3, Settings, LogOut, Menu, X, Gamepad2 } from "lucide-react";
+import { 
+  LayoutDashboard, 
+  Trophy, 
+  Users, 
+  BarChart3, 
+  Settings, 
+  LogOut, 
+  Menu, 
+  X, 
+  Gamepad2,
+  Award,
+  ClipboardCheck,
+  Crown
+} from "lucide-react";
 import useAdminAuth from "./hooks/useAdminAuth";
 import Dashboard from "./components/Dashboard";
 import TournamentManagement from "./components/TournamentManagement";
@@ -10,7 +23,7 @@ import UserManagement from "./components/UserManagement";
 import ResultsVerification from './components/ResultsVerification';
 import ResultsManagement from './components/ResultsManagement';
 import NonBracketResults from './components/NonBracketResults';
-import { ClipboardCheck, Award } from 'lucide-react';
+import WinnerSelection from './components/WinnerSelection';
 
 export default function AdminPortal() {
   const { admin, loading, logout } = useAdminAuth();
@@ -25,6 +38,7 @@ export default function AdminPortal() {
     { id: "tournaments", label: "Tournaments", icon: Trophy },
     { id: "results-management", label: "Bracket Results", icon: Gamepad2 },
     { id: "non-bracket-results", label: "Battle Royale", icon: Award },
+    { id: "winner-selection", label: "Select Winners", icon: Crown },
     { id: "results", label: "Verify Results", icon: ClipboardCheck },
     { id: "users", label: "Users", icon: Users },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
@@ -92,6 +106,8 @@ export default function AdminPortal() {
         {activeTab === "dashboard" && <Dashboard />}
         {activeTab === "tournaments" && <TournamentManagement />}
         {activeTab === "results-management" && <ResultsManagement />}
+        {activeTab === "non-bracket-results" && <NonBracketResults />}
+        {activeTab === "winner-selection" && <WinnerSelection />}
         {activeTab === "results" && <ResultsVerification />}
         {activeTab === "users" && <UserManagement />}
         {activeTab === "analytics" && <div className="text-white p-4">Analytics coming soon...</div>}

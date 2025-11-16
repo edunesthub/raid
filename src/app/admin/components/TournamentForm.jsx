@@ -1,4 +1,4 @@
-// src/app/admin/components/TournamentForm.jsx - WORKING EDIT
+// src/app/admin/components/TournamentForm.jsx - MOBILE OPTIMIZED
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -33,7 +33,6 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
     { value: "Swiss", label: "Swiss System", description: "Paired based on performance" },
   ];
 
-  // Load tournament data if editing
   useEffect(() => {
     if (tournament) {
       setForm({
@@ -78,7 +77,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
     reader.readAsDataURL(file);
 
     setTournamentFlyer(file);
-    setExistingFlyerUrl(null); // Clear existing URL if new file selected
+    setExistingFlyerUrl(null);
   };
 
   const uploadImageToCloudinary = async (file) => {
@@ -120,9 +119,8 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
 
     setLoading(true);
     try {
-      let flyerUrl = existingFlyerUrl; // Keep existing URL if no new image
+      let flyerUrl = existingFlyerUrl;
 
-      // Upload new image if selected
       if (tournamentFlyer) {
         setUploadingImage(true);
         flyerUrl = await uploadImageToCloudinary(tournamentFlyer);
@@ -142,12 +140,10 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
       };
 
       if (isEditing) {
-        // UPDATE existing tournament
         const tournamentRef = doc(db, "tournaments", tournament.id);
         await updateDoc(tournamentRef, tournamentData);
         alert("Tournament updated successfully!");
       } else {
-        // CREATE new tournament
         await addDoc(collection(db, "tournaments"), {
           ...tournamentData,
           current_participants: 0,
@@ -174,30 +170,34 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
   const selectedFormat = tournamentFormats.find(f => f.value === form.format);
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-2xl my-8 p-6 relative">
-        <button 
-          onClick={onClose} 
-          className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors"
-        >
-          <X size={20} />
-        </button>
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-end sm:items-center justify-center overflow-hidden">
+      <div className="bg-gray-900 border border-gray-700 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto sm:my-8 relative">
+        {/* Header - Sticky on mobile */}
+        <div className="sticky top-0 bg-gray-900 border-b border-gray-700 p-4 sm:p-6 flex items-center justify-between z-10">
+          <h3 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+            {isEditing ? (
+              <>
+                <Save className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
+                <span className="hidden sm:inline">Edit Tournament</span>
+                <span className="sm:hidden">Edit</span>
+              </>
+            ) : (
+              <>
+                <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
+                <span className="hidden sm:inline">Create Tournament</span>
+                <span className="sm:hidden">Create</span>
+              </>
+            )}
+          </h3>
+          <button 
+            onClick={onClose} 
+            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
+          </button>
+        </div>
 
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          {isEditing ? (
-            <>
-              <Save className="w-6 h-6 text-orange-500" />
-              Edit Tournament
-            </>
-          ) : (
-            <>
-              <Plus className="w-6 h-6 text-orange-500" />
-              Create Tournament
-            </>
-          )}
-        </h3>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 pb-24 sm:pb-6">
           {/* Image Upload Section */}
           <div className="space-y-2">
             <label className="block text-sm text-gray-300 font-medium">
@@ -206,23 +206,23 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
             
             <div 
               onClick={() => fileInputRef.current?.click()}
-              className="relative border-2 border-dashed border-gray-700 rounded-xl p-6 hover:border-orange-500 transition-colors cursor-pointer group"
+              className="relative border-2 border-dashed border-gray-700 rounded-xl p-4 sm:p-6 hover:border-orange-500 transition-colors cursor-pointer group"
             >
               {imagePreview ? (
                 <div className="relative">
                   <img 
                     src={imagePreview} 
                     alt="Tournament flyer preview" 
-                    className="w-full h-48 object-cover rounded-lg"
+                    className="w-full h-40 sm:h-48 object-cover rounded-lg"
                   />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                    <Upload className="w-8 h-8 text-white" />
-                    <span className="ml-2 text-white font-medium">Change Image</span>
+                    <Upload className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                    <span className="ml-2 text-white font-medium text-sm sm:text-base">Change Image</span>
                   </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center text-gray-400">
-                  <ImageIcon className="w-12 h-12 mb-2" />
+                  <ImageIcon className="w-10 h-10 sm:w-12 sm:h-12 mb-2" />
                   <p className="text-sm font-medium">Click to upload tournament flyer</p>
                   <p className="text-xs mt-1">PNG, JPG up to 5MB</p>
                 </div>
@@ -311,13 +311,13 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
               placeholder="Enter tournament description, rules, and requirements..."
               value={form.description}
               onChange={handleChange}
-              rows="4"
+              rows="3"
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm resize-none focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition"
             />
           </div>
 
-          {/* Entry Fee and Max Participants */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Entry Fee and Max Participants - Stacked on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-gray-300 font-medium mb-2">
                 Entry Fee (₵)
@@ -364,37 +364,58 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
             />
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
+          {/* Action Buttons - Fixed at bottom on mobile */}
+          <div className="fixed sm:relative bottom-0 left-0 right-0 bg-gray-900 sm:bg-transparent border-t sm:border-t-0 border-gray-700 p-4 sm:p-0 flex flex-col sm:flex-row gap-3 sm:pt-4">
             <button
               type="button"
               onClick={onClose}
               disabled={loading || uploadingImage}
-              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50"
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50 order-2 sm:order-1"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || uploadingImage}
-              className={`flex-1 bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 ${
+              className={`flex-1 bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 order-1 sm:order-2 ${
                 (loading || uploadingImage) ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
               }`}
             >
               {uploadingImage ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Uploading Image...
+                  <span className="hidden sm:inline">Uploading Image...</span>
+                  <span className="sm:hidden">Uploading...</span>
                 </>
               ) : loading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  {isEditing ? 'Updating...' : 'Creating...'}
+                  {isEditing ? (
+                    <>
+                      <span className="hidden sm:inline">Updating...</span>
+                      <span className="sm:hidden">Updating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="hidden sm:inline">Creating...</span>
+                      <span className="sm:hidden">Creating...</span>
+                    </>
+                  )}
                 </>
               ) : (
                 <>
                   {isEditing ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-                  {isEditing ? 'Update Tournament' : 'Create Tournament'}
+                  {isEditing ? (
+                    <>
+                      <span className="hidden sm:inline">Update Tournament</span>
+                      <span className="sm:hidden">Update</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="hidden sm:inline">Create Tournament</span>
+                      <span className="sm:hidden">Create</span>
+                    </>
+                  )}
                 </>
               )}
             </button>
