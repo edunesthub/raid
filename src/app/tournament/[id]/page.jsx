@@ -316,42 +316,46 @@ const WinnerPodium = () => {
             <span className="text-2xl">{config.emoji}</span>
           </div>
 
-          {/* Avatar + Crown (Champion Only) */}
-          <div className="flex justify-center mb-4 relative">
-            {placement === 'first' && (
-              <div className="absolute -top-6 animate-bounce">
-                <Crown className="w-10 h-10 text-yellow-400 drop-shadow-lg" />
-              </div>
-            )}
+{/* Avatar + Crown (Champion Only) */}
+<div className="flex justify-center mb-4 relative">
+ {placement === 'first' && (
+  <div className="absolute -top-8 right-24 animate-bounce transform rotate-25">
+    <Crown className="w-10 h-10 text-yellow-400 drop-shadow-lg" />
+  </div>
+)}
 
-            <div className="relative w-24 h-24">
-              <div className={`absolute inset-0 rounded-full blur-xl opacity-40 ${placement === 'first'
-                ? 'bg-yellow-500'
-                : placement === 'second'
-                ? 'bg-gray-400'
-                : 'bg-orange-400'
-                }`}
-              ></div>
 
-              <div
-                className={`relative w-full h-full rounded-full overflow-hidden border-4 ${config.border} ring-4 ${config.ring}`}
-              >
-                {player.avatarUrl ? (
-                  <img
-                    src={player.avatarUrl}
-                    alt={player.username}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                    <span className="text-white text-xl font-bold">
-                      {player.username?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+  <div className="relative w-24 h-24">
+    <div
+      className={`absolute inset-0 rounded-full blur-xl opacity-40 ${
+        placement === 'first'
+          ? 'bg-yellow-500'
+          : placement === 'second'
+          ? 'bg-gray-400'
+          : 'bg-orange-400'
+      }`}
+    ></div>
+
+    <div
+      className={`relative w-full h-full rounded-full overflow-hidden border-4 ${config.border} ring-4 ${config.ring}`}
+    >
+      {player.avatarUrl ? (
+        <img
+          src={player.avatarUrl}
+          alt={player.username}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+          <span className="text-white text-xl font-bold">
+            {player.username?.charAt(0).toUpperCase()}
+          </span>
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+
 
           {/* Username */}
           <h3 className="text-center font-bold text-lg text-white truncate">
