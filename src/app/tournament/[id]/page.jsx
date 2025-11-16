@@ -261,173 +261,178 @@ export default function TournamentPage({ params }) {
   const canJoin = (tournament.status === 'registration-open' || tournament.status === 'upcoming') && spotsLeft > 0;
   const showBracket = tournament.bracketGenerated && (tournament.status === 'live' || tournament.status === 'completed');
 
-  // Enhanced Winner Podium Component - MOBILE OPTIMIZED
-  const WinnerPodium = () => {
-    if (!placementData.first) return null;
+// Winners Podium - Enhanced & More User Friendly
+const WinnerPodium = () => {
+  if (!placementData.first) return null;
 
-    const WinnerCard = ({ player, stats, placement }) => {
-      const configs = {
-        first: {
-          icon: Crown,
-          color: 'text-yellow-400',
-          bg: 'from-yellow-500/20 to-yellow-600/5',
-          border: 'border-yellow-500/40',
-          ring: 'ring-yellow-500/30',
-          title: 'CHAMPION',
-          position: '1st',
-          emoji: '🥇'
-        },
-        second: {
-          icon: Medal,
-          color: 'text-gray-300',
-          bg: 'from-gray-500/20 to-gray-600/5',
-          border: 'border-gray-500/40',
-          ring: 'ring-gray-500/30',
-          title: '2nd Place',
-          position: '2nd',
-          emoji: '🥈'
-        },
-        third: {
-          icon: Medal,
-          color: 'text-orange-400',
-          bg: 'from-orange-500/20 to-orange-600/5',
-          border: 'border-orange-500/40',
-          ring: 'ring-orange-500/30',
-          title: '3rd Place',
-          position: '3rd',
-          emoji: '🥉'
-        }
-      };
+  const WinnerCard = ({ player, stats, placement }) => {
+    const configs = {
+      first: {
+        icon: Crown,
+        color: 'text-yellow-400',
+        bg: 'from-yellow-500/25 to-yellow-600/10',
+        border: 'border-yellow-500/40',
+        ring: 'ring-yellow-500/30',
+        title: 'CHAMPION',
+        emoji: '🥇',
+        position: '1st'
+      },
+      second: {
+        icon: Medal,
+        color: 'text-gray-300',
+        bg: 'from-gray-500/25 to-gray-600/10',
+        border: 'border-gray-500/40',
+        ring: 'ring-gray-500/30',
+        title: '2nd Place',
+        emoji: '🥈',
+        position: '2nd'
+      },
+      third: {
+        icon: Medal,
+        color: 'text-orange-400',
+        bg: 'from-orange-500/25 to-orange-600/10',
+        border: 'border-orange-500/40',
+        ring: 'ring-orange-500/30',
+        title: '3rd Place',
+        emoji: '🥉',
+        position: '3rd'
+      }
+    };
 
-      const config = configs[placement];
-      const Icon = config.icon;
+    const config = configs[placement];
+    const Icon = config.icon;
 
-      return (
-        <Link href={`/users/${player.id}`}>
-          <div className={`bg-gradient-to-br ${config.bg} rounded-2xl p-4 border ${config.border} hover:scale-105 transition-all duration-300 cursor-pointer`}>
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Icon className={`w-5 h-5 ${config.color}`} />
-                <span className={`${config.color} font-bold text-sm`}>{config.title}</span>
-              </div>
-              <span className="text-2xl">{config.emoji}</span>
+    return (
+      <Link href={`/users/${player.id}`}>
+        <div
+          className={`bg-gradient-to-br ${config.bg} rounded-2xl p-4 pb-8 border ${config.border} hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-xl`}
+        >
+          {/* Title Row */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Icon className={`w-6 h-6 ${config.color}`} />
+              <span className={`${config.color} font-bold`}>{config.title}</span>
             </div>
+            <span className="text-2xl">{config.emoji}</span>
+          </div>
 
-            {/* Avatar */}
-            <div className="flex justify-center mb-4">
-              <div className={`relative ${placement === 'first' ? 'w-24 h-24' : 'w-20 h-20'}`}>
-                <div className={`absolute inset-0 ${placement === 'first' ? 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 animate-pulse' : ''} rounded-full blur-xl opacity-50`}></div>
-                <div className={`relative w-full h-full rounded-full overflow-hidden border-4 ${config.border} ring-4 ${config.ring}`}>
-                  {player.avatarUrl ? (
-                    <img 
-                      src={player.avatarUrl} 
-                      alt={player.username}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className={`w-full h-full bg-gradient-to-r ${config.bg} flex items-center justify-center`}>
-                      <span className="text-white text-xl font-bold">
-                        {player.username?.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Player Info */}
-            <h3 className={`text-center font-bold mb-1 ${placement === 'first' ? 'text-xl' : 'text-lg'} text-white truncate`}>
-              {player.username}
-            </h3>
-            <p className="text-center text-gray-400 text-xs mb-4">
-              {player.firstName} {player.lastName}
-            </p>
-
-            {/* Stats */}
-            {stats && (
-              <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/10">
-                <div className="text-center">
-                  <Trophy className="w-4 h-4 text-yellow-500 mx-auto mb-1" />
-                  <p className="text-white font-bold text-sm">{stats.tournamentsWon || 0}</p>
-                  <p className="text-gray-400 text-xs">Wins</p>
-                </div>
-                <div className="text-center">
-                  <Target className="w-4 h-4 text-blue-500 mx-auto mb-1" />
-                  <p className="text-white font-bold text-sm">{stats.tournamentsPlayed || 0}</p>
-                  <p className="text-gray-400 text-xs">Played</p>
-                </div>
-                <div className="text-center">
-                  <TrendingUp className="w-4 h-4 text-green-500 mx-auto mb-1" />
-                  <p className="text-white font-bold text-sm">{stats.winRate?.toFixed(0) || 0}%</p>
-                  <p className="text-gray-400 text-xs">Win Rate</p>
-                </div>
+          {/* Avatar + Crown (Champion Only) */}
+          <div className="flex justify-center mb-4 relative">
+            {placement === 'first' && (
+              <div className="absolute -top-6 animate-bounce">
+                <Crown className="w-10 h-10 text-yellow-400 drop-shadow-lg" />
               </div>
             )}
 
-            {/* View Profile CTA */}
-            <div className="mt-4 flex items-center justify-center gap-2 text-gray-400 hover:text-white transition-colors">
-              <span className="text-xs font-medium">View Profile</span>
-              <ChevronRight className="w-4 h-4" />
+            <div className="relative w-24 h-24">
+              <div className={`absolute inset-0 rounded-full blur-xl opacity-40 ${placement === 'first'
+                ? 'bg-yellow-500'
+                : placement === 'second'
+                ? 'bg-gray-400'
+                : 'bg-orange-400'
+                }`}
+              ></div>
+
+              <div
+                className={`relative w-full h-full rounded-full overflow-hidden border-4 ${config.border} ring-4 ${config.ring}`}
+              >
+                {player.avatarUrl ? (
+                  <img
+                    src={player.avatarUrl}
+                    alt={player.username}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+                    <span className="text-white text-xl font-bold">
+                      {player.username?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </Link>
-      );
-    };
 
-    return (
-      <div className="mb-8 animate-fade-in">
-        <div className={`bg-gradient-to-br ${statusConfig.gradient} rounded-3xl p-4 sm:p-6 border border-orange-500/30 shadow-2xl relative overflow-hidden`}>
-          {/* Animated background */}
-          <div className="absolute inset-0 opacity-20 pointer-events-none">
-            <div className="absolute top-10 left-10 w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-            <div className="absolute top-20 right-20 w-3 h-3 bg-orange-400 rounded-full animate-pulse delay-150"></div>
-            <div className="absolute bottom-10 left-1/3 w-2 h-2 bg-yellow-300 rounded-full animate-pulse delay-300"></div>
+          {/* Username */}
+          <h3 className="text-center font-bold text-lg text-white truncate">
+            {player.username}
+          </h3>
+          <p className="text-center text-gray-400 text-xs mb-5">
+            {player.firstName} {player.lastName}
+          </p>
+
+          {/* Stats Section */}
+          {stats && (
+            <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/10">
+              <div className="text-center">
+                <Trophy className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
+                <p className="text-white font-bold text-sm">{stats.tournamentsWon || 0}</p>
+                <p className="text-gray-400 text-xs">Wins</p>
+              </div>
+              <div className="text-center">
+                <Target className="w-5 h-5 text-blue-500 mx-auto mb-1" />
+                <p className="text-white font-bold text-sm">{stats.tournamentsPlayed || 0}</p>
+                <p className="text-gray-400 text-xs">Played</p>
+              </div>
+              <div className="text-center">
+                <TrendingUp className="w-5 h-5 text-green-500 mx-auto mb-1" />
+                <p className="text-white font-bold text-sm">{stats.winRate?.toFixed(0) || 0}%</p>
+                <p className="text-gray-400 text-xs">Rate</p>
+              </div>
+            </div>
+          )}
+
+          {/* CTA */}
+          <div className="mt-5 flex items-center justify-center gap-2 text-gray-300 hover:text-white transition-colors">
+            <span className="text-xs font-medium">View Profile</span>
+            <ChevronRight className="w-4 h-4" />
+          </div>
+        </div>
+      </Link>
+    );
+  };
+
+  return (
+    <div className="mb-10 animate-fade-in">
+      <div className="bg-gradient-to-br from-orange-500/10 to-purple-500/10 rounded-3xl p-5 border border-orange-500/30 shadow-2xl relative overflow-hidden">
+        <div className="relative z-10">
+          {/* Section Header */}
+          <div className="text-center mb-6">
+            <h2 className="flex items-center justify-center gap-2 text-2xl sm:text-3xl font-bold text-white">
+              🏆 Champions
+            </h2>
+            <p className="text-gray-400 text-sm">
+              The top players of this tournament
+            </p>
           </div>
 
-          <div className="relative z-10">
-            {/* Header */}
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 animate-pulse" />
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">Champions</h2>
-                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 animate-pulse" />
-              </div>
-              <p className="text-gray-300 text-xs sm:text-sm">The best of the best in {tournament.game}</p>
-            </div>
+          {/* Desktop Layout */}
+          <div className="hidden sm:grid sm:grid-cols-3 gap-6">
+            {placementData.second && <WinnerCard player={placementData.second} stats={winnerStats.second} placement="second" />}
+            <WinnerCard player={placementData.first} stats={winnerStats.first} placement="first" />
+            {placementData.third && <WinnerCard player={placementData.third} stats={winnerStats.third} placement="third" />}
+          </div>
 
-            {/* Desktop: Side by side layout */}
-            <div className="hidden sm:grid sm:grid-cols-3 gap-4 mb-4">
-              {placementData.second && (
-                <div className="order-1">
-                  <WinnerCard player={placementData.second} stats={winnerStats.second} placement="second" />
-                </div>
-              )}
-              <div className="order-2">
-                <WinnerCard player={placementData.first} stats={winnerStats.first} placement="first" />
-              </div>
-              {placementData.third && (
-                <div className="order-3">
-                  <WinnerCard player={placementData.third} stats={winnerStats.third} placement="third" />
-                </div>
-              )}
-            </div>
-
-            {/* Mobile: Stacked layout */}
-            <div className="sm:hidden space-y-6">
-              <WinnerCard player={placementData.first} stats={winnerStats.first} placement="first" />
-              {placementData.second && (
+          {/* Mobile Layout – stacked with bigger spacing */}
+          <div className="sm:hidden space-y-8">
+            <WinnerCard player={placementData.first} stats={winnerStats.first} placement="first" />
+            {placementData.second && (
+              <div className="mt-4">
                 <WinnerCard player={placementData.second} stats={winnerStats.second} placement="second" />
-              )}
-              {placementData.third && (
+              </div>
+            )}
+            {placementData.third && (
+              <div className="mt-2">
                 <WinnerCard player={placementData.third} stats={winnerStats.third} placement="third" />
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
+
 
   return (
     <div className="container-mobile min-h-screen py-6">
