@@ -191,7 +191,7 @@ body {
 
 /* Adjust speed here (lower = faster) */
 .animate-scroll-slow {
-  animation: scroll-linear 65s linear infinite;
+  animation: scroll-linear 70s linear infinite;
 }
 
 .pause-scroll {
