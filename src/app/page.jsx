@@ -4,13 +4,39 @@ import Link from "next/link";
 import Image from "next/image";
 import TournamentCard from "@/components/TournamentCard.jsx";
 import LoadingSpinner from "@/components/LoadingSpinner.jsx";
-import UserSearchBar from "@/components/UserSearchBar.jsx"; // Add this
+import UserSearchBar from "@/components/UserSearchBar.jsx";
 import { useFeaturedTournaments } from "@/hooks/useTournaments";
+import { useEffect, useRef } from "react";
 
 export default function Home() {
   const { tournaments, loading, error } = useFeaturedTournaments(4);
 
-  // ✅ Use direct public paths instead of imports
+  const adsRef = useRef(null);
+  const scrollTimeout = useRef(null);   // ✅ place here
+
+  useEffect(() => {
+    const el = adsRef.current;
+    if (!el) return;
+
+    const stopAnimation = () => {
+      el.classList.add("stop-animation");
+
+      if (scrollTimeout.current)
+        clearTimeout(scrollTimeout.current);
+
+      scrollTimeout.current = setTimeout(() => {
+        el.classList.remove("stop-animation");
+      }, 1200);
+    };
+
+    el.addEventListener("scroll", stopAnimation, { passive: true });
+
+    return () => {
+      el.removeEventListener("scroll", stopAnimation);
+    };
+  }, []);
+
+
   const assets = [
     "/assets/8ball.jpg",
     "/assets/amongus.jpg",
@@ -29,14 +55,15 @@ export default function Home() {
   ];
 
   return (
-    <div 
+    <div
       className="w-full h-full overflow-y-auto"
       style={{
         minHeight: "calc(var(--vh, 1vh) * 100)",
       }}
     >
       <div className="container-mobile py-6">
-        {/* Hero Section */}
+
+        {/* Hero */}
         <div className="text-center mb-8">
           <div className="bg-linear-to-r from-black/10 to-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-6">
             <p className="text-sm text-gray-300">
@@ -45,33 +72,37 @@ export default function Home() {
           </div>
         </div>
 
-                <UserSearchBar />
+        <UserSearchBar />
 
-
-        {/* Images Carousel Section */}
+        {/* 🟧 Ads Ticker */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold text-white mb-4">Featured</h2>
-          <div className="relative">
-            <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide">
-              {assets.map((src, idx) => (
-                <div
-                  key={idx}
-                  className="snap-center shrink-0 w-64 h-40 relative rounded-lg overflow-hidden border border-gray-700"
-                >
-                  <Image
-                    src={src}
-                    alt={`asset-${idx}`}
-                    fill
-                    className="object-cover"
-                    priority={idx < 3}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+          <h2 className="text-xl font-bold text-white mb-4">Ads</h2>
+
+         <div
+  ref={adsRef}
+  className="relative overflow-x-auto overflow-y-hidden w-full group scrollbar-hide"
+>
+  <div className="ads-track gap-4 whitespace-nowrap animate-scroll-slow group-hover:pause-scroll">
+    {[...assets, ...assets].map((src, idx) => (
+      <Link
+        key={idx}
+        href={`/ads/${idx % assets.length}`}
+        className="shrink-0 w-64 h-40 relative rounded-lg overflow-hidden border border-gray-700"
+      >
+        <Image
+          src={src}
+          alt={`ad-${idx}`}
+          fill
+          className="object-cover"
+        />
+      </Link>
+    ))}
+  </div>
+</div>
+
         </section>
 
-        {/* Featured Tournaments */}
+        {/* Rest of your page unchanged */}
         <section className="pb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white flex items-center">
@@ -83,14 +114,12 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Loading State */}
           {loading && (
             <div className="flex justify-center items-center py-12">
               <LoadingSpinner />
             </div>
           )}
 
-          {/* Error State */}
           {error && (
             <div className="bg-red-600/10 border border-red-600/30 rounded-lg p-6 text-center">
               <p className="text-red-400 mb-2">⚠️ Failed to load tournaments</p>
@@ -98,7 +127,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* Tournaments Grid */}
           {!loading && !error && tournaments.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {tournaments.map((tournament) => (
@@ -107,7 +135,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* Empty State */}
           {!loading && !error && tournaments.length === 0 && (
             <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-12 text-center">
               <div className="text-6xl mb-4">🎮</div>

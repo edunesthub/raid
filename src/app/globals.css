@@ -173,3 +173,41 @@ body {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+/* Make the scrolling track size itself correctly */
+.ads-track {
+  display: flex;
+  width: max-content;
+}
+
+/* Smooth infinite scrolling */
+@keyframes scroll-linear {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Adjust speed here (lower = faster) */
+.animate-scroll-slow {
+  animation: scroll-linear 60s linear infinite;
+}
+
+.pause-scroll {
+  animation-play-state: paused;
+}
+
+/* Stop glitch when manual scrolling */
+.stop-animation {
+  animation: none !important;
+}
+/* Hide horizontal scrollbar for the ads ticker */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera */
+}
