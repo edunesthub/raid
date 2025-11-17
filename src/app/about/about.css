@@ -1,0 +1,103 @@
+/* Fade in animation */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out;
+}
+
+/* Custom reusable classes */
+.tag-chip {
+  background: linear-gradient(to right, rgba(255,111,0,0.2), rgba(150,0,255,0.2));
+  border: 1px solid rgba(255,111,0,0.3);
+  padding: 8px 18px;
+  border-radius: 999px;
+}
+
+.about-title {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 800;
+  background: linear-gradient(to right, #ff6a00, #a64bff, #ff6a00);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.about-sub {
+  color: #bfbfbf;
+  font-size: 1.25rem;
+  max-width: 700px;
+  margin: 0 auto 2rem auto;
+}
+
+.btn-orange {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: linear-gradient(to right, #ff6a00, #ff5400);
+  padding: 14px 30px;
+  border-radius: 14px;
+  font-weight: 700;
+  transition: 0.25s;
+}
+.btn-orange:hover {
+  transform: scale(1.07);
+}
+
+.btn-ghost {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 14px 30px;
+  border-radius: 14px;
+  transition: 0.25s;
+}
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+/* Cards */
+.stat-card,
+.feature-card,
+.game-card {
+  backdrop-filter: blur(14px);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 22px;
+  border-radius: 18px;
+  transition: 0.25s;
+}
+
+.stat-card:hover,
+.feature-card:hover,
+.game-card:hover {
+  border-color: rgba(255,115,0,0.6);
+  transform: scale(1.05);
+}
+
+/* CTA */
+.cta-card {
+  text-align: center;
+  padding: 60px 20px;
+  border-radius: 24px;
+  backdrop-filter: blur(14px);
+  background: linear-gradient(to right, rgba(255,115,0,0.1), rgba(150,0,255,0.1), rgba(255,115,0,0.1));
+  border: 1px solid rgba(255,115,0,0.3);
+}
+
+.btn-orange-large {
+  display: inline-flex;
+  gap: 10px;
+  padding: 18px 40px;
+  background: linear-gradient(to right, #ff6a00, #ff5400);
+  border-radius: 16px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  transition: 0.25s;
+}
+.btn-orange-large:hover {
+  transform: scale(1.08);
+}
