@@ -39,27 +39,11 @@ export default function Navigation() {
 
   if (pathname.startsWith("/auth/")) return null;
 
-  {/* Black notch spacer for iOS / Capacitor */}
-<div
-  style={{
-    height: 'env(safe-area-inset-top)',
-    width: '100%',
-    backgroundColor: '#000', // keeps notch black
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    zIndex: 50,
-  }}
-/>
-
-
   return (
     <>
-      {/* Desktop Navigation */}
-<nav
-  className="hidden md:block fixed left-0 right-0 z-50 bg-black border-b border-gray-800"
-  style={{ top: 'env(safe-area-inset-top)' }}
->        <div className="max-w-7xl mx-auto px-4">
+      {/* Desktop Navigation - REMOVED fixed positioning */}
+      <nav className="hidden md:block top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
+        <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center">
@@ -93,7 +77,6 @@ export default function Navigation() {
               {isAuthenticated ? (
                 <div className="relative">
                   <div className="flex items-center space-x-2">
-                    {/* ✅ NEW: NotificationBadge Component */}
                     <NotificationBadge />
 
                     <button
@@ -158,11 +141,9 @@ export default function Navigation() {
         </div>
       </nav>
 
-      {/* MOBILE HEADER */}
-<nav
-  className="md:hidden fixed left-0 right-0 z-50 bg-black border-b border-gray-800"
-  style={{ top: 'env(safe-area-inset-top)' }}
->        <div className="px-4 flex items-center justify-between h-16">
+      {/* MOBILE HEADER - REMOVED fixed positioning */}
+      <nav className="md:hidden top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
+        <div className="px-4 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center">
             <Image
               src="/assets/raid1.svg"
@@ -196,7 +177,7 @@ export default function Navigation() {
         </div>
       </nav>
 
-      {/* MOBILE SIDEBAR */}
+      {/* MOBILE SIDEBAR - This stays fixed as it's an overlay */}
       {isMenuOpen && (
         <div
           className="fixed inset-0 bg-black/80 z-40"
@@ -252,7 +233,6 @@ export default function Navigation() {
               );
             })}
 
-            {/* ✅ Add Notifications Link for Mobile */}
             {isAuthenticated && (
               <Link
                 href="/notifications"
