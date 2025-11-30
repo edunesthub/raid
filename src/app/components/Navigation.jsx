@@ -41,8 +41,8 @@ export default function Navigation() {
 
   return (
     <>
-      {/* Desktop Navigation - REMOVED fixed positioning */}
-      <nav className="hidden md:block top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
+      {/* Desktop Navigation */}
+      <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -77,6 +77,7 @@ export default function Navigation() {
               {isAuthenticated ? (
                 <div className="relative">
                   <div className="flex items-center space-x-2">
+                    {/* ✅ NEW: NotificationBadge Component */}
                     <NotificationBadge />
 
                     <button
@@ -141,8 +142,8 @@ export default function Navigation() {
         </div>
       </nav>
 
-      {/* MOBILE HEADER - REMOVED fixed positioning */}
-      <nav className="md:hidden top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
+      {/* MOBILE HEADER */}
+      <nav className="md:hidden fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
         <div className="px-4 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center">
             <Image
@@ -177,7 +178,7 @@ export default function Navigation() {
         </div>
       </nav>
 
-      {/* MOBILE SIDEBAR - This stays fixed as it's an overlay */}
+      {/* MOBILE SIDEBAR */}
       {isMenuOpen && (
         <div
           className="fixed inset-0 bg-black/80 z-40"
@@ -233,6 +234,7 @@ export default function Navigation() {
               );
             })}
 
+            {/* ✅ Add Notifications Link for Mobile */}
             {isAuthenticated && (
               <Link
                 href="/notifications"
