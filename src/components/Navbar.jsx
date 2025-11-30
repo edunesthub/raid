@@ -8,7 +8,7 @@ export function Navbar() {
   const { isAuthenticated } = useAuth(); // Use the actual authentication logic
 
   return (
-    <nav>
+<nav className="h-16 flex items-center px-4 md:px-8">
       <Link href="/" className={`nav-link ${pathname === '/' ? 'nav-link-active' : ''}`}>
         Home
       </Link>
