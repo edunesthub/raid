@@ -22,25 +22,19 @@ export default function SplashPage() {
       setIsChecking(false);
       
       if (user) {
-        // User is authenticated, go to home
         router.replace("/");
       } else {
-        // User is not authenticated, go to welcome
         router.replace("/welcome");
       }
     };
     
-    // Set up auth state listener
     authUnsubscribe = onAuthStateChanged(auth, (user) => {
       console.log('[Splash] Auth state changed:', user?.email || 'No user');
-      
-      // Wait minimum 1.5 seconds before navigating
       setTimeout(() => {
         navigate(user);
       }, 1500);
     });
 
-    // Failsafe: if auth check takes too long (5 seconds), go to welcome
     const failsafe = setTimeout(() => {
       if (!hasNavigated) {
         console.log("[Splash] Failsafe triggered - redirecting to welcome");
@@ -75,51 +69,19 @@ export default function SplashPage() {
             Mobile Esports Platform
           </p>
         </div>
-
-        {/* Loading Dots */}
-        <div className="flex space-x-2 mt-8">
-          <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
-          <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse delay-150"></div>
-          <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse delay-300"></div>
-        </div>
       </div>
 
       <style jsx>{`
         @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-
         @keyframes bounce-slow {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-20px);
-          }
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-20px); }
         }
-
-        .animate-fade-in-up {
-          animation: fade-in-up 0.8s ease-out 0.3s both;
-        }
-
-        .animate-bounce-slow {
-          animation: bounce-slow 2s ease-in-out infinite;
-        }
-
-        .delay-150 {
-          animation-delay: 150ms;
-        }
-
-        .delay-300 {
-          animation-delay: 300ms;
-        }
+        .animate-fade-in-up { animation: fade-in-up 0.8s ease-out 0.3s both; }
+        .animate-bounce-slow { animation: bounce-slow 2s ease-in-out infinite; }
       `}</style>
     </div>
   );
