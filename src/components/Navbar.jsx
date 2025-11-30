@@ -5,13 +5,10 @@ import { useAuth } from '@/hooks/useAuth';
 
 export function Navbar() {
   const pathname = usePathname();
-  const { isAuthenticated } = useAuth(); 
+  const { isAuthenticated } = useAuth(); // Use the actual authentication logic
 
   return (
-    <nav
-      className="h-16 flex items-center px-4 md:px-8 bg-black"
-      style={{ paddingTop: "env(safe-area-inset-top)" }} // <- notch safe
-    >
+    <nav>
       <Link href="/" className={`nav-link ${pathname === '/' ? 'nav-link-active' : ''}`}>
         Home
       </Link>
@@ -35,6 +32,7 @@ export function Navbar() {
           >
             Leagues
           </Link>
+          {/* ...other authenticated nav items... */}
         </>
       )}
       <AuthButton />
