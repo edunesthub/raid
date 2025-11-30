@@ -42,8 +42,10 @@ export default function Navigation() {
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4">
+<nav
+  className="hidden md:block fixed left-0 right-0 z-50 bg-black border-b border-gray-800"
+  style={{ top: '-4px' }} // move up 4px; adjust as needed
+>        <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center">
@@ -143,8 +145,10 @@ export default function Navigation() {
       </nav>
 
       {/* MOBILE HEADER */}
-      <nav className="md:hidden fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
-        <div className="px-4 flex items-center justify-between h-16">
+<nav
+  className="md:hidden fixed left-0 right-0 z-50 bg-black border-b border-gray-800"
+  style={{ top: '-4px' }}
+>        <div className="px-4 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center">
             <Image
               src="/assets/raid1.svg"
