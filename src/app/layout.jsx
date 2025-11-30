@@ -45,37 +45,36 @@ const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/auth/onboardin
           height: "100%",
         }}
       >
-<AppProviders>
-  <div className="flex flex-col h-full min-h-screen">
-    {!hideLayout && (
-      <div
-        className="w-full bg-black fixed top-0 left-0 z-50"
-        style={{ paddingTop: "env(safe-area-inset-top)", height: "4rem" }}
-      >
-        <Navigation />
-      </div>
-    )}
-
-    <main
-      className="flex-1 pb-24 md:pb-4"
-      style={{
-        paddingTop: !hideLayout ? "calc(4rem + env(safe-area-inset-top))" : undefined,
-      }}
-    >
-      {children}
-    </main>
-
-    {!hideLayout && (
-      <div className="md:hidden">
-        <BottomNav />
-      </div>
-    )}
-  </div>
-
-  <PWAInstallPrompt />
-  <UpdatePrompt />
-  <OfflineLoader />
-</AppProviders>
+        <AppProviders>
+          <div className="flex flex-col h-full min-h-screen">
+            {/* Navigation - only show on regular pages */}
+            {!hideLayout && <Navigation />}
+            
+            {/* Main Content Area */}
+            <main 
+              className={`flex-1 ${!hideLayout ? 'pt-16 md:pt-16' : ''} ${!hideLayout ? 'pb-24 md:pb-4' : ''}`}
+              style={{
+                paddingTop: hideLayout ? '0' : undefined,
+                paddingBottom: hideLayout ? '0' : undefined,
+              }}
+            >
+              {children}
+            </main>
+            
+            {/* Footer and Bottom Nav - only show on regular pages */}
+            {!hideLayout && (
+              <>
+                <div className="md:hidden">
+                  <BottomNav />
+                </div>
+              </>
+            )}
+          </div>
+          
+          <PWAInstallPrompt />
+          <UpdatePrompt />
+          <OfflineLoader />
+        </AppProviders>
 
         <Analytics />
       </body>
