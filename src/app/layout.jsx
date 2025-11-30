@@ -10,16 +10,15 @@ import OfflineLoader from "../components/OfflineLoader";
 import UpdatePrompt from "@/components/UpdatePrompt"; 
 import BottomNav from "../components/BottomNav";
 import { usePathname } from "next/navigation";
-import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
-  
-  // Pages that should hide navigation and footer completely
-const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/auth/onboarding", "/admin/login"].includes(pathname) || pathname.startsWith("/admin");
+
+  const hideLayout = ["/welcome", "/auth/login", "/auth/signup", "/auth/onboarding", "/admin/login"].includes(pathname) || pathname.startsWith("/admin");
+
   return (
     <html lang="en" className="h-full">
       <head>
@@ -47,42 +46,34 @@ const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/auth/onboardin
       >
         <AppProviders>
           <div className="flex flex-col h-full min-h-screen">
-{/* Navigation - only show on regular pages */}
-{!hideLayout && (
-  <>
-    {/* Black notch spacer */}
-    <div
-      className="w-full bg-black"
-      style={{ height: "env(safe-area-inset-top)" }}
-    />
-
-    {/* Actual navigation */}
-    <div style={{ position: "relative", zIndex: 10 }}>
-      <Navigation />
-    </div>
-  </>
-)}
-
-{/* Main Content Area */}
-<main
-  className="flex-1 pb-24 md:pb-4"
-  style={{
-    paddingTop: !hideLayout ? "4rem" : undefined, // only the nav height
-  }}
->
-  {children}
-</main>
-            
-            {/* Footer and Bottom Nav - only show on regular pages */}
             {!hideLayout && (
               <>
-                <div className="md:hidden">
-                  <BottomNav />
+                {/* Black notch spacer */}
+                <div className="w-full bg-black h-[env(safe-area-inset-top)]" />
+
+                {/* Navigation with margin to push it below spacer */}
+                <div className="relative z-10">
+                  <Navigation />
                 </div>
+
+                {/* Spacer to push main content below navigation */}
+                <div className="h-16 md:h-16" />
               </>
             )}
+
+            {/* Main Content Area */}
+            <main className="flex-1 pb-24 md:pb-4">
+              {children}
+            </main>
+
+            {/* Footer / Bottom Nav */}
+            {!hideLayout && (
+              <div className="md:hidden">
+                <BottomNav />
+              </div>
+            )}
           </div>
-          
+
           <PWAInstallPrompt />
           <UpdatePrompt />
           <OfflineLoader />
