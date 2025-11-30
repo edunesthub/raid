@@ -319,3 +319,7 @@ html, body {
   padding-top: env(safe-area-inset-top);
   margin: 0;
 }
+/* Specific handling for the safe area */
+body {
+  background-color: #000000 !important;
+}
