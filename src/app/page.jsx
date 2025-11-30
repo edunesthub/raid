@@ -67,7 +67,7 @@ export default function Home() {
         <div className="text-center mb-8">
           <div className="bg-linear-to-r from-black/10 to-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-6">
             <p className="text-sm text-gray-300">
-              Compete in tournaments with gamers around Ghana.
+              Compete in skill-based tournaments with gamers around Ghana.
             </p>
           </div>
         </div>
