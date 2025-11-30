@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
   const pathname = usePathname();
   
   // Pages that should hide navigation and footer completely
-const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/splash", "/auth/onboarding", "/admin/login"].includes(pathname) || pathname.startsWith("/admin");
+const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/auth/onboarding", "/admin/login"].includes(pathname) || pathname.startsWith("/admin");
   return (
     <html lang="en" className="h-full">
       <head>
@@ -45,10 +45,14 @@ const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/splash", "/aut
           height: "100%",
         }}
       >
-        <AppProviders>
-          <div className="flex flex-col h-full min-h-screen">
-            {/* Navigation - only show on regular pages */}
-            {!hideLayout && <Navigation />}
+<AppProviders>
+  <div className="flex flex-col h-full min-h-screen">
+    {/* Navigation - only show on regular pages */}
+    {!hideLayout && (
+      <div style={{ paddingTop: "env(safe-area-inset-top)" }}>
+        <Navigation />
+      </div>
+    )}
             
             {/* Main Content Area */}
             <main 

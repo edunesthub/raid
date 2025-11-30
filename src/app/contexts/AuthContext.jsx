@@ -22,7 +22,6 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Get additional user data from Firestore
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
         const userData = userDoc.data();
         
@@ -48,8 +47,8 @@ export function AuthProvider({ children }) {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // Don't navigate here - let splash screen handle it
-      router.replace("/splash");
+      // Navigate directly to home after login
+      router.replace("/"); 
     } catch (error) {
       throw new Error(error.message || "Invalid email or password");
     } finally {
@@ -75,7 +74,7 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       await signOut(auth);
-      router.replace("/auth/login"); // Changed from push to replace
+      router.replace("/auth/login");
     } catch (err) {
       console.error("Logout error:", err);
     }
