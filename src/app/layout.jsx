@@ -47,31 +47,19 @@ const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/auth/onboardin
       >
         <AppProviders>
           <div className="flex flex-col h-full min-h-screen">
-{/* Navigation - only show on regular pages */}
-{!hideLayout && (
-  <>
-    {/* Black notch spacer */}
-    <div
-      className="w-full bg-black"
-      style={{ height: "env(safe-area-inset-top)" }}
-    />
-
-    {/* Actual navigation */}
-    <div style={{ position: "relative", zIndex: 10 }}>
-      <Navigation />
-    </div>
-  </>
-)}
-
-{/* Main Content Area */}
-<main
-  className="flex-1 pb-24 md:pb-4"
-  style={{
-    paddingTop: !hideLayout ? "4rem" : undefined, // only the nav height
-  }}
->
-  {children}
-</main>
+            {/* Navigation - only show on regular pages */}
+            {!hideLayout && <Navigation />}
+            
+            {/* Main Content Area */}
+            <main 
+              className={`flex-1 ${!hideLayout ? 'pt-16 md:pt-16' : ''} ${!hideLayout ? 'pb-24 md:pb-4' : ''}`}
+              style={{
+                paddingTop: hideLayout ? '0' : undefined,
+                paddingBottom: hideLayout ? '0' : undefined,
+              }}
+            >
+              {children}
+            </main>
             
             {/* Footer and Bottom Nav - only show on regular pages */}
             {!hideLayout && (
