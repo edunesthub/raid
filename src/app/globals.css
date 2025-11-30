@@ -314,3 +314,8 @@ body {
 .btn-orange-large:hover {
   transform: scale(1.08);
 }
+html, body {
+  background-color: black; /* webview background */
+  padding-top: env(safe-area-inset-top);
+  margin: 0;
+}
