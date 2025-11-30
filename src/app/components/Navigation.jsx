@@ -39,11 +39,27 @@ export default function Navigation() {
 
   if (pathname.startsWith("/auth/")) return null;
 
+  {/* Black notch spacer for iOS / Capacitor */}
+<div
+  style={{
+    height: 'env(safe-area-inset-top)',
+    width: '100%',
+    backgroundColor: '#000', // keeps notch black
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    zIndex: 50,
+  }}
+/>
+
+
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4">
+<nav
+  className="hidden md:block fixed left-0 right-0 z-50 bg-black border-b border-gray-800"
+  style={{ top: 'env(safe-area-inset-top)' }}
+>        <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center">
@@ -143,8 +159,10 @@ export default function Navigation() {
       </nav>
 
       {/* MOBILE HEADER */}
-      <nav className="md:hidden fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
-        <div className="px-4 flex items-center justify-between h-16">
+<nav
+  className="md:hidden fixed left-0 right-0 z-50 bg-black border-b border-gray-800"
+  style={{ top: 'env(safe-area-inset-top)' }}
+>        <div className="px-4 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center">
             <Image
               src="/assets/raid1.svg"
