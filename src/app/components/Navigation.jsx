@@ -145,7 +145,8 @@ export default function Navigation() {
   
 
       {/* MOBILE HEADER */}
-<nav className="md:hidden fixed inset-x-0 top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-gray-800/50 -translate-y-2">         <div className="px-4 flex items-center justify-between h-16">
+      <nav className="md:hidden fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
+         <div className="px-4 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center">
             <Image
               src="/assets/raid1.svg"
