@@ -320,3 +320,6 @@ html, body {
   margin: 0;
 }
 
+body, #root, [data-radix-scroll-area-viewport] {
+  background-color: #000000 !important;
+}

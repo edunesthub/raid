@@ -10,6 +10,7 @@ function ViewportProvider({ children }) {
   useViewportHeight();
   useServiceWorker();
   
+  // This will now make the entire notch/status-bar area solid black on iOS
   useEffect(() => {
     initializeStatusBar();
   }, []);
