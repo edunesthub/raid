@@ -39,11 +39,19 @@ export default function Navigation() {
 
   if (pathname.startsWith("/auth/")) return null;
 
+
+  const navStyle = {
+  paddingTop: 'env(safe-area-inset-top)',
+  marginTop: 'calc(-1 * env(safe-area-inset-top))',
+  backgroundColor: '#000000'
+};
+
   return (
     <>
       {/* Desktop Navigation */}
+      <div style={navStyle}>
       <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4">
+         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center">
@@ -141,10 +149,12 @@ export default function Navigation() {
           </div>
         </div>
       </nav>
+      </div>
 
       {/* MOBILE HEADER */}
+    <div style={navStyle}>
       <nav className="md:hidden fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
-        <div className="px-4 flex items-center justify-between h-16">
+         <div className="px-4 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center">
             <Image
               src="/assets/raid1.svg"
@@ -177,6 +187,7 @@ export default function Navigation() {
           </div>
         </div>
       </nav>
+      </div>
 
       {/* MOBILE SIDEBAR */}
       {isMenuOpen && (

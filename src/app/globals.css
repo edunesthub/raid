@@ -319,7 +319,20 @@ html, body {
   padding-top: env(safe-area-inset-top);
   margin: 0;
 }
-/* Specific handling for the safe area */
-body {
-  background-color: #000000 !important;
+
+/* Extend black background into safe area */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top);
+  background-color: #000000;
+  z-index: 9999;
+}
+
+/* Make sure navigation sits below the notch cover */
+nav {
+  position: relative;
 }
