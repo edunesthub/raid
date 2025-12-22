@@ -6,10 +6,12 @@ import { notFound, useRouter } from 'next/navigation';
 import { use, useState, useEffect } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner.jsx';
 import TournamentBracket from '@/components/TournamentBracket';
+import PaystackPaymentModal from '@/components/PaystackPaymentModal';
 import { useTournament } from '@/hooks/useTournaments';
 import { useAuth } from '@/hooks/useAuth';
 import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { paystackService } from '@/services/paystackService';
 import MatchResultSubmission from '@/components/MatchResultSubmission';
 import { 
   Trophy, 
@@ -38,6 +40,8 @@ export default function TournamentPage({ params }) {
   const [actionError, setActionError] = useState(null);
   const [isParticipant, setIsParticipant] = useState(false);
   const [showResultsModal, setShowResultsModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [hasUserPaid, setHasUserPaid] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
   const [placementData, setPlacementData] = useState({ first: null, second: null, third: null });
   const [winnerStats, setWinnerStats] = useState({ first: null, second: null, third: null });
@@ -150,6 +154,14 @@ export default function TournamentPage({ params }) {
       return;
     }
 
+    // Check if tournament has entry fee
+    if (tournament.entryFee && tournament.entryFee > 0) {
+      // Show payment modal instead of joining directly
+      setShowPaymentModal(true);
+      return;
+    }
+
+    // No entry fee, join directly
     try {
       setActionLoading(true);
       setActionError(null);
@@ -172,6 +184,38 @@ export default function TournamentPage({ params }) {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const handlePaymentSuccess = async (paymentResponse) => {
+    try {
+      setActionLoading(true);
+      setActionError(null);
+
+      // Join tournament after successful payment
+      await joinTournament(user.id);
+      setIsParticipant(true);
+      setHasUserPaid(true);
+
+      const notifRef = collection(db, 'notifications');
+      await addDoc(notifRef, {
+        userId: user.id,
+        title: 'Tournament Joined 🎮',
+        message: `Payment confirmed! You successfully joined "${tournament.title}". Good luck!`,
+        tournamentId: tournament.id,
+        timestamp: serverTimestamp(),
+        read: false,
+      });
+
+    } catch (err) {
+      setActionError(err.message);
+      alert(err.message || 'Failed to join tournament after payment');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handlePaymentError = (error) => {
+    setActionError(error.message || 'Payment failed');
   };
 
   const handleLeaveTournament = async () => {
@@ -827,6 +871,16 @@ const WinnerPodium = () => {
           }}
         />
       )}
+
+      {/* Paystack Payment Modal */}
+      <PaystackPaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        tournament={tournament}
+        user={user}
+        onPaymentSuccess={handlePaymentSuccess}
+        onPaymentError={handlePaymentError}
+      />
 
       <style jsx>{`
         @keyframes shimmer {
