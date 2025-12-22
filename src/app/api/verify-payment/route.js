@@ -6,7 +6,8 @@ import {
   collection,
   query,
   where,
-  getDocs
+  getDocs,
+  arrayUnion
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
@@ -61,10 +62,40 @@ export async function POST(request) {
       });
     }
 
+    // Join tournament after successful payment
+    const tournamentRef = doc(db, 'tournaments', tournamentId);
+    const tournamentDoc = await getDoc(tournamentRef);
+
+    if (!tournamentDoc.exists()) {
+      return Response.json(
+        { status: 'error', message: 'Tournament not found' },
+        { status: 404 }
+      );
+    }
+
+    const tournamentData = tournamentDoc.data();
+    const currentParticipants = tournamentData.participants || [];
+
+    // Check if user is already joined
+    if (!currentParticipants.includes(userId)) {
+      // Check if tournament is full
+      if (currentParticipants.length >= tournamentData.maxParticipants) {
+        return Response.json(
+          { status: 'error', message: 'Tournament is full' },
+          { status: 400 }
+        );
+      }
+
+      // Add user to tournament participants
+      await updateDoc(tournamentRef, {
+        participants: arrayUnion(userId)
+      });
+    }
+
     return Response.json(
       {
         status: 'success',
-        message: 'Payment verified successfully',
+        message: 'Payment verified and tournament joined successfully',
         data: {
           reference,
           transactionId: paystackData.data.id,
