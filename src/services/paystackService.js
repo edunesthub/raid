@@ -77,27 +77,35 @@ class PaystackService {
         throw new Error(data.message || 'Failed to initialize transaction');
       }
 
-      // Step 2: Open Paystack authorization URL
-      const authWindow = window.open(
-        data.data.authorization_url,
-        'PaystackPayment',
-        'width=600,height=700,left=200,top=100'
-      );
+      // Step 2: Detect if mobile and redirect instead of popup
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // On mobile, redirect to payment page
+        window.location.href = data.data.authorization_url;
+      } else {
+        // On desktop, open popup
+        const authWindow = window.open(
+          data.data.authorization_url,
+          'PaystackPayment',
+          'width=600,height=700,left=200,top=100'
+        );
 
-      // Step 3: Poll for window close and verify payment
-      const pollTimer = setInterval(async () => {
-        if (authWindow.closed) {
-          clearInterval(pollTimer);
-          
-          // Verify payment after window closes
-          try {
-            await this.verifyPayment(reference, userId, tournamentId);
-            onSuccess({ reference });
-          } catch (error) {
-            onError(error);
+        // Poll for window close and verify payment
+        const pollTimer = setInterval(async () => {
+          if (authWindow.closed) {
+            clearInterval(pollTimer);
+            
+            // Verify payment after window closes
+            try {
+              await this.verifyPayment(reference, userId, tournamentId);
+              onSuccess({ reference });
+            } catch (error) {
+              onError(error);
+            }
           }
-        }
-      }, 500);
+        }, 500);
+      }
 
     } catch (error) {
       console.error('Payment initialization error:', error);

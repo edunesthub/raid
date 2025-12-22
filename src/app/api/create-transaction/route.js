@@ -15,13 +15,16 @@ export async function POST(request) {
       );
     }
 
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const callbackUrl = `${baseUrl}/payment/callback?userId=${metadata?.userId}&tournamentId=${metadata?.tournamentId}`;
+
     // Initialize transaction with Paystack
     const payload = {
       email,
       amount: amount * 100, // Convert to pesewas
       reference,
       currency: 'GHS',
-      callback_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/callback`,
+      callback_url: callbackUrl,
       metadata: {
         ...metadata,
         custom_fields: [

@@ -14,28 +14,61 @@ function PaymentCallbackContent() {
   useEffect(() => {
     const reference = searchParams.get('reference');
     const trxref = searchParams.get('trxref');
+    const paymentRef = reference || trxref;
 
-    if (!reference && !trxref) {
+    if (!paymentRef) {
       setStatus('error');
       setMessage('Invalid payment reference');
       return;
     }
 
-    // Payment was successful, close window if it's a popup
-    if (window.opener) {
-      setStatus('success');
-      setMessage('Payment successful! You can close this window.');
-      setTimeout(() => {
-        window.close();
-      }, 2000);
-    } else {
-      // Not a popup, redirect to home
-      setStatus('success');
-      setMessage('Payment successful! Redirecting...');
-      setTimeout(() => {
-        router.push('/');
-      }, 2000);
-    }
+    // Verify payment
+    const verifyPayment = async () => {
+      try {
+        const response = await fetch('/api/verify-payment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reference: paymentRef,
+            userId: searchParams.get('userId'),
+            tournamentId: searchParams.get('tournamentId')
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          setStatus('success');
+          
+          // Check if popup or redirect
+          if (window.opener) {
+            setMessage('Payment successful! You can close this window.');
+            setTimeout(() => {
+              window.close();
+            }, 2000);
+          } else {
+            setMessage('Payment successful! Redirecting to tournament...');
+            setTimeout(() => {
+              const tournamentId = searchParams.get('tournamentId');
+              if (tournamentId) {
+                router.push(`/tournament/${tournamentId}`);
+              } else {
+                router.push('/');
+              }
+            }, 2000);
+          }
+        } else {
+          throw new Error(data.message || 'Payment verification failed');
+        }
+      } catch (error) {
+        setStatus('error');
+        setMessage(error.message || 'Failed to verify payment');
+      }
+    };
+
+    verifyPayment();
   }, [searchParams, router]);
 
   return (
