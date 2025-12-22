@@ -31,6 +31,11 @@ export default function Navigation() {
     { href: "/contact", label: "Contact", icon: <Phone className="w-5 h-5" /> },
   ];
 
+  const footerItems = [
+    { href: "/terms-of-service", label: "Terms of Service" },
+    { href: "/privacy-policy", label: "Privacy Policy" },
+  ];
+
   const handleLogout = () => {
     logout();
     setIsUserMenuOpen(false);
@@ -258,6 +263,24 @@ export default function Navigation() {
                 />
               </Link>
             )}
+
+            {/* Footer Links */}
+            <div className="border-t border-white/10 mt-6 pt-4 flex flex-col space-y-2">
+              {footerItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                    pathname === item.href
+                      ? "bg-orange-500/20 text-orange-400"
+                      : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
 

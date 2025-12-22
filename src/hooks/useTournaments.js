@@ -102,7 +102,12 @@ export function useFeaturedTournaments(limitCount = 4) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadFeaturedTournaments();
+    // Wait a bit to ensure Firebase auth is initialized
+    const timer = setTimeout(() => {
+      loadFeaturedTournaments();
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [limitCount]);
 
   const loadFeaturedTournaments = async () => {

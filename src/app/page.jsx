@@ -6,10 +6,15 @@ import TournamentCard from "@/components/TournamentCard.jsx";
 import LoadingSpinner from "@/components/LoadingSpinner.jsx";
 import UserSearchBar from "@/components/UserSearchBar.jsx";
 import { useFeaturedTournaments } from "@/hooks/useTournaments";
+import { useAuth } from "@/app/contexts/AuthContext";
 import { useEffect, useRef } from "react";
 
 export default function Home() {
-  const { tournaments, loading, error } = useFeaturedTournaments(4);
+  const { isLoading: authLoading } = useAuth();
+  const { tournaments, loading: tournamentsLoading, error } = useFeaturedTournaments(4);
+  
+  // Show loading spinner while auth is initializing
+  const loading = authLoading || tournamentsLoading;
 
   const adsRef = useRef(null);
   const scrollTimeout = useRef(null);   // ✅ place here
