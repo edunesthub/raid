@@ -114,11 +114,12 @@ class PaystackService {
   }
 
   /**
-   * Verify payment with Paystack
+   * Verify payment with Paystack (client calls new server endpoint)
+   * @deprecated This now calls /api/payment/callback which handles everything server-side
    */
   async verifyPayment(reference, userId, tournamentId) {
     try {
-      const response = await fetch(`/api/verify-payment`, {
+      const response = await fetch(`/api/payment/callback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -143,6 +144,44 @@ class PaystackService {
       return data;
     } catch (error) {
       console.error('Payment verification error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify payment server-side using Paystack secret key
+   * This is called from the /api/payment/callback route
+   */
+  static async verifyPaymentServer(reference) {
+    const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+    
+    if (!PAYSTACK_SECRET) {
+      throw new Error('Paystack secret key not configured');
+    }
+
+    try {
+      const response = await fetch(
+        `https://api.paystack.co/transaction/verify/${reference}`,
+        {
+          headers: {
+            Authorization: `Bearer ${PAYSTACK_SECRET}`
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Paystack verification request failed');
+      }
+
+      const data = await response.json();
+
+      if (!data.status || data.data.status !== 'success') {
+        throw new Error('Payment was not successful');
+      }
+
+      return data.data;
+    } catch (error) {
+      console.error('Server-side payment verification error:', error);
       throw error;
     }
   }

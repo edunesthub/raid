@@ -41,13 +41,22 @@ https://js.paystack.co/v1/inline.js
    - `PaystackPaymentModal` appears
    - User reviews payment details
    - Clicks "Pay" to initiate Paystack payment
-3. Paystack payment window opens
-4. After successful payment:
-   - Payment is verified via `/api/verify-payment` endpoint
+3. **Desktop**: Paystack payment popup opens
+   - After payment, user is redirected to `/payment/callback`
+4. **Mobile**: User is redirected to Paystack payment page
+   - After payment, Paystack redirects back to `/payment/callback`
+5. **Server-side processing** (`/api/payment/callback`):
+   - Payment reference is verified with Paystack using secret key
    - Payment record is saved to Firestore with `status: 'success'`
-   - User is automatically added to tournament
-   - Notification is created
-   - Modal closes
+   - User is automatically added to tournament participants
+   - Response sent back to callback page
+6. Callback page displays success message and redirects to tournament
+7. User sees tournament with themselves already as a participant
+
+### Mobile vs Desktop Behavior
+- **Desktop**: Opens payment in popup window, auto-closes after payment
+- **Mobile**: Redirects to full-screen payment page, returns to callback page after payment
+- **Server**: Handles all verification and database updates regardless of client type
 
 ### Database Schema
 
@@ -80,7 +89,9 @@ https://js.paystack.co/v1/inline.js
 - **`/src/app/tournament/[id]/page.jsx`** - Tournament page with payment integration
 
 ### Backend
-- **`/src/app/api/verify-payment/route.js`** - Payment verification API
+- **`/src/app/api/create-transaction/route.js`** - Initialize Paystack transaction with server-side configuration
+- **`/src/app/api/payment/callback/route.js`** - Complete server-side payment verification and tournament join
+- **`/src/app/payment/callback/page.jsx`** - Payment callback page that handles post-payment redirect
 
 ## Usage
 
