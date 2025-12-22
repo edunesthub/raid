@@ -2,11 +2,12 @@
 'use client';
 
 import Link from 'next/link';
-import { notFound, useRouter } from 'next/navigation';
-import { use, useState, useEffect } from 'react';
+import { notFound, useRouter, useSearchParams } from 'next/navigation';
+import { use, useState, useEffect, Suspense } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner.jsx';
 import TournamentBracket from '@/components/TournamentBracket';
 import PaystackPaymentModal from '@/components/PaystackPaymentModal';
+import PaymentSuccessHandler from '@/components/PaymentSuccessHandler';
 import { useTournament } from '@/hooks/useTournaments';
 import { useAuth } from '@/hooks/useAuth';
 import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -31,9 +32,9 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-export default function TournamentPage({ params }) {
-  const resolvedParams = use(params);
+function TournamentPageContent({ resolvedParams }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isAuthenticated } = useAuth();
   const { tournament, loading, error, joinTournament, leaveTournament } = useTournament(resolvedParams?.id);
   const [actionLoading, setActionLoading] = useState(false);
@@ -45,6 +46,12 @@ export default function TournamentPage({ params }) {
   const [activeTab, setActiveTab] = useState('details');
   const [placementData, setPlacementData] = useState({ first: null, second: null, third: null });
   const [winnerStats, setWinnerStats] = useState({ first: null, second: null, third: null });
+
+  // Show payment success handler if payment=success in URL
+  const isPaymentSuccess = searchParams.get('payment') === 'success';
+  if (isPaymentSuccess) {
+    return <PaymentSuccessHandler tournamentId={resolvedParams?.id} />;
+  }
 
   useEffect(() => {
     const checkParticipation = async () => {
@@ -925,5 +932,19 @@ const WinnerPodium = () => {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function TournamentPage({ params }) {
+  const resolvedParams = use(params);
+
+  return (
+    <Suspense fallback={
+      <div className="container-mobile min-h-screen py-6 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    }>
+      <TournamentPageContent resolvedParams={resolvedParams} />
+    </Suspense>
   );
 }
