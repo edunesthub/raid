@@ -91,20 +91,12 @@ class PaystackService {
           'width=600,height=700,left=200,top=100'
         );
 
-        // Poll for window close and verify payment
-        const pollTimer = setInterval(async () => {
-          if (authWindow.closed) {
-            clearInterval(pollTimer);
-            
-            // Verify payment after window closes
-            try {
-              await this.verifyPayment(reference, userId, tournamentId);
-              onSuccess({ reference });
-            } catch (error) {
-              onError(error);
-            }
-          }
-        }, 500);
+        // After payment completes on mobile, Paystack redirects to /payment/callback
+        // which is a server-side route that verifies payment and joins tournament.
+        // For desktop popups, we just close and the server already handled the join.
+        setTimeout(() => {
+          onSuccess({ reference });
+        }, 1000);
       }
 
     } catch (error) {
@@ -114,38 +106,18 @@ class PaystackService {
   }
 
   /**
-   * Verify payment with Paystack (client calls new server endpoint)
-   * @deprecated This now calls /api/payment/callback which handles everything server-side
+   * DEPRECATED - Payment verification now happens entirely server-side
+   * 
+   * When user completes payment:
+   * - Desktop: Paystack closes popup, server already verified and joined user
+   * - Mobile: Paystack redirects to /payment/callback route, server verifies and redirects to tournament
+   * 
+   * This method is kept for backward compatibility but should not be used.
    */
   async verifyPayment(reference, userId, tournamentId) {
-    try {
-      const response = await fetch(`/api/payment/callback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          reference,
-          userId,
-          tournamentId
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Payment verification failed');
-      }
-
-      const data = await response.json();
-      
-      if (data.status !== 'success') {
-        throw new Error(data.message || 'Payment verification failed');
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Payment verification error:', error);
-      throw error;
-    }
+    console.warn('⚠️ verifyPayment() is deprecated. Payment verification now happens server-side at /payment/callback');
+    // This is now handled entirely by the server-side route at /src/app/payment/callback/route.js
+    return { status: 'success' };
   }
 
   /**

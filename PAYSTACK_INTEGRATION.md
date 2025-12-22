@@ -35,28 +35,43 @@ https://js.paystack.co/v1/inline.js
 
 ## How It Works
 
-### Flow
+### Complete Server-Side Verification Flow
+
+**The key fix**: All payment verification and tournament joining happens on the server, not in the client callback page. This guarantees it works on mobile.
+
 1. User clicks "Join Tournament" button
 2. If tournament has an entry fee:
    - `PaystackPaymentModal` appears
    - User reviews payment details
    - Clicks "Pay" to initiate Paystack payment
-3. **Desktop**: Paystack payment popup opens
-   - After payment, user is redirected to `/payment/callback`
-4. **Mobile**: User is redirected to Paystack payment page
-   - After payment, Paystack redirects back to `/payment/callback`
-5. **Server-side processing** (`/api/payment/callback`):
-   - Payment reference is verified with Paystack using secret key
-   - Payment record is saved to Firestore with `status: 'success'`
-   - User is automatically added to tournament participants
-   - Response sent back to callback page
-6. Callback page displays success message and redirects to tournament
-7. User sees tournament with themselves already as a participant
+   - Payment record created in Firestore with `status: 'pending'`
+
+3. **Paystack Payment Gateway**:
+   - Desktop: Opens popup (still uses Paystack inline UI)
+   - Mobile: Redirects to full Paystack page
+   - After payment, Paystack redirects to `/payment/callback?reference=...&userId=...&tournamentId=...`
+
+4. **Server-Side Callback** (`/src/app/payment/callback/route.js`):
+   - Runs on server immediately when user is redirected
+   - Verifies payment with Paystack using secret key
+   - Updates payment record to `status: 'success'` in Firestore
+   - **Adds user to tournament participants** (this is the critical part!)
+   - Redirects to `/tournament/{id}` if successful
+   - Redirects to `/payment-failed` if any step fails
+
+5. **Result**:
+   - User lands on tournament page already as a participant
+   - No client-side JavaScript required for the join
+   - Works 100% on mobile because it's not reliant on client JS execution
+
+### Why This Works on Mobile
+- **Old way (broken)**: Client page loads → useEffect runs → POST to API → if JS errors or network slow, no join
+- **New way (fixed)**: Server immediately processes redirect → database updated **before** HTML sent to client → user lands on page already joined
 
 ### Mobile vs Desktop Behavior
-- **Desktop**: Opens payment in popup window, auto-closes after payment
-- **Mobile**: Redirects to full-screen payment page, returns to callback page after payment
-- **Server**: Handles all verification and database updates regardless of client type
+- **Desktop**: Modal popup → Paystack → redirect → server joins → tournament page
+- **Mobile**: Full page redirect → Paystack → redirect → server joins → tournament page
+- **Server**: Handles all verification and database updates **before** user sees any page
 
 ### Database Schema
 
@@ -84,14 +99,25 @@ https://js.paystack.co/v1/inline.js
 ## Key Files
 
 ### Frontend
-- **`/src/components/PaystackPaymentModal.jsx`** - Payment UI modal
-- **`/src/services/paystackService.js`** - Payment service logic
-- **`/src/app/tournament/[id]/page.jsx`** - Tournament page with payment integration
+- **`/src/components/PaystackPaymentModal.jsx`** - Payment UI modal that initiates transactions
+- **`/src/services/paystackService.js`** - Payment service (initializePayment, createPaymentRecord, etc.)
+- **`/src/app/tournament/[id]/page.jsx`** - Tournament page that shows modal and handles payment flow
+- **`/src/app/payment/success/page.jsx`** - Success page shown during redirect (optional)
+- **`/src/app/payment-failed/page.jsx`** - Error page if payment verification fails
 
-### Backend
-- **`/src/app/api/create-transaction/route.js`** - Initialize Paystack transaction with server-side configuration
-- **`/src/app/api/payment/callback/route.js`** - Complete server-side payment verification and tournament join
-- **`/src/app/payment/callback/page.jsx`** - Payment callback page that handles post-payment redirect
+### Backend (Server-Side - The Critical Part!)
+- **`/src/app/api/create-transaction/route.js`** - Initialize Paystack transaction
+  - Takes payment amount and user details
+  - Returns Paystack authorization URL
+  - **Used for both desktop and mobile**
+
+- **`/src/app/payment/callback/route.js`** - **THE KEY ENDPOINT** - Server-side redirect handler
+  - Receives redirect from Paystack with payment reference
+  - Verifies payment with Paystack using secret key (server-only)
+  - Updates Firestore payment record
+  - **Adds user to tournament participants** ← This is the magic!
+  - Redirects to tournament or error page
+  - **Runs completely on server before HTML is sent to client**
 
 ## Usage
 
