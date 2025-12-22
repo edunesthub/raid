@@ -30,8 +30,7 @@ class PaystackService {
    * @param {string} paymentData.reference - Unique reference ID
    * @param {string} paymentData.userId - Firebase user ID
    * @param {string} paymentData.tournamentId - Tournament ID
-   * @param {Function} onSuccess - Success callback
-   * @param {Function} onError - Error callback
+   * @param {Function} onError - Error callback (called if payment initialization fails)
    */
   async initializePayment({
     email,
@@ -41,7 +40,6 @@ class PaystackService {
     tournamentId,
     firstName = '',
     lastName = '',
-    onSuccess,
     onError
   }) {
     try {
@@ -77,27 +75,10 @@ class PaystackService {
         throw new Error(data.message || 'Failed to initialize transaction');
       }
 
-      // Step 2: Detect if mobile and redirect instead of popup
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      
-      if (isMobile) {
-        // On mobile, redirect to payment page
-        window.location.href = data.data.authorization_url;
-      } else {
-        // On desktop, open popup
-        const authWindow = window.open(
-          data.data.authorization_url,
-          'PaystackPayment',
-          'width=600,height=700,left=200,top=100'
-        );
-
-        // After payment completes on mobile, Paystack redirects to /payment/callback
-        // which is a server-side route that verifies payment and joins tournament.
-        // For desktop popups, we just close and the server already handled the join.
-        setTimeout(() => {
-          onSuccess({ reference });
-        }, 1000);
-      }
+      // Step 2: Redirect to Paystack payment for BOTH mobile and desktop
+      // This ensures the user actually pays before Paystack redirects to /payment/callback
+      // The /payment/callback route (server-side) handles verification and tournament join
+      window.location.href = data.data.authorization_url;
 
     } catch (error) {
       console.error('Payment initialization error:', error);

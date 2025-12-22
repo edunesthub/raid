@@ -3,6 +3,45 @@ const withPWA = require("next-pwa")({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
+  reloadOnOnline: true,
+  // More aggressive cache busting for production
+  buildExcludes: [
+    /\.map$/,
+    /hot-update\.(js|json)$/,
+    /\.next\/server\/pages\/api\//,
+  ],
+  runtimeCaching: [
+    {
+      urlPattern: /^https:\/\/fonts\.(?:gstatic|googleapis)\.com\/.*/i,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'google-fonts',
+        expiration: {
+          maxEntries: 20,
+          maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
+        },
+      },
+    },
+    {
+      urlPattern: /^https:\/\/api\.paystack\.co\/.*/,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'paystack-api',
+        networkTimeoutSeconds: 3,
+      },
+    },
+    {
+      urlPattern: /_next\/image.*/,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'next-images',
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 24 * 60 * 60, // 1 day
+        },
+      },
+    },
+  ],
 });
 
 /** @type {import('next').NextConfig} */

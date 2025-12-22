@@ -14,34 +14,63 @@ export function useServiceWorker() {
 
     let refreshing = false;
 
+    // Clear old caches on first load to fix precache issues
+    const clearOldCaches = async () => {
+      if (!('caches' in window)) return;
+      
+      try {
+        const cacheNames = await caches.keys();
+        const now = new Date().getTime();
+        
+        // Keep only the most recent caches, delete everything older
+        await Promise.all(
+          cacheNames.map(name => {
+            // Delete all precache-related caches to force fresh download
+            if (name.includes('precache') || name.includes('next-data')) {
+              console.log('[SW] Clearing old cache:', name);
+              return caches.delete(name);
+            }
+          })
+        );
+      } catch (error) {
+        console.error('[SW] Error clearing caches:', error);
+      }
+    };
+
     // Reload page when new service worker takes control
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (!refreshing) {
         refreshing = true;
         console.log('[SW] New service worker activated, reloading page...');
-        window.location.reload();
+        clearOldCaches().then(() => window.location.reload());
       }
     });
 
     // Register service worker
     const registerSW = async () => {
       try {
-        const reg = await navigator.serviceWorker.register('/sw.js');
+        // Clear old caches before registering
+        await clearOldCaches();
+
+        const reg = await navigator.serviceWorker.register('/sw.js', {
+          scope: '/',
+          updateViaCache: 'none' // Always check for fresh SW file
+        });
         setRegistration(reg);
         
         console.log('[SW] Service Worker registered:', reg);
 
-        // Check for updates every 60 seconds
+        // Check for updates every 30 seconds
         setInterval(() => {
           console.log('[SW] Checking for updates...');
-          reg.update();
-        }, 60000);
+          reg.update().catch(err => console.error('[SW] Update check failed:', err));
+        }, 30000);
 
         // Check for updates on visibility change (when user returns to app)
         document.addEventListener('visibilitychange', () => {
           if (document.visibilityState === 'visible') {
             console.log('[SW] App became visible, checking for updates...');
-            reg.update();
+            reg.update().catch(err => console.error('[SW] Update check failed:', err));
           }
         });
 
@@ -59,10 +88,10 @@ export function useServiceWorker() {
           });
         });
 
-        // If there's already a waiting worker, show update prompt
+        // If there's already a waiting worker, activate it
         if (reg.waiting) {
-          console.log('[SW] Update already waiting');
-          setUpdateAvailable(true);
+          console.log('[SW] Update already waiting, activating...');
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
         }
 
       } catch (error) {

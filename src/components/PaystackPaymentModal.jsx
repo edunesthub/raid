@@ -9,7 +9,6 @@ const PaystackPaymentModal = ({
   onClose,
   tournament,
   user,
-  onPaymentSuccess,
   onPaymentError
 }) => {
   const [loading, setLoading] = useState(false);
@@ -37,6 +36,9 @@ const PaystackPaymentModal = ({
       });
 
       // Initialize Paystack payment
+      // This will redirect to Paystack payment page (mobile or desktop)
+      // After payment, Paystack redirects to /payment/callback
+      // which is a server-side route that verifies payment and joins tournament
       paystackService.initializePayment({
         email: user.email,
         amount: tournament.entryFee,
@@ -45,11 +47,6 @@ const PaystackPaymentModal = ({
         tournamentId: tournament.id,
         firstName: user.firstName || '',
         lastName: user.lastName || '',
-        onSuccess: async (response) => {
-          setLoading(false);
-          onPaymentSuccess(response);
-          onClose();
-        },
         onError: (err) => {
           setLoading(false);
           setError(err.message);

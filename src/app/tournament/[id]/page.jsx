@@ -186,34 +186,6 @@ export default function TournamentPage({ params }) {
     }
   };
 
-  const handlePaymentSuccess = async (paymentResponse) => {
-    try {
-      setActionLoading(true);
-      setActionError(null);
-
-      // Join tournament after successful payment
-      await joinTournament(user.id);
-      setIsParticipant(true);
-      setHasUserPaid(true);
-
-      const notifRef = collection(db, 'notifications');
-      await addDoc(notifRef, {
-        userId: user.id,
-        title: 'Tournament Joined 🎮',
-        message: `Payment confirmed! You successfully joined "${tournament.title}". Good luck!`,
-        tournamentId: tournament.id,
-        timestamp: serverTimestamp(),
-        read: false,
-      });
-
-    } catch (err) {
-      setActionError(err.message);
-      alert(err.message || 'Failed to join tournament after payment');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   const handlePaymentError = (error) => {
     setActionError(error.message || 'Payment failed');
   };
@@ -878,7 +850,6 @@ const WinnerPodium = () => {
         onClose={() => setShowPaymentModal(false)}
         tournament={tournament}
         user={user}
-        onPaymentSuccess={handlePaymentSuccess}
         onPaymentError={handlePaymentError}
       />
 
