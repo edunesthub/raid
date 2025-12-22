@@ -71,7 +71,7 @@ export default function PWAInstallPrompt() {
           {/* Content */}
           <div className="px-6 py-4 bg-orange-500">
             <p className="text-white text-sm leading-relaxed mb-6">
-              Install RAID on your device for faster access, offline support, and the best mobile experience.
+              Install RAID on your device for faster access and the best mobile experience.
             </p>
 
             {/* Features */}
