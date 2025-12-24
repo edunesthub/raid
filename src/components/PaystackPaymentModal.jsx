@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Loader, AlertCircle } from 'lucide-react';
 import { paystackService } from '@/services/paystackService';
 
@@ -13,10 +13,6 @@ const PaystackPaymentModal = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  if (!isOpen || !tournament || !user) {
-    return null;
-  }
 
   const handlePayment = async () => {
     setLoading(true);
@@ -47,6 +43,18 @@ const PaystackPaymentModal = ({
         console.warn('Could not persist lastPayment:', e);
       }
 
+      // Mark payment as processing so we can recover if user cancels and returns
+      try {
+        sessionStorage.setItem('raid:paymentProcessing', JSON.stringify({
+          reference: paymentRef,
+          tournamentId: tournament.id,
+          userId: user.id,
+          ts: Date.now()
+        }));
+      } catch (e) {
+        console.warn('Could not persist paymentProcessing:', e);
+      }
+
       // Initialize Paystack payment
       // This will redirect to Paystack payment page (mobile or desktop)
       // After payment, Paystack redirects to /payment/callback
@@ -72,6 +80,45 @@ const PaystackPaymentModal = ({
     }
   };
 
+  // Allow cancel even while processing and recover from return-after-cancel
+  const handleCancel = () => {
+    try {
+      sessionStorage.removeItem('raid:paymentProcessing');
+    } catch {}
+    setLoading(false);
+    onClose();
+  };
+
+  // When user returns from Paystack (after cancel/close), make modal responsive again
+  useEffect(() => {
+    const onReturn = () => {
+      try {
+        const raw = sessionStorage.getItem('raid:paymentProcessing');
+        if (raw) {
+          const data = JSON.parse(raw);
+          // If we are back and still showing modal, consider it cancelled
+          sessionStorage.removeItem('raid:paymentProcessing');
+          setLoading(false);
+          setError('Payment cancelled. You can try again.');
+        }
+      } catch {}
+    };
+
+    window.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') onReturn();
+    });
+    window.addEventListener('focus', onReturn);
+
+    return () => {
+      window.removeEventListener('focus', onReturn);
+    };
+  }, []);
+
+  // Guard: if not open or missing data, render nothing (hooks above still run consistently)
+  if (!isOpen || !tournament || !user) {
+    return null;
+  }
+
   return (
     <div className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-0">
       <div className="bg-gray-900 w-full h-full sm:h-auto sm:max-w-md sm:rounded-2xl border-0 sm:border border-gray-800 shadow-2xl animate-scale-in overflow-y-auto">
@@ -79,8 +126,7 @@ const PaystackPaymentModal = ({
         <div className="sticky top-0 flex items-center justify-between p-4 sm:p-6 border-b border-gray-800 bg-gray-900 z-10">
           <h2 className="text-lg sm:text-xl font-bold text-white">Complete Payment</h2>
           <button
-            onClick={onClose}
-            disabled={loading}
+            onClick={handleCancel}
             className="text-gray-400 hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
@@ -153,9 +199,8 @@ const PaystackPaymentModal = ({
           </button>
 
           <button
-            onClick={onClose}
-            disabled={loading}
-            className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-4 px-4 rounded-xl transition-all disabled:cursor-not-allowed text-base"
+            onClick={handleCancel}
+            className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-4 px-4 rounded-xl transition-all text-base"
           >
             Cancel
           </button>

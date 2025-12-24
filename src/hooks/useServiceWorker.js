@@ -46,11 +46,18 @@ export function useServiceWorker() {
       }
     });
 
-    // Register service worker
+    // Register service worker (only if sw.js exists)
     const registerSW = async () => {
       try {
         // Clear old caches before registering
         await clearOldCaches();
+
+        // Preflight check: ensure sw.js is served (HEAD request)
+        const res = await fetch('/sw.js', { method: 'HEAD' });
+        if (!res.ok) {
+          console.log('[SW] sw.js not found, skipping registration');
+          return;
+        }
 
         const reg = await navigator.serviceWorker.register('/sw.js', {
           scope: '/',
