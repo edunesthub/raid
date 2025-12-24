@@ -7,24 +7,46 @@ export default function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstall, setShowInstall] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
+    // Detect PWA/standalone mode
+    const isStandalone =
+      typeof window !== 'undefined' && (
+        window.matchMedia?.('(display-mode: standalone)').matches ||
+        // iOS Safari
+        (window.navigator as any).standalone === true
+      );
+    setIsInstalled(!!isStandalone);
+
     const handler = (e) => {
       e.preventDefault();
+      if (isStandalone) return; // don't show if already installed
       setDeferredPrompt(e);
       setShowInstall(true);
     };
     window.addEventListener("beforeinstallprompt", handler);
 
-    // Show in dev mode for testing
-    if (process.env.NODE_ENV === "development") {
+    // Hide prompt when appinstalled fires
+    const onInstalled = () => {
+      setIsInstalled(true);
+      setShowInstall(false);
+      setDeferredPrompt(null);
+    };
+    window.addEventListener('appinstalled', onInstalled);
+
+    // Show in dev mode for testing (only if not installed)
+    if (process.env.NODE_ENV === "development" && !isStandalone) {
       setTimeout(() => {
         setDeferredPrompt({ prompt: () => {}, userChoice: Promise.resolve({ outcome: "accepted" }) });
         setShowInstall(true);
       }, 2000);
     }
 
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener('appinstalled', onInstalled);
+    };
   }, []);
 
   const handleInstall = async () => {
@@ -44,7 +66,8 @@ export default function PWAInstallPrompt() {
     }, 300);
   };
 
-  if (!showInstall) return null;
+  // Never show if installed / standalone
+  if (isInstalled || !showInstall) return null;
 
   return (
     <>
