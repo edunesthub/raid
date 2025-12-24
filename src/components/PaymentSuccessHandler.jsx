@@ -21,37 +21,65 @@ export default function PaymentSuccessHandler({ tournamentId }) {
     const handlePaymentSuccess = async () => {
       try {
         const payment = searchParams.get('payment');
+        const reference = searchParams.get('reference');
+        const urlUserId = searchParams.get('userId');
         
-        if (payment === 'success' && user && tournamentId) {
-          console.log('[PaymentSuccess] Joining tournament...');
-          setMessage('Adding you to tournament...');
-          
-          // Join tournament
-          await joinTournament(user.id);
-          
-          // Add notification
-          const notifRef = collection(db, 'notifications');
-          await addDoc(notifRef, {
-            userId: user.id,
-            title: 'Tournament Joined 🎮',
-            message: `Payment confirmed! You successfully joined the tournament. Good luck!`,
-            tournamentId: tournamentId,
-            timestamp: serverTimestamp(),
-            read: false,
-          });
-          
-          setStatus('success');
-          setMessage('You\'ve been added to the tournament!');
-          
-          // Redirect after 2 seconds
-          setTimeout(() => {
-            window.location.href = `/tournament/${tournamentId}`;
-          }, 2000);
+        console.log('[PaymentSuccess] URL params:', { payment, reference, urlUserId, currentUserId: user?.id, tournamentId });
+        
+        if (payment !== 'success') {
+          console.log('[PaymentSuccess] No payment success param');
+          return;
         }
+        
+        if (!user) {
+          console.log('[PaymentSuccess] No user logged in');
+          setStatus('error');
+          setMessage('Please log in to continue');
+          return;
+        }
+        
+        if (!tournamentId) {
+          console.log('[PaymentSuccess] No tournament ID');
+          setStatus('error');
+          setMessage('Tournament not found');
+          return;
+        }
+        
+        console.log('[PaymentSuccess] Starting join process...');
+        setMessage('Adding you to tournament...');
+        
+        // Join tournament
+        console.log('[PaymentSuccess] Calling joinTournament with userId:', user.id);
+        const result = await joinTournament(user.id);
+        console.log('[PaymentSuccess] Join result:', result);
+        
+        // Add notification
+        console.log('[PaymentSuccess] Adding notification...');
+        const notifRef = collection(db, 'notifications');
+        await addDoc(notifRef, {
+          userId: user.id,
+          title: 'Tournament Joined 🎮',
+          message: `Payment confirmed! You successfully joined the tournament. Good luck!`,
+          tournamentId: tournamentId,
+          timestamp: serverTimestamp(),
+          read: false,
+        });
+        
+        setStatus('success');
+        setMessage('You\'ve been added to the tournament!');
+        console.log('[PaymentSuccess] Success! Redirecting in 2s...');
+        
+        // Redirect after 2 seconds
+        setTimeout(() => {
+          console.log('[PaymentSuccess] Redirecting to tournament page');
+          window.location.href = `/tournament/${tournamentId}`;
+        }, 2000);
+        
       } catch (error) {
         console.error('[PaymentSuccess] Error:', error);
+        console.error('[PaymentSuccess] Error stack:', error.stack);
         setStatus('error');
-        setMessage(error.message || 'Failed to join tournament');
+        setMessage(error.message || 'Failed to join tournament. Please contact support.');
       }
     };
 

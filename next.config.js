@@ -4,12 +4,16 @@ const withPWA = require("next-pwa")({
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
   reloadOnOnline: true,
-  // More aggressive cache busting for production
+  // Exclude problematic files from precaching
   buildExcludes: [
     /\.map$/,
     /hot-update\.(js|json)$/,
     /\.next\/server\/pages\/api\//,
+    /_buildManifest\.js$/,
+    /_ssgManifest\.js$/,
   ],
+  // Disable precaching for Next.js build artifacts
+  publicExcludes: ['!workbox-*.js', '!sw.js'],
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.(?:gstatic|googleapis)\.com\/.*/i,
@@ -23,11 +27,33 @@ const withPWA = require("next-pwa")({
       },
     },
     {
+      urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'firebase-storage',
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 24 * 60 * 60,
+        },
+      },
+    },
+    {
       urlPattern: /^https:\/\/api\.paystack\.co\/.*/,
       handler: 'NetworkFirst',
       options: {
         cacheName: 'paystack-api',
         networkTimeoutSeconds: 3,
+      },
+    },
+    {
+      urlPattern: /_next\/static\/.*/,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'next-static',
+        expiration: {
+          maxEntries: 100,
+          maxAgeSeconds: 24 * 60 * 60,
+        },
       },
     },
     {
@@ -38,6 +64,17 @@ const withPWA = require("next-pwa")({
         expiration: {
           maxEntries: 50,
           maxAgeSeconds: 24 * 60 * 60, // 1 day
+        },
+      },
+    },
+    {
+      urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'image-cache',
+        expiration: {
+          maxEntries: 60,
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 1 week
         },
       },
     },

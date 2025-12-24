@@ -35,6 +35,18 @@ const PaystackPaymentModal = ({
         status: 'pending'
       });
 
+      // Persist last payment context for success page fallback
+      try {
+        localStorage.setItem('raid:lastPayment', JSON.stringify({
+          reference: paymentRef,
+          tournamentId: tournament.id,
+          userId: user.id,
+          ts: Date.now()
+        }));
+      } catch (e) {
+        console.warn('Could not persist lastPayment:', e);
+      }
+
       // Initialize Paystack payment
       // This will redirect to Paystack payment page (mobile or desktop)
       // After payment, Paystack redirects to /payment/callback

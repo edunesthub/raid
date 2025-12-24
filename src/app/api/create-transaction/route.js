@@ -15,8 +15,14 @@ export async function POST(request) {
       );
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    // Prefer current request origin to avoid cross-env redirects
+    const reqUrl = new URL(request.url);
+    const originHeader = request.headers.get('origin');
+    const origin = originHeader || `${reqUrl.protocol}//${reqUrl.host}`;
+    const baseUrl = origin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const callbackUrl = `${baseUrl}/payment/callback?userId=${metadata?.userId}&tournamentId=${metadata?.tournamentId}`;
+
+    console.log('[CREATE-TRANSACTION] Using callback URL:', callbackUrl);
 
     // Initialize transaction with Paystack
     const payload = {

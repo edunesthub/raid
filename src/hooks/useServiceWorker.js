@@ -58,19 +58,26 @@ export function useServiceWorker() {
         });
         setRegistration(reg);
         
-        console.log('[SW] Service Worker registered:', reg);
+        console.log('[SW] Service Worker registered successfully');
 
-        // Check for updates every 30 seconds
+        // Check for updates every 60 seconds (less aggressive)
         setInterval(() => {
-          console.log('[SW] Checking for updates...');
-          reg.update().catch(err => console.error('[SW] Update check failed:', err));
-        }, 30000);
+          reg.update().catch(err => {
+            // Silently fail - don't spam console with 404s
+            if (!err.message?.includes('404')) {
+              console.warn('[SW] Update check failed:', err.message);
+            }
+          });
+        }, 60000);
 
         // Check for updates on visibility change (when user returns to app)
         document.addEventListener('visibilitychange', () => {
           if (document.visibilityState === 'visible') {
-            console.log('[SW] App became visible, checking for updates...');
-            reg.update().catch(err => console.error('[SW] Update check failed:', err));
+            reg.update().catch(err => {
+              if (!err.message?.includes('404')) {
+                console.warn('[SW] Update check failed:', err.message);
+              }
+            });
           }
         });
 
@@ -95,7 +102,12 @@ export function useServiceWorker() {
         }
 
       } catch (error) {
-        console.error('[SW] Registration failed:', error);
+        // Only log actual errors, not 404s in production
+        if (error.message?.includes('404') && process.env.NODE_ENV === 'production') {
+          console.log('[SW] Service worker not available (expected in some deployments)');
+        } else {
+          console.error('[SW] Registration failed:', error);
+        }
       }
     };
 
