@@ -177,6 +177,14 @@ const PaystackPaymentModal = ({
               You will be redirected to Paystack to securely complete your payment. After successful payment, you'll be automatically added to the tournament.
             </p>
           </div>
+
+          {/* OTP Warning */}
+          <div className="bg-yellow-600/10 border border-yellow-600/30 rounded-xl p-3 sm:p-4 flex gap-3">
+            <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+            <p className="text-yellow-300 text-xs sm:text-sm leading-relaxed">
+              Paystack OTP codes may not arrive on the first attempt. If you don’t receive the OTP, please try again. This behavior is from Paystack’s system, not RAID.
+            </p>
+          </div>
         </div>
 
         {/* Footer */}
