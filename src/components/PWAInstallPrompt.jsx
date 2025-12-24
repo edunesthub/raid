@@ -13,9 +13,9 @@ export default function PWAInstallPrompt() {
     // Detect PWA/standalone mode
     const isStandalone =
       typeof window !== 'undefined' && (
-        window.matchMedia?.('(display-mode: standalone)').matches ||
+        (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
         // iOS Safari
-        (window.navigator as any).standalone === true
+        (typeof navigator !== 'undefined' && 'standalone' in navigator && navigator.standalone === true)
       );
     setIsInstalled(!!isStandalone);
 
