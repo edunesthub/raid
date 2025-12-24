@@ -162,21 +162,25 @@ export default function EditProfilePage() {
       setSaving(true);
       setError('');
 
-            // ✅ Check if username is available (excluding current user)
-      const isAvailable = await usernameService.isUsernameAvailable(
-        safeFormData.username, 
-        user.id
-      );
+      // ✅ Only validate username if it actually changed
+      const usernameChanged = safeFormData.username.toLowerCase().trim() !== (user.username || '').toLowerCase().trim();
       
-      if (!isAvailable) {
-        setError("Username is already taken. Please choose another one.");
+      if (usernameChanged) {
+        const isAvailable = await usernameService.isUsernameAvailable(
+          safeFormData.username, 
+          user.id
+        );
         
-        // Generate suggestions
-        const suggestions = await usernameService.generateSuggestions(safeFormData.username);
-        if (suggestions.length > 0) {
-          setError(`Username is taken. Try: ${suggestions.join(', ')}`);
+        if (!isAvailable) {
+          setError("Username is already taken. Please choose another one.");
+          
+          // Generate suggestions
+          const suggestions = await usernameService.generateSuggestions(safeFormData.username);
+          if (suggestions.length > 0) {
+            setError(`Username is taken. Try: ${suggestions.join(', ')}`);
+          }
+          return;
         }
-        return;
       }
 
       const userRef = doc(db, 'users', user.id);

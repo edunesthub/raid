@@ -7,7 +7,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { useAuth } from '@/hooks/useAuth';
 import { useTournament } from '@/hooks/useTournaments';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { paystackService } from '@/services/paystackService';
 
 export default function SuccessClient() {
@@ -23,6 +23,7 @@ export default function SuccessClient() {
   const [status, setStatus] = useState('joining');
   const [message, setMessage] = useState('Finalizing your join...');
   const [ign, setIgn] = useState('');
+  const [phone, setPhone] = useState('');
   const [savingIGN, setSavingIGN] = useState(false);
 
   // Resolve tournamentId from URL, localStorage, or Firestore (reference lookup)
@@ -158,32 +159,54 @@ export default function SuccessClient() {
         {status !== 'success' && <LoadingSpinner />}
 
         {status === 'success' && (
-          <div className="text-left">
-            <label className="block text-sm text-gray-300 mb-2">Your In-Game Name</label>
-            <input
-              type="text"
-              placeholder="e.g., GhostRider#1234"
-              value={ign}
-              onChange={(e) => setIgn(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-500"
-            />
-            <div className="flex gap-2 mt-4">
+          <div className="text-left space-y-4">
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">Your In-Game Name</label>
+              <input
+                type="text"
+                placeholder="e.g., GhostRider#1234"
+                value={ign}
+                onChange={(e) => setIgn(e.target.value)}
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">Phone Number (for SMS notifications)</label>
+              <input
+                type="tel"
+                placeholder="e.g., 0241234567"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-500"
+              />
+            </div>
+            <div className="flex gap-2">
               <button
                 onClick={async () => {
-                  const trimmed = (ign || '').trim();
-                  if (!trimmed) return;
+                  const trimmedIgn = (ign || '').trim();
+                  const trimmedPhone = (phone || '').trim();
+                  if (!trimmedIgn && !trimmedPhone) return;
                   try {
                     setSavingIGN(true);
                     const partRef = doc(db, 'tournament_participants', `${finalTournamentId}_${user.id}`);
-                    await updateDoc(partRef, { inGameName: trimmed, inGameNameUpdatedAt: serverTimestamp() });
+                    const updates = { inGameNameUpdatedAt: serverTimestamp() };
+                    if (trimmedIgn) updates.inGameName = trimmedIgn;
+                    await updateDoc(partRef, updates);
+                    
+                    // Update user profile with phone
+                    if (trimmedPhone) {
+                      const userRef = doc(db, 'users', user.id);
+                      await setDoc(userRef, { phone: trimmedPhone }, { merge: true });
+                    }
+                    
                     router.push(`/tournament/${finalTournamentId}`);
                   } catch (e) {
-                    console.warn('Failed to save IGN:', e?.message);
+                    console.warn('Failed to save:', e?.message);
                   } finally {
                     setSavingIGN(false);
                   }
                 }}
-                disabled={savingIGN || !(ign || '').trim()}
+                disabled={savingIGN || (!(ign || '').trim() && !(phone || '').trim())}
                 className="flex-1 bg-orange-600 hover:bg-orange-500 disabled:bg-gray-700 text-white font-semibold px-4 py-3 rounded-xl transition"
               >
                 {savingIGN ? 'Saving...' : 'Save & Continue'}

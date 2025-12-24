@@ -12,9 +12,10 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Plus, Search, Edit, Trash2, X, Calendar, Users as UsersIcon, Zap, Target, Filter } from "lucide-react";
+import { Plus, Search, Edit, Trash2, X, Calendar, Users as UsersIcon, Zap, Target, Filter, MessageSquare } from "lucide-react";
 import TournamentForm from "./TournamentForm";
 import TournamentParticipants from "./TournamentParticipants";
+import SendSMSModal from "./SendSMSModal";
 import { useAuth } from '@/hooks/useAuth';
 import { logAdminAction } from '@/services/adminAuditService';
 
@@ -27,6 +28,7 @@ export default function TournamentManagement() {
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showParticipantsModal, setShowParticipantsModal] = useState(false);
+  const [showSMSModal, setShowSMSModal] = useState(false);
   const [selectedTournamentId, setSelectedTournamentId] = useState(null);
   const [activeTab, setActiveTab] = useState("bracket"); // bracket or battle-royale
   const [statusUpdate, setStatusUpdate] = useState({
@@ -100,6 +102,11 @@ export default function TournamentManagement() {
   const openParticipantsModal = (tournamentId) => {
     setSelectedTournamentId(tournamentId);
     setShowParticipantsModal(true);
+  };
+
+  const openSMSModal = (tournament) => {
+    setSelectedTournament(tournament);
+    setShowSMSModal(true);
   };
 
   const handleStatusChange = async () => {
@@ -425,6 +432,13 @@ export default function TournamentManagement() {
                         <UsersIcon size={14} />
                       </button>
                       <button
+                        onClick={() => openSMSModal(t)}
+                        className="p-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-lg transition"
+                        title="Send SMS to Participants"
+                      >
+                        <MessageSquare size={14} />
+                      </button>
+                      <button
                         onClick={() => handleEdit(t)}
                         className="p-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg transition"
                         title="Edit Tournament"
@@ -539,6 +553,12 @@ export default function TournamentManagement() {
                   <UsersIcon size={16} /> Users
                 </button>
                 <button
+                  onClick={() => openSMSModal(t)}
+                  className="p-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-lg transition flex items-center justify-center gap-1"
+                >
+                  <MessageSquare size={16} /> SMS
+                </button>
+                <button
                   onClick={() => handleEdit(t)}
                   className="p-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg transition flex items-center justify-center gap-1"
                 >
@@ -638,6 +658,21 @@ export default function TournamentManagement() {
             loadTournaments();
             setShowForm(false);
             setSelectedTournament(null);
+          }}
+        />
+      )}
+
+      {/* Send SMS Modal */}
+      {showSMSModal && selectedTournament && (
+        <SendSMSModal
+          tournament={selectedTournament}
+          participantCount={selectedTournament.current_participants || 0}
+          onClose={() => {
+            setShowSMSModal(false);
+            setSelectedTournament(null);
+          }}
+          onSuccess={(result) => {
+            console.log('SMS sent successfully:', result);
           }}
         />
       )}
