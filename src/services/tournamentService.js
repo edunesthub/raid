@@ -62,8 +62,8 @@ class TournamentService {
       requirements: [],
       organizer: data.organizer || 'RAID Arena',
       prizeDistribution: [
-        { rank: '1st Place', percentage: 60 },
-        { rank: '2nd Place', percentage: 40 }
+        { rank: '1st Place', percentage: 70 },
+        { rank: '2nd Place', percentage: 30 }
       ],
       bracketGenerated: data.bracketGenerated || false,
       currentRound: data.currentRound || 0,
