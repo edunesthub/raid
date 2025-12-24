@@ -2,12 +2,31 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { addDoc, collection, serverTimestamp, doc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp, doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { X, Upload, Image as ImageIcon, Save, Plus } from "lucide-react";
+import { useAuth } from '@/hooks/useAuth';
+import { logAdminAction } from '@/services/adminAuditService';
 
 export default function TournamentForm({ tournament, onClose, onCreated }) {
   const isEditing = !!tournament;
+  const { user } = useAuth();
+
+  // Resolve current admin info (id, name, role)
+  const getAdminMeta = async () => {
+    if (!user?.id) return { id: null, name: null, role: null };
+    try {
+      const snap = await getDoc(doc(db, 'users', user.id));
+      const data = snap.exists() ? snap.data() : user;
+      return {
+        id: user.id,
+        name: data?.username || `${data?.firstName || ''} ${data?.lastName || ''}`.trim() || user.email || null,
+        role: data?.adminRole || null,
+      };
+    } catch {
+      return { id: user.id, name: user?.username || null, role: user?.adminRole || null };
+    }
+  };
   
   const [form, setForm] = useState({
     tournament_name: "",
@@ -141,10 +160,27 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
 
       if (isEditing) {
         const tournamentRef = doc(db, "tournaments", tournament.id);
-        await updateDoc(tournamentRef, tournamentData);
+        const adminMeta = await getAdminMeta();
+        await updateDoc(tournamentRef, {
+          ...tournamentData,
+          updatedBy: adminMeta.id,
+          updatedByName: adminMeta.name,
+          updatedByRole: adminMeta.role,
+        });
+        // Audit log
+        if (user?.id) {
+          logAdminAction({
+            adminId: user.id,
+            action: 'tournament_update',
+            entityType: 'tournament',
+            entityId: tournament.id,
+            details: { fields: Object.keys(tournamentData) }
+          });
+        }
         alert("Tournament updated successfully!");
       } else {
-        await addDoc(collection(db, "tournaments"), {
+        const adminMeta = await getAdminMeta();
+        const docRef = await addDoc(collection(db, "tournaments"), {
           ...tournamentData,
           current_participants: 0,
           status: "registration-open",
@@ -152,7 +188,20 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
           currentRound: 0,
           totalRounds: 0,
           created_at: serverTimestamp(),
+          createdBy: adminMeta.id,
+          createdByName: adminMeta.name,
+          createdByRole: adminMeta.role,
         });
+        // Audit log
+        if (user?.id) {
+          logAdminAction({
+            adminId: user.id,
+            action: 'tournament_create',
+            entityType: 'tournament',
+            entityId: docRef.id,
+            details: { name: tournamentData.tournament_name }
+          });
+        }
         alert("Tournament created successfully!");
       }
 

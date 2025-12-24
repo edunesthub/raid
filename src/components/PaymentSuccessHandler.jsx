@@ -76,6 +76,15 @@ export default function PaymentSuccessHandler({ tournamentId }) {
         }, 2000);
         
       } catch (error) {
+        const msg = String(error?.message || '');
+        if (msg.toLowerCase().includes('already joined')) {
+          setStatus('success');
+          setMessage("You're already in! Redirecting...");
+          setTimeout(() => {
+            window.location.href = `/tournament/${tournamentId}`;
+          }, 1500);
+          return;
+        }
         console.error('[PaymentSuccess] Error:', error);
         console.error('[PaymentSuccess] Error stack:', error.stack);
         setStatus('error');

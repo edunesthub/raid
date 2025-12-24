@@ -25,6 +25,7 @@ import ResultsVerification from './components/ResultsVerification';
 import ResultsManagement from './components/ResultsManagement';
 import NonBracketResults from './components/NonBracketResults';
 import WinnerSelection from './components/WinnerSelection';
+import AdminActivity from './components/AdminActivity';
 import dynamic from 'next/dynamic';
 
 // Lazy load the stats page
@@ -41,6 +42,7 @@ export default function AdminPortal() {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "tournaments", label: "Tournaments", icon: Trophy },
+    { id: "activity", label: "Activity", icon: ClipboardCheck },
     { id: "results-management", label: "Bracket Results", icon: Gamepad2 },
     { id: "non-bracket-results", label: "Battle Royale", icon: Award },
     { id: "winner-selection", label: "Select Winners", icon: Crown },
@@ -111,6 +113,7 @@ export default function AdminPortal() {
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
         {activeTab === "dashboard" && <Dashboard />}
         {activeTab === "tournaments" && <TournamentManagement />}
+        {activeTab === "activity" && <AdminActivity />}
         {activeTab === "results-management" && <ResultsManagement />}
         {activeTab === "non-bracket-results" && <NonBracketResults />}
         {activeTab === "winner-selection" && <WinnerSelection />}

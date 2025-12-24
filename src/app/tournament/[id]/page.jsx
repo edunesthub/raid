@@ -10,10 +10,11 @@ import PaystackPaymentModal from '@/components/PaystackPaymentModal';
 import PaymentSuccessHandler from '@/components/PaymentSuccessHandler';
 import { useTournament } from '@/hooks/useTournaments';
 import { useAuth } from '@/hooks/useAuth';
-import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, serverTimestamp, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { paystackService } from '@/services/paystackService';
 import MatchResultSubmission from '@/components/MatchResultSubmission';
+import InGameNameModal from '@/components/InGameNameModal';
 import { 
   Trophy, 
   Medal, 
@@ -46,6 +47,9 @@ function TournamentPageContent({ resolvedParams }) {
   const [activeTab, setActiveTab] = useState('details');
   const [placementData, setPlacementData] = useState({ first: null, second: null, third: null });
   const [winnerStats, setWinnerStats] = useState({ first: null, second: null, third: null });
+  const [participantData, setParticipantData] = useState(null);
+  const [showIgnModal, setShowIgnModal] = useState(false);
+  const [ignPrompted, setIgnPrompted] = useState(false);
 
   // Show payment success handler if payment=success in URL
   const isPaymentSuccess = searchParams.get('payment') === 'success';
@@ -54,20 +58,65 @@ function TournamentPageContent({ resolvedParams }) {
   }
 
   useEffect(() => {
-    const checkParticipation = async () => {
-      if (!user || !resolvedParams?.id) return;
-      
+    if (!user || !resolvedParams?.id) return;
+    const participantRef = doc(db, 'tournament_participants', `${resolvedParams.id}_${user.id}`);
+    const unsub = onSnapshot(participantRef, (snap) => {
+      const exists = snap.exists();
+      setIsParticipant(exists);
+      const data = exists ? snap.data() : null;
+      setParticipantData(data);
+      if (exists && (!data?.inGameName) && !ignPrompted) {
+        setShowIgnModal(true);
+        setIgnPrompted(true);
+      }
+    }, (err) => {
+      console.error('Participant realtime error:', err);
+    });
+    return () => {
+      if (typeof unsub === 'function') unsub();
+    };
+  }, [user, resolvedParams?.id, ignPrompted]);
+
+  const handleSaveIgn = async (ign) => {
+    const participantRef = doc(db, 'tournament_participants', `${resolvedParams.id}_${user.id}`);
+    await updateDoc(participantRef, { inGameName: ign, inGameNameUpdatedAt: serverTimestamp() });
+  };
+
+  // Recovery: if user has paid but isn't joined yet, auto-join idempotently
+  useEffect(() => {
+    const recoverJoinIfPaid = async () => {
       try {
-        const participantRef = doc(db, 'tournament_participants', `${resolvedParams.id}_${user.id}`);
-        const participantDoc = await getDoc(participantRef);
-        setIsParticipant(participantDoc.exists());
+        if (!user?.id || !resolvedParams?.id) return;
+        if (isParticipant) return;
+
+        const paid = await paystackService.hasUserPaidForTournament(user.id, resolvedParams.id);
+        if (!paid) return;
+
+        // Attempt join; treat 'already joined' as success
+        try {
+          await joinTournament(user.id);
+        } catch (e) {
+          const msg = String(e?.message || '').toLowerCase();
+          if (!msg.includes('already joined')) {
+            console.warn('Auto-join after payment failed:', e?.message);
+          }
+        }
+
+        // Mark participant as paid if doc exists now
+        try {
+          const partRef = doc(db, 'tournament_participants', `${resolvedParams.id}_${user.id}`);
+          await updateDoc(partRef, {
+            paymentStatus: 'completed',
+            paidAt: serverTimestamp(),
+          });
+        } catch {}
       } catch (err) {
-        console.error('Error checking participation:', err);
+        console.warn('Recover join check failed:', err?.message);
       }
     };
 
-    checkParticipation();
-  }, [user, resolvedParams?.id, tournament]);
+    recoverJoinIfPaid();
+  }, [user?.id, resolvedParams?.id, isParticipant, joinTournament]);
 
   // Load winner and placement data with stats
   useEffect(() => {
@@ -79,7 +128,6 @@ function TournamentPageContent({ resolvedParams }) {
         setWinnerStats({ first: null, second: null, third: null });
         return;
       }
-
       try {
         const placements = { first: null, second: null, third: null };
         const stats = { first: null, second: null, third: null };

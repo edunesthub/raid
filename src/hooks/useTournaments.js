@@ -1,6 +1,8 @@
 // src/hooks/useTournaments.js
 import { useState, useEffect } from 'react';
 import { tournamentService } from '@/services/tournamentService';
+import { db } from '@/lib/firebase';
+import { doc, collection, query, where, onSnapshot } from 'firebase/firestore';
 
 export function useTournaments(options = {}) {
   const [tournaments, setTournaments] = useState([]);
@@ -47,7 +49,54 @@ export function useTournament(tournamentId) {
       setLoading(false);
       return;
     }
-    loadTournament();
+    let unsubTournament = null;
+    let unsubParticipants = null;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const tournamentRef = doc(db, 'tournaments', tournamentId);
+      unsubTournament = onSnapshot(tournamentRef, (snapshot) => {
+        if (!snapshot.exists()) {
+          setTournament(null);
+          setError('Tournament not found');
+          setLoading(false);
+          return;
+        }
+        const base = tournamentService.transformTournamentDoc(snapshot);
+        setTournament((prev) => ({
+          ...base,
+          participants: prev?.participants || []
+        }));
+        setLoading(false);
+      }, (err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+
+      const participantsQ = query(
+        collection(db, 'tournament_participants'),
+        where('tournamentId', '==', tournamentId),
+        where('status', '==', 'active')
+      );
+      unsubParticipants = onSnapshot(participantsQ, (snap) => {
+        const participants = snap.docs.map((d) => ({ id: d.data().userId, ...d.data() }));
+        setTournament((prev) => prev ? {
+          ...prev,
+          participants,
+          currentPlayers: participants.length
+        } : prev);
+      });
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+
+    return () => {
+      if (typeof unsubTournament === 'function') unsubTournament();
+      if (typeof unsubParticipants === 'function') unsubParticipants();
+    };
   }, [tournamentId]);
 
   const loadTournament = async () => {
@@ -67,7 +116,6 @@ export function useTournament(tournamentId) {
   const joinTournament = async (userId) => {
     try {
       await tournamentService.joinTournament(tournamentId, userId);
-      await loadTournament(); // Refresh data
       return true;
     } catch (err) {
       setError(err.message);

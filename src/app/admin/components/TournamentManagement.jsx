@@ -15,8 +15,11 @@ import { db } from "@/lib/firebase";
 import { Plus, Search, Edit, Trash2, X, Calendar, Users as UsersIcon, Zap, Target, Filter } from "lucide-react";
 import TournamentForm from "./TournamentForm";
 import TournamentParticipants from "./TournamentParticipants";
+import { useAuth } from '@/hooks/useAuth';
+import { logAdminAction } from '@/services/adminAuditService';
 
 export default function TournamentManagement() {
+  const { user } = useAuth();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -65,6 +68,14 @@ export default function TournamentManagement() {
     try {
       await deleteDoc(doc(db, "tournaments", id));
       setTournaments(tournaments.filter((t) => t.id !== id));
+      if (user?.id) {
+        logAdminAction({
+          adminId: user.id,
+          action: 'tournament_delete',
+          entityType: 'tournament',
+          entityId: id,
+        });
+      }
       alert("Tournament deleted successfully!");
     } catch (error) {
       console.error("Error deleting:", error);
@@ -99,6 +110,7 @@ export default function TournamentManagement() {
       await updateDoc(tournamentRef, {
         status: statusUpdate.newStatus,
         updated_at: new Date(),
+        updatedBy: user?.id || null,
       });
 
       setTournaments(tournaments.map(t => 
@@ -107,6 +119,15 @@ export default function TournamentManagement() {
           : t
       ));
 
+      if (user?.id) {
+        logAdminAction({
+          adminId: user.id,
+          action: 'tournament_status_change',
+          entityType: 'tournament',
+          entityId: statusUpdate.tournamentId,
+          details: { from: statusUpdate.currentStatus, to: statusUpdate.newStatus }
+        });
+      }
       setShowStatusModal(false);
       alert("Tournament status updated successfully!");
     } catch (error) {
@@ -124,6 +145,15 @@ export default function TournamentManagement() {
       setLoading(true);
       const { tournamentService } = await import('@/services/tournamentService');
       const result = await tournamentService.generateBracket(tournamentId);
+      if (user?.id) {
+        logAdminAction({
+          adminId: user.id,
+          action: 'tournament_generate_bracket',
+          entityType: 'tournament',
+          entityId: tournamentId,
+          details: { matches: result?.matches?.length || 0 }
+        });
+      }
       alert(`Bracket generated successfully! ${result.matches.length} matches created for Round 1.`);
       loadTournaments();
     } catch (error) {
@@ -305,7 +335,35 @@ export default function TournamentManagement() {
             ) : (
               displayTournaments.map((t) => (
                 <tr key={t.id} className="border-t border-gray-700 hover:bg-gray-900/50 transition-all">
-                  <td className="p-4 text-white font-medium">{t.tournament_name}</td>
+                  <td className="p-4 text-white font-medium">
+                    <div>{t.tournament_name}</div>
+                    <div className="mt-1 space-x-2">
+                      {(t.createdByName || t.createdByRole) && (
+                        <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                          <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700">Created by</span>
+                          {t.createdByName && (
+                            <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700 text-white">{t.createdByName}</span>
+                          )}
+                          {t.createdByRole && (
+                            <span className="px-2 py-0.5 rounded bg-orange-600/20 border border-orange-500/40 text-orange-300">Admin {t.createdByRole}</span>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-1 space-x-2">
+                      {(t.updatedByName || t.updatedByRole) && (
+                        <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                          <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700">Updated by</span>
+                          {t.updatedByName && (
+                            <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700 text-white">{t.updatedByName}</span>
+                          )}
+                          {t.updatedByRole && (
+                            <span className="px-2 py-0.5 rounded bg-orange-600/20 border border-orange-500/40 text-orange-300">Admin {t.updatedByRole}</span>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="p-4 text-gray-300">{t.game}</td>
                   <td className="p-4">{getFormatBadge(t.format)}</td>
                   <td className="p-4">
@@ -416,6 +474,28 @@ export default function TournamentManagement() {
                 <div className="flex items-center gap-2">
                   Format: {getFormatBadge(t.format)}
                 </div>
+                {(t.createdByName || t.createdByRole) && (
+                  <div className="text-xs text-gray-400 flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700">Created by</span>
+                    {t.createdByName && (
+                      <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700 text-white">{t.createdByName}</span>
+                    )}
+                    {t.createdByRole && (
+                      <span className="px-2 py-0.5 rounded bg-orange-600/20 border border-orange-500/40 text-orange-300">Admin {t.createdByRole}</span>
+                    )}
+                  </div>
+                )}
+                {(t.updatedByName || t.updatedByRole) && (
+                  <div className="text-xs text-gray-400 flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700">Updated by</span>
+                    {t.updatedByName && (
+                      <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700 text-white">{t.updatedByName}</span>
+                    )}
+                    {t.updatedByRole && (
+                      <span className="px-2 py-0.5 rounded bg-orange-600/20 border border-orange-500/40 text-orange-300">Admin {t.updatedByRole}</span>
+                    )}
+                  </div>
+                )}
                 <button
                   onClick={() => openParticipantsModal(t.id)}
                   className="flex items-center gap-2 text-gray-300 hover:text-orange-400 transition-colors"

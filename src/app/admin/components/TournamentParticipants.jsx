@@ -51,6 +51,7 @@ export default function TournamentParticipants({ tournamentId, onClose }) {
             joinedAt: data.joinedAt,
             status: data.status || 'active',
             paymentStatus: data.paymentStatus || 'pending',
+            inGameName: data.inGameName || null,
           };
         })
       );
@@ -155,6 +156,7 @@ export default function TournamentParticipants({ tournamentId, onClose }) {
                   <thead className="bg-gray-800 text-gray-300">
                     <tr>
                       <th className="text-left p-4 rounded-tl-xl">Participant</th>
+                      <th className="text-left p-4">IGN</th>
                       <th className="text-left p-4">Contact</th>
                       <th className="text-left p-4">Joined</th>
                       <th className="text-left p-4">Status</th>
@@ -192,6 +194,7 @@ export default function TournamentParticipants({ tournamentId, onClose }) {
                             </div>
                           </div>
                         </td>
+                        <td className="p-4 text-gray-300 text-sm">{participant.inGameName || '-'}</td>
                         <td className="p-4">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 text-gray-400 text-sm">
@@ -252,6 +255,10 @@ export default function TournamentParticipants({ tournamentId, onClose }) {
                     </div>
 
                     <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2 text-gray-400">
+                        <span className="w-4 h-4 flex-shrink-0 text-gray-500">🎮</span>
+                        <span className="truncate">IGN: <span className="text-white">{participant.inGameName || '-'}</span></span>
+                      </div>
                       <div className="flex items-center gap-2 text-gray-400">
                         <Mail className="w-4 h-4 flex-shrink-0" />
                         <span className="truncate">{participant.email}</span>

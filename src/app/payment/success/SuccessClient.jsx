@@ -7,7 +7,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { useAuth } from '@/hooks/useAuth';
 import { useTournament } from '@/hooks/useTournaments';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { paystackService } from '@/services/paystackService';
 
 export default function SuccessClient() {
@@ -22,6 +22,8 @@ export default function SuccessClient() {
 
   const [status, setStatus] = useState('joining');
   const [message, setMessage] = useState('Finalizing your join...');
+  const [ign, setIgn] = useState('');
+  const [savingIGN, setSavingIGN] = useState(false);
 
   // Resolve tournamentId from URL, localStorage, or Firestore (reference lookup)
   useEffect(() => {
@@ -73,13 +75,39 @@ export default function SuccessClient() {
         if (!user?.id) {
           // If user not available, just go to tournament page; UI will prompt login
           setMessage('Redirecting to tournament...');
-          setTimeout(() => router.push(`/tournament/${finalTournamentId}`), 1000);
           return;
         }
 
         // Try to join the tournament client-side (idempotent)
         const result = typeof joinTournament === 'function' ? await joinTournament(user.id) : true;
         console.log('[SuccessPage] joinTournament result:', result);
+
+        // Mark participant as paid (idempotent)
+        try {
+          const partRef = doc(db, 'tournament_participants', `${finalTournamentId}_${user.id}`);
+          await updateDoc(partRef, {
+            paymentStatus: 'completed',
+            paymentReference: reference || null,
+            paidAt: serverTimestamp(),
+          });
+        } catch (e) {
+          console.warn('[SuccessPage] Could not update participant paymentStatus (will be fine if doc not yet present):', e?.message);
+        }
+
+        // Update payment record to success if we can resolve it
+        try {
+          if (reference) {
+            const payment = await paystackService.getPaymentByReference(reference);
+            if (payment?.id) {
+              await paystackService.updatePaymentStatus(payment.id, 'success', {
+                tournamentId: finalTournamentId,
+                userId: user.id
+              });
+            }
+          }
+        } catch (e) {
+          console.warn('[SuccessPage] Could not update payment status:', e?.message);
+        }
 
         // Log a notification for the user
         const notifRef = collection(db, 'notifications');
@@ -94,23 +122,19 @@ export default function SuccessClient() {
         });
 
         setStatus('success');
-        setMessage("You're in! Redirecting...");
-
-        // Redirect shortly
-        setTimeout(() => router.push(`/tournament/${finalTournamentId}`), 1500);
+        setMessage("You're in! Add your in-game name.");
       } catch (err) {
         // If already joined, treat as success
         if (String(err?.message || '').toLowerCase().includes('already joined')) {
           setStatus('success');
-          setMessage("You're already in! Redirecting...");
-          setTimeout(() => router.push(`/tournament/${finalTournamentId}`), 1500);
+          setMessage("You're already in! Add your in-game name.");
           return;
         }
 
         console.error('[SuccessPage] Join error:', err);
         // Do not show error UI; proceed to tournament page
-        setMessage('Redirecting to tournament...');
-        setTimeout(() => router.push(`/tournament/${finalTournamentId || ''}`), 1200);
+        setStatus('success');
+        setMessage("Join complete! Add your in-game name.");
       }
     };
 
@@ -130,7 +154,49 @@ export default function SuccessClient() {
           {status === 'success' ? "You've Joined the Tournament!" : 'Processing your join...'}
         </p>
         <p className="text-gray-400 mb-6">{message}</p>
+
         {status !== 'success' && <LoadingSpinner />}
+
+        {status === 'success' && (
+          <div className="text-left">
+            <label className="block text-sm text-gray-300 mb-2">Your In-Game Name</label>
+            <input
+              type="text"
+              placeholder="e.g., GhostRider#1234"
+              value={ign}
+              onChange={(e) => setIgn(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-500"
+            />
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={async () => {
+                  const trimmed = (ign || '').trim();
+                  if (!trimmed) return;
+                  try {
+                    setSavingIGN(true);
+                    const partRef = doc(db, 'tournament_participants', `${finalTournamentId}_${user.id}`);
+                    await updateDoc(partRef, { inGameName: trimmed, inGameNameUpdatedAt: serverTimestamp() });
+                    router.push(`/tournament/${finalTournamentId}`);
+                  } catch (e) {
+                    console.warn('Failed to save IGN:', e?.message);
+                  } finally {
+                    setSavingIGN(false);
+                  }
+                }}
+                disabled={savingIGN || !(ign || '').trim()}
+                className="flex-1 bg-orange-600 hover:bg-orange-500 disabled:bg-gray-700 text-white font-semibold px-4 py-3 rounded-xl transition"
+              >
+                {savingIGN ? 'Saving...' : 'Save & Continue'}
+              </button>
+              <button
+                onClick={() => router.push(`/tournament/${finalTournamentId}`)}
+                className="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-semibold px-4 py-3 rounded-xl transition"
+              >
+                Skip
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
