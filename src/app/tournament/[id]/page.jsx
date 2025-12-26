@@ -209,35 +209,14 @@ function TournamentPageContent({ resolvedParams }) {
       return;
     }
 
-    // Check if tournament has entry fee
+    // Always go to success page (whether payment needed or not)
+    // This allows users to input IGN and phone number
     if (tournament.entryFee && tournament.entryFee > 0) {
-      // Show payment modal instead of joining directly
+      // Payment required - show payment modal
       setShowPaymentModal(true);
-      return;
-    }
-
-    // No entry fee, join directly
-    try {
-      setActionLoading(true);
-      setActionError(null);
-      await joinTournament(user.id);
-      setIsParticipant(true);
-
-      const notifRef = collection(db, 'notifications');
-      await addDoc(notifRef, {
-        userId: user.id,
-        title: 'Tournament Joined 🎮',
-        message: `You successfully joined "${tournament.title}". Good luck!`,
-        tournamentId: tournament.id,
-        timestamp: serverTimestamp(),
-        read: false,
-      });
-
-    } catch (err) {
-      setActionError(err.message);
-      alert(err.message || 'Failed to join tournament');
-    } finally {
-      setActionLoading(false);
+    } else {
+      // Free tournament - go directly to success page for IGN/phone input
+      router.push(`/payment/success?tournamentId=${tournament.id}`);
     }
   };
 
