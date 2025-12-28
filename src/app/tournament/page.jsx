@@ -53,10 +53,15 @@ export default function TournamentsPage() {
   };
 
   const applyFilters = () => {
-    let filtered = [...tournaments];
+    let filtered = [];
 
-    if (filters.status !== "all") {
-      filtered = filtered.filter((t) => t.status === filters.status);
+    // Hide completed tournaments by default
+    if (filters.status === "completed") {
+      filtered = tournaments.filter((t) => t.status === "completed");
+    } else if (filters.status === "all") {
+      filtered = tournaments.filter((t) => t.status !== "completed");
+    } else {
+      filtered = tournaments.filter((t) => t.status === filters.status);
     }
 
     if (filters.game !== "all") {
