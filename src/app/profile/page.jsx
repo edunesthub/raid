@@ -12,7 +12,7 @@ import { collection, query, where, getDocs, orderBy, doc, getDoc } from "firebas
 import { Pencil, ChevronRight, LogOut, Settings, User, Trophy, Calendar } from "lucide-react";
 
 export default function ProfilePage() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [avatarUrl, setAvatarUrl] = useState(null);
@@ -75,6 +75,14 @@ export default function ProfilePage() {
       console.error("Logout error:", error);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
