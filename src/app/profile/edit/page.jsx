@@ -206,13 +206,13 @@ export default function EditProfilePage() {
 
       setSuccess(true);
       // Hard refresh to ensure country change propagates through auth context
+      // Keep button in loading state until navigation completes
       setTimeout(() => {
         window.location.href = '/profile';
       }, 1500);
     } catch (err) {
       console.error('Error saving profile:', err);
       setError(err.message || 'Failed to save profile. Please try again.');
-    } finally {
       setSaving(false);
     }
   };
