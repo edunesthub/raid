@@ -44,6 +44,7 @@ class TournamentService {
     const rawCountry = data.country || data.region || 'Ghana';
     const normalized = typeof rawCountry === 'string' ? rawCountry.trim().toLowerCase() : 'ghana';
     const country = normalized === 'nigeria' ? 'Nigeria' : 'Ghana';
+    const currency = country === 'Nigeria' ? 'NGN' : 'GHS';
     
     return {
       id: doc.id,
@@ -61,7 +62,7 @@ class TournamentService {
       status: this.determineStatus(data),
       startDate: this.convertTimestampToISO(data.start_date),
       endDate: this.convertTimestampToISO(data.end_date),
-      currency: 'GHS',
+      currency,
       rules: data.rules ? [data.rules] : [],
       requirements: [],
       organizer: data.organizer || 'RAID Arena',

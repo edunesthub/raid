@@ -263,7 +263,10 @@ function TournamentPageContent({ resolvedParams }) {
     );
   }
 
-  const formatCurrency = (amount) => `₵${amount.toLocaleString()}`;
+  const formatCurrency = (amount) => {
+    const symbol = tournament.currency === 'NGN' ? '₦' : '₵';
+    return `${symbol}${amount.toLocaleString()}`;
+  };
 
   const getStatusConfig = (status) => {
     switch (status) {

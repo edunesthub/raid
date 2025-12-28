@@ -390,7 +390,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-gray-300 font-medium mb-2">
-                Entry Fee (₵)
+                Entry Fee ({form.country === 'Nigeria' ? '₦' : '₵'})
               </label>
               <input
                 type="number"
@@ -421,7 +421,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
           {/* First Place Prize */}
           <div>
             <label className="block text-sm text-gray-300 font-medium mb-2">
-              First Place Prize (₵)
+              First Place Prize ({form.country === 'Nigeria' ? '₦' : '₵'})
             </label>
             <input
               type="number"

@@ -402,7 +402,7 @@ export default function TournamentManagement() {
                       {t.current_participants}/{t.max_participant}
                     </button>
                   </td>
-                  <td className="p-4 text-gray-400">₵{t.entry_fee}</td>
+                  <td className="p-4 text-gray-400">{t.country === 'Nigeria' ? '₦' : '₵'}{t.entry_fee}</td>
                   {activeTab === "bracket" && (
                     <td className="p-4">
                       {t.bracketGenerated ? (
@@ -530,7 +530,7 @@ export default function TournamentManagement() {
                   Participants: <span className="text-white">{t.current_participants}/{t.max_participant}</span>
                 </button>
                 <div className="text-gray-300">
-                  Entry Fee: <span className="text-white">₵{t.entry_fee}</span>
+                  Entry Fee: <span className="text-white">{t.country === 'Nigeria' ? '₦' : '₵'}{t.entry_fee}</span>
                 </div>
                 {activeTab === "bracket" && (
                   <div className="text-gray-300">

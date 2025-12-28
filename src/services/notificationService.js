@@ -266,14 +266,15 @@ class NotificationService {
     });
   }
 
-  async notifyTournamentResult(userId, tournamentId, tournamentName, placement, prize = null) {
-    const prizeText = prize ? ` You won ₵${prize}!` : '';
+  async notifyTournamentResult(userId, tournamentId, tournamentName, placement, prize = null, currency = 'GHS') {
+    const symbol = currency === 'NGN' ? '₦' : '₵';
+    const prizeText = prize ? ` You won ${symbol}${prize}!` : '';
     return this.createNotification({
       userId,
       type: NOTIFICATION_TYPES.TOURNAMENT_RESULT,
       title: 'Tournament Results 🏆',
       message: `You placed ${placement} in "${tournamentName}".${prizeText}`,
-      data: { tournamentId, tournamentName, placement, prize },
+      data: { tournamentId, tournamentName, placement, prize, currency },
       link: `/tournament/${tournamentId}`,
       priority: 'high'
     });
@@ -293,13 +294,14 @@ class NotificationService {
   /**
    * Payment notification
    */
-  async notifyPaymentReceived(userId, amount, description) {
+  async notifyPaymentReceived(userId, amount, description, currency = 'GHS') {
+    const symbol = currency === 'NGN' ? '₦' : '₵';
     return this.createNotification({
       userId,
       type: NOTIFICATION_TYPES.PAYMENT_RECEIVED,
       title: 'Payment Received 💰',
-      message: `You received ₵${amount}. ${description}`,
-      data: { amount, description },
+      message: `You received ${symbol}${amount}. ${description}`,
+      data: { amount, description, currency },
       link: '/wallet',
       priority: 'high'
     });

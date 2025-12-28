@@ -2,10 +2,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '@/app/contexts/AuthContext.jsx';
 import { userStatsService } from '@/services/userStatsService';
 import { RefreshCw, Users, Trophy, DollarSign, TrendingUp } from 'lucide-react';
 
 export default function AdminStatsUtilityPage() {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState('');
@@ -200,7 +202,7 @@ export default function AdminStatsUtilityPage() {
                 
                 <div className="bg-gray-800 rounded-lg p-3">
                   <p className="text-gray-400 text-xs mb-1">Total Earnings</p>
-                  <p className="text-green-400 font-bold text-xl">₵{userStats.totalEarnings}</p>
+                  <p className="text-green-400 font-bold text-xl">{user?.country === 'Nigeria' ? '₦' : '₵'}{userStats.totalEarnings}</p>
                 </div>
                 
                 <div className="bg-gray-800 rounded-lg p-3">

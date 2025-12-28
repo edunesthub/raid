@@ -55,13 +55,13 @@ const TournamentCard = ({ tournament }) => {
           <div className="border border-orange-500/40 rounded-lg p-2 bg-[#1a1a1d]/90 hover:bg-[#1e1e22]/90 transition-colors">
             <p className="text-gray-400 text-xs">Prize Pool</p>
             <p className="text-green-400 font-bold">
-              ₵{tournament.prizePool.toLocaleString()}
+              {tournament.currency || '₵'}{tournament.prizePool.toLocaleString()}
             </p>
           </div>
           <div className="border border-orange-500/40 rounded-lg p-2 bg-[#1a1a1d]/90 hover:bg-[#1e1e22]/90 transition-colors">
             <p className="text-gray-400 text-xs">Entry Fee</p>
             <p className="text-white font-semibold">
-              ₵{tournament.entryFee.toLocaleString()}
+              {tournament.currency || '₵'}{tournament.entryFee.toLocaleString()}
             </p>
           </div>
         </div>

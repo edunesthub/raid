@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext.jsx";
 import { Users, Trophy, DollarSign, AlertCircle } from "lucide-react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import StatCard from "./StatCard";
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeTournaments: 0,
@@ -53,7 +55,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Users" value={stats.totalUsers.toLocaleString()} icon={Users} trend={12} color="blue" />
         <StatCard title="Active Tournaments" value={stats.activeTournaments.toString()} icon={Trophy} trend={8} color="orange" />
-        <StatCard title="Total Revenue" value={`₵${stats.totalRevenue.toLocaleString()}`} icon={DollarSign} trend={15} color="green" />
+        <StatCard title="Total Revenue" value={`${user?.country === 'Nigeria' ? '₦' : '₵'}${stats.totalRevenue.toLocaleString()}`} icon={DollarSign} trend={15} color="green" />
         <StatCard title="Pending Actions" value={stats.pendingActions.toString()} icon={AlertCircle} color="purple" />
       </div>
     </div>

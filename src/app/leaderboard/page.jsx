@@ -3,10 +3,12 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import { userService } from "@/services/userService";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function LeaderboardPage() {
+  const { user } = useAuth();
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,9 +33,11 @@ export default function LeaderboardPage() {
   };
 
   const formatMetricValue = (player) => {
+    const userCountry = user?.country || 'Ghana';
     switch (metric) {
       case "totalEarnings":
-        return `₵${player.totalEarnings?.toLocaleString() || 0}`;
+        const symbol = userCountry === 'Nigeria' ? '₦' : '₵';
+        return `${symbol}${player.totalEarnings?.toLocaleString() || 0}`;
       case "tournamentsWon":
         return player.tournamentsWon || 0;
       case "winRate":

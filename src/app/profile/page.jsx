@@ -8,7 +8,7 @@ import { signOut } from "firebase/auth";
 import { auth, db } from "../../lib/firebase";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/utils/formatters.js";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, doc, getDoc } from "firebase/firestore";
 import { Pencil, ChevronRight, LogOut, Settings, User, Trophy, Calendar } from "lucide-react";
 
 export default function ProfilePage() {
@@ -16,30 +16,33 @@ export default function ProfilePage() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [avatarUrl, setAvatarUrl] = useState(null);
+  const [freshUser, setFreshUser] = useState(null);
   const router = useRouter();
 
-  useEffect(() => {
-    // Ensure avatar displays by pulling from context or Firestore
-    if (user?.avatarUrl) {
-      setAvatarUrl(user.avatarUrl);
-    } else if (user?.id) {
-      // Attempt to fetch avatarUrl from Firestore if not in context
-      (async () => {
-        try {
-          const userDoc = await getDocs(query(collection(db, "users"), where("email", "==", user.email)));
-          const firstDoc = userDoc.docs?.[0];
-          if (firstDoc) {
-            const data = firstDoc.data();
-            if (data?.avatarUrl) setAvatarUrl(data.avatarUrl);
-          }
-        } catch (e) {
-          // silent fail; fallback remains initials
-        }
-      })();
+  // Fetch fresh user data from Firestore to ensure latest profile changes
+  const fetchFreshUserData = async (userId) => {
+    if (!userId) return;
+    try {
+      const userDocRef = doc(db, "users", userId);
+      const userDocSnap = await getDoc(userDocRef);
+      if (userDocSnap.exists()) {
+        const data = userDocSnap.data();
+        setFreshUser(data);
+        if (data?.avatarUrl) setAvatarUrl(data.avatarUrl);
+      }
+    } catch (e) {
+      console.error('Error fetching fresh user data:', e);
+      // Fallback to context user
+      if (user?.avatarUrl) setAvatarUrl(user.avatarUrl);
     }
+  };
 
-    if (user?.id) fetchUserTournaments();
-  }, [user?.id, user?.avatarUrl]);
+  useEffect(() => {
+    if (user?.id) {
+      fetchFreshUserData(user.id);
+      fetchUserTournaments();
+    }
+  }, [user?.id]);
 
   const fetchUserTournaments = async () => {
     if (!user?.id) return;
@@ -123,7 +126,7 @@ export default function ProfilePage() {
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-orange-600 to-orange-400 flex items-center justify-center">
                     <span className="text-white text-4xl font-bold">
-                      {user.firstName?.charAt(0) || user.email?.charAt(0) || "U"}
+                      {(freshUser?.firstName || user?.firstName)?.charAt(0) || (freshUser?.email || user?.email)?.charAt(0) || "U"}
                     </span>
                   </div>
                 )}
@@ -140,9 +143,9 @@ export default function ProfilePage() {
             </div>
 
             {/* User Info */}
-            <h1 className="text-3xl font-bold text-white mb-2">{user.username}</h1>
-            <p className="text-gray-400 text-sm mb-1">{user.email}</p>
-            {user.contact && <p className="text-gray-500 text-sm">{user.contact}</p>}
+            <h1 className="text-3xl font-bold text-white mb-2">{freshUser?.username || user?.username}</h1>
+            <p className="text-gray-400 text-sm mb-1">{freshUser?.email || user?.email}</p>
+            {(freshUser?.contact || user?.contact) && <p className="text-gray-500 text-sm">{freshUser?.contact || user?.contact}</p>}
           </div>
         </div>
       </div>
@@ -317,7 +320,7 @@ export default function ProfilePage() {
                   )}
                   {m.earnings > 0 && (
                     <p className="text-gray-300 text-sm">
-                      Earnings: {formatCurrency(m.earnings)}
+                      Earnings: {formatCurrency(m.earnings, m.currency || 'GHS')}
                     </p>
                   )}
                 </div>

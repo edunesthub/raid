@@ -205,10 +205,10 @@ export default function EditProfilePage() {
       });
 
       setSuccess(true);
-      // Reload to refresh auth context with new country
+      // Navigate smoothly without reload to maintain auth context
       setTimeout(() => {
-        window.location.href = '/profile';
-      }, 1500);
+        router.push('/profile');
+      }, 800);
     } catch (err) {
       console.error('Error saving profile:', err);
       setError(err.message || 'Failed to save profile. Please try again.');

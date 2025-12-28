@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import { doc, getDoc, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { ArrowLeft, Trophy, Award, Calendar, Mail, Phone, Star, TrendingUp, Target, Crown, Medal, Zap, Shield } from 'lucide-react';
@@ -10,6 +11,7 @@ import Link from 'next/link';
 export default function UserProfilePage() {
   const params = useParams();
   const userId = params?.id;
+  const { user: currentUser } = useAuth();
 
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
@@ -257,7 +259,7 @@ const tournamentsList = await Promise.all(
           <div className="card-raid p-4 sm:p-6 text-center bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/30 hover:scale-105 transition-transform">
             <div className="text-3xl sm:text-4xl mb-2">💰</div>
             <p className="text-3xl sm:text-4xl font-bold text-white mb-1">
-              ₵{(stats.totalEarnings || 0).toLocaleString()}
+              {currentUser?.country === 'Nigeria' ? '₦' : '₵'}{(stats.totalEarnings || 0).toLocaleString()}
             </p>
             <p className="text-gray-400 text-xs sm:text-sm">Total Earnings</p>
           </div>

@@ -64,7 +64,7 @@ const TournamentCard = ({ tournament }) => {
               <span className="mr-1">💰</span> Prize Pool
             </p>
             <p className="text-2xl font-extrabold text-green-400">
-              ₵{tournament.prizePool.toLocaleString()}
+              {tournament.currency || '₵'}{tournament.prizePool.toLocaleString()}
             </p>
           </div>
           <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-500/30 rounded-xl p-4 hover:border-orange-500/60 transition-colors duration-300">
@@ -72,7 +72,7 @@ const TournamentCard = ({ tournament }) => {
               <span className="mr-1">🎫</span> Entry Fee
             </p>
             <p className="text-2xl font-bold text-orange-400">
-              ₵{tournament.entryFee.toLocaleString()}
+              {tournament.currency || '₵'}{tournament.entryFee.toLocaleString()}
             </p>
           </div>
         </div>
