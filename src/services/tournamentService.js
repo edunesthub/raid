@@ -44,7 +44,7 @@ class TournamentService {
     const rawCountry = data.country || data.region || 'Ghana';
     const normalized = typeof rawCountry === 'string' ? rawCountry.trim().toLowerCase() : 'ghana';
     const country = normalized === 'nigeria' ? 'Nigeria' : 'Ghana';
-    const currency = country === 'Nigeria' ? 'NGN' : 'GHS';
+    const currency = country === 'Nigeria' ? '₦' : '₵';
     
     return {
       id: doc.id,

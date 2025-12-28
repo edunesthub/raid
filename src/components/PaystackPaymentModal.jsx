@@ -145,7 +145,7 @@ const PaystackPaymentModal = ({
           <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-xl p-4 sm:p-5 border border-orange-500/30">
             <p className="text-gray-400 text-xs sm:text-sm mb-2">Entry Fee</p>
             <p className="text-white font-bold text-3xl sm:text-4xl">
-              {tournament.currency === 'NGN' ? '₦' : '₵'}{tournament.entryFee.toLocaleString()}
+              {tournament.currency || '₵'}{tournament.entryFee.toLocaleString()}
             </p>
           </div>
 
@@ -201,7 +201,7 @@ const PaystackPaymentModal = ({
               </>
             ) : (
               <>
-                <span>Pay {tournament.currency === 'NGN' ? '₦' : '₵'}{tournament.entryFee.toLocaleString()}</span>
+                <span>Pay {tournament.currency || '₵'}{tournament.entryFee.toLocaleString()}</span>
               </>
             )}
           </button>

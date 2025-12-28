@@ -264,7 +264,8 @@ function TournamentPageContent({ resolvedParams }) {
   }
 
   const formatCurrency = (amount) => {
-    const symbol = tournament.currency === 'NGN' ? '₦' : '₵';
+    // tournament.currency is now a symbol (₦ or ₵)
+    const symbol = tournament.currency || '₵';
     return `${symbol}${amount.toLocaleString()}`;
   };
 
