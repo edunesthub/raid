@@ -1,7 +1,7 @@
 // src/components/AvatarUploader.jsx
 'use client';
 import { useState } from 'react';
-import { apiFetch } from '../lib/apiClient';
+import { apiFetch } from '@/lib/apiClient';
 
 export default function AvatarUploader({ userId, onUploadSuccess }) {
   const [uploading, setUploading] = useState(false);

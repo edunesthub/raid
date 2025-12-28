@@ -15,20 +15,40 @@ export default function ProfilePage() {
   const { user, isAuthenticated } = useAuth();
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
-    if (user?.uid) fetchUserTournaments();
-  }, [user?.uid]);
+    // Ensure avatar displays by pulling from context or Firestore
+    if (user?.avatarUrl) {
+      setAvatarUrl(user.avatarUrl);
+    } else if (user?.id) {
+      // Attempt to fetch avatarUrl from Firestore if not in context
+      (async () => {
+        try {
+          const userDoc = await getDocs(query(collection(db, "users"), where("email", "==", user.email)));
+          const firstDoc = userDoc.docs?.[0];
+          if (firstDoc) {
+            const data = firstDoc.data();
+            if (data?.avatarUrl) setAvatarUrl(data.avatarUrl);
+          }
+        } catch (e) {
+          // silent fail; fallback remains initials
+        }
+      })();
+    }
+
+    if (user?.id) fetchUserTournaments();
+  }, [user?.id, user?.avatarUrl]);
 
   const fetchUserTournaments = async () => {
-    if (!user?.uid) return;
+    if (!user?.id) return;
 
     try {
       setLoading(true);
       const q = query(
         collection(db, "tournaments"),
-        where("participants", "array-contains", user.uid),
+        where("participants", "array-contains", user.id),
         orderBy("date", "desc")
       );
       const snapshot = await getDocs(q);
@@ -93,9 +113,9 @@ export default function ProfilePage() {
             {/* Avatar display only */}
             <div className="relative mb-6">
               <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white/10 shadow-2xl">
-                {user.avatarUrl && typeof user.avatarUrl === "string" ? (
+                {avatarUrl && typeof avatarUrl === "string" ? (
                   <Image
-                    src={user.avatarUrl}
+                    src={avatarUrl}
                     alt="Profile Avatar"
                     fill
                     className="object-cover"
