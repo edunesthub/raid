@@ -1,7 +1,7 @@
 // src/app/auth/signup/page.jsx - Enhanced with username validation
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -23,8 +23,10 @@ export default function SignupPage() {
     lastName: "",
     phone: "",
     bio: "",
+    country: "Ghana",
   });
   const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
   
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -120,6 +122,33 @@ export default function SignupPage() {
 
   const passwordStrength = getPasswordStrength(formData.password);
 
+  useEffect(() => {
+    if (!avatarFile) {
+      setAvatarPreview(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(avatarFile);
+    setAvatarPreview(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [avatarFile]);
+
+  const isValidPhoneForCountry = (country, phoneRaw) => {
+    const phone = phoneRaw.trim();
+    const ghLocal = /^0\d{9}$/; // e.g., 0241234567
+    const ghIntl = /^233\d{9}$/; // e.g., 233241234567
+    const ngLocal = /^0\d{10}$/; // e.g., 08012345678
+    const ngIntl = /^234\d{10}$/; // e.g., 2348012345678
+
+    if (country === "Nigeria") {
+      return ngLocal.test(phone) || ngIntl.test(phone);
+    }
+    return ghLocal.test(phone) || ghIntl.test(phone);
+  };
+
   // ======================
   // Form Validation
   // ======================
@@ -169,11 +198,15 @@ export default function SignupPage() {
       setError("Please enter your first and last name");
       return false;
     }
+    if (!formData.country) {
+      setError("Please select your country");
+      return false;
+    }
     const phone = formData.phone.trim();
-    const isGhanaLocal = /^0\d{9}$/.test(phone);
-    const isGhanaIntl = /^233\d{9}$/.test(phone);
-    if (!phone || !(isGhanaLocal || isGhanaIntl)) {
-      setError("Please enter a valid Ghana phone number (e.g., 0241234567 or 233241234567)");
+    const country = formData.country || "Ghana";
+    if (!isValidPhoneForCountry(country, phone)) {
+      const example = country === "Nigeria" ? "08012345678 or 2348012345678" : "0241234567 or 233241234567";
+      setError(`Please enter a valid ${country} phone number (e.g., ${example})`);
       return false;
     }
     return true;
@@ -199,12 +232,17 @@ export default function SignupPage() {
           return false;
         }
 
-        // Phone required and must be Ghana number
+        if (!formData.country) {
+          setError("Please select your country");
+          return false;
+        }
+
+        // Phone required and must match selected country
         const phone = formData.phone.trim();
-        const isGhanaLocal = /^0\d{9}$/.test(phone); // e.g., 0241234567
-        const isGhanaIntl = /^233\d{9}$/.test(phone); // e.g., 233241234567
-        if (!phone || !(isGhanaLocal || isGhanaIntl)) {
-          setError("Please enter a valid Ghana phone number (e.g., 0241234567 or 233241234567)");
+        const country = formData.country || "Ghana";
+        if (!isValidPhoneForCountry(country, phone)) {
+          const example = country === "Nigeria" ? "08012345678 or 2348012345678" : "0241234567 or 233241234567";
+          setError(`Please enter a valid ${country} phone number (e.g., ${example})`);
           return false;
         }
 
@@ -276,6 +314,7 @@ export default function SignupPage() {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         phone: formData.phone.trim(),
+        country: formData.country || "Ghana",
         bio: formData.bio.trim(),
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -333,7 +372,7 @@ export default function SignupPage() {
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-orange-500 to-purple-500 text-transparent bg-clip-text">
             Create Account
           </h1>
-          <p className="text-gray-400">Join Ghana's premier esports platform</p>
+          <p className="text-gray-400">Join Ghana &amp; Nigeria's premier esports platform</p>
         </div>
 
         <div className="bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-sm border border-white/10 rounded-2xl p-8">
@@ -415,9 +454,30 @@ export default function SignupPage() {
                   </div>
                 </div>
                 <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">Country *</label>
+                  <select
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    disabled={isLoading}
+                    required
+                  >
+                    <option value="Ghana">Ghana</option>
+                    <option value="Nigeria">Nigeria</option>
+                  </select>
+                </div>
+                <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2">Phone Number (SMS-enabled) *</label>
-                  <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="e.g., 0241234567 or 233241234567" className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors" disabled={isLoading} required />
-                  <p className="text-xs text-gray-500 mt-1">Use a Ghana number that can receive SMS.</p>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder={formData.country === "Nigeria" ? "e.g., 08012345678 or 2348012345678" : "e.g., 0241234567 or 233241234567"}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
+                    disabled={isLoading}
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Use a number that can receive SMS in {formData.country}.</p>
                 </div>
                 <div className="flex justify-between pt-2">
                   <button type="button" onClick={() => setCurrentStep(1)} className="px-5 py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-white">Back</button>
@@ -434,12 +494,28 @@ export default function SignupPage() {
                 </div>
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2">Profile Picture *</label>
-                  <input type="file" accept="image/*" onChange={(e) => setAvatarFile(e.target.files?.[0] || null)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors" disabled={isLoading} required />
-                  <p className="text-xs text-gray-500 mt-1">Upload a clear image of yourself or your gaming avatar.</p>
+                  {avatarPreview ? (
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-16 h-16 rounded-full overflow-hidden border border-orange-500/60 bg-gray-900 flex-shrink-0">
+                        <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+                      </div>
+                      <p className="text-xs text-gray-400">Looking good! You can replace it by choosing another file.</p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500 mb-3">Upload a clear image of yourself or your gaming avatar.</p>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
+                    disabled={isLoading}
+                    required
+                  />
                 </div>
                 <div className="flex justify-between items-center pt-2">
                   <button type="button" onClick={() => setCurrentStep(2)} className="px-5 py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-white">Back</button>
-                  <button type="submit" disabled={isLoading || emailChecking || usernameChecking || emailAvailable === false || usernameAvailable === false || !formData.firstName.trim() || !formData.lastName.trim() || !formData.phone.trim() || !formData.bio.trim() || !avatarFile} className="px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                  <button type="submit" disabled={isLoading || emailChecking || usernameChecking || emailAvailable === false || usernameAvailable === false || !formData.firstName.trim() || !formData.lastName.trim() || !formData.country || !formData.phone.trim() || !formData.bio.trim() || !avatarFile} className="px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
                     {isLoading ? (<div className="flex items-center justify-center"><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Creating Account...</div>) : ("Create Account")}
                   </button>
                 </div>

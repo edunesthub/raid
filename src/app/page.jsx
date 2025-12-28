@@ -10,7 +10,7 @@ import { useAuth } from "@/app/contexts/AuthContext";
 import { useEffect, useRef } from "react";
 
 export default function Home() {
-  const { isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { tournaments, loading: tournamentsLoading, error } = useFeaturedTournaments(4);
   
   // Show loading spinner while auth is initializing
@@ -134,9 +134,16 @@ export default function Home() {
 
           {!loading && !error && tournaments.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tournaments.map((tournament) => (
-                <TournamentCard key={tournament.id} tournament={tournament} />
-              ))}
+              {tournaments
+                .filter((t) => {
+                  const viewerCountry = user?.country?.toLowerCase?.();
+                  if (!viewerCountry || (viewerCountry !== "ghana" && viewerCountry !== "nigeria")) return true;
+                  const country = (t.country || t.region || "Ghana").toLowerCase();
+                  return country === viewerCountry;
+                })
+                .map((tournament) => (
+                  <TournamentCard key={tournament.id} tournament={tournament} />
+                ))}
             </div>
           )}
 

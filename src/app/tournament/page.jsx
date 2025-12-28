@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import TournamentCard from "@/components/TournamentCard.jsx";
 import LoadingSpinner from "@/components/LoadingSpinner.jsx";
 import { tournamentService } from "@/services/tournamentService";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 export default function TournamentsPage() {
   const [tournaments, setTournaments] = useState([]);
@@ -13,6 +14,8 @@ export default function TournamentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
+
+  const { user } = useAuth();
 
   const [filters, setFilters] = useState({
     status: "all",
@@ -27,7 +30,7 @@ export default function TournamentsPage() {
 
   useEffect(() => {
     applyFilters();
-  }, [tournaments, filters]);
+  }, [tournaments, filters, user?.country]);
 
   const loadTournaments = async () => {
     try {
@@ -53,15 +56,23 @@ export default function TournamentsPage() {
   };
 
   const applyFilters = () => {
-    let filtered = [];
+    let filtered = [...tournaments];
+
+    const viewerCountry = user?.country?.toLowerCase?.();
+    if (viewerCountry === "ghana" || viewerCountry === "nigeria") {
+      filtered = filtered.filter((t) => {
+        const tournamentCountry = (t.country || t.region || "Ghana").toLowerCase();
+        return tournamentCountry === viewerCountry;
+      });
+    }
 
     // Hide completed tournaments by default
     if (filters.status === "completed") {
-      filtered = tournaments.filter((t) => t.status === "completed");
+      filtered = filtered.filter((t) => t.status === "completed");
     } else if (filters.status === "all") {
-      filtered = tournaments.filter((t) => t.status !== "completed");
+      filtered = filtered.filter((t) => t.status !== "completed");
     } else {
-      filtered = tournaments.filter((t) => t.status === filters.status);
+      filtered = filtered.filter((t) => t.status === filters.status);
     }
 
     if (filters.game !== "all") {

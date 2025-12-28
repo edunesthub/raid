@@ -36,6 +36,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
     first_place: "",
     description: "",
     format: "Battle Royale",
+    country: "Ghana",
   });
   
   const [loading, setLoading] = useState(false);
@@ -62,6 +63,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
         first_place: tournament.first_place?.toString() || "",
         description: tournament.description || "",
         format: tournament.format || "Battle Royale",
+        country: tournament.country || tournament.region || "Ghana",
       });
       
       if (tournament.tournament_flyer) {
@@ -155,6 +157,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
         first_place: Number(form.first_place) || 0,
         tournament_flyer: flyerUrl,
         format: form.format,
+        country: form.country || "Ghana",
         updated_at: serverTimestamp(),
       };
 
@@ -246,7 +249,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 pb-24 sm:pb-6">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 pb-28 sm:pb-8">
           {/* Image Upload Section */}
           <div className="space-y-2">
             <label className="block text-sm text-gray-300 font-medium">
@@ -350,6 +353,24 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
             </div>
           </div>
 
+          {/* Country */}
+          <div>
+            <label className="block text-sm text-gray-300 font-medium mb-2">
+              Country *
+            </label>
+            <select
+              name="country"
+              value={form.country}
+              onChange={handleChange}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition"
+              required
+            >
+              <option value="Ghana">Ghana</option>
+              <option value="Nigeria">Nigeria</option>
+            </select>
+            <p className="text-gray-400 text-xs mt-2">Players will only see tournaments from their country.</p>
+          </div>
+
           {/* Description */}
           <div>
             <label className="block text-sm text-gray-300 font-medium mb-2">
@@ -414,7 +435,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
           </div>
 
           {/* Action Buttons - Fixed at bottom on mobile */}
-          <div className="fixed sm:relative bottom-0 left-0 right-0 bg-gray-900 sm:bg-transparent border-t sm:border-t-0 border-gray-700 p-4 sm:p-0 flex flex-col sm:flex-row gap-3 sm:pt-4">
+          <div className="fixed sm:relative bottom-0 left-0 right-0 bg-gray-900 sm:bg-transparent border-t sm:border-t-0 border-gray-700 p-4 sm:p-0 flex flex-col sm:flex-row gap-3 sm:pt-4 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.5)] sm:shadow-none">
             <button
               type="button"
               onClick={onClose}

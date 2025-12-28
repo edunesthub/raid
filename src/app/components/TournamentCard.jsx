@@ -36,9 +36,14 @@ const TournamentCard = ({ tournament }) => {
           </span>
         </div>
 
-        {/* Game icon floating badge */}
-        <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md px-3 py-2 rounded-xl border border-gray-700">
-          <p className="text-white text-sm font-semibold">{tournament.game}</p>
+        {/* Game + Country badges */}
+        <div className="absolute bottom-4 left-4 flex flex-col gap-2">
+          <div className="bg-black/60 backdrop-blur-md px-3 py-2 rounded-xl border border-gray-700">
+            <p className="text-white text-sm font-semibold">{tournament.game}</p>
+          </div>
+          <div className="bg-black/70 backdrop-blur-md px-3 py-1 rounded-lg border border-gray-700 text-xs font-semibold text-white">
+            {tournament.country || tournament.region || 'Ghana'}
+          </div>
         </div>
       </div>
 

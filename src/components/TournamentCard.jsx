@@ -14,6 +14,9 @@ const TournamentCard = ({ tournament }) => {
           alt={tournament.title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
+        <span className="absolute top-3 left-3 px-2.5 py-1 text-[10px] sm:text-xs font-semibold rounded-full bg-black/70 border border-white/10 text-white shadow-md">
+          {tournament.country || tournament.region || 'Ghana'}
+        </span>
 <span
   className={`absolute top-3 right-3 px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-full text-white shadow-md ${
     tournament.status === "live"

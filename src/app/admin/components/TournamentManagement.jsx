@@ -320,6 +320,7 @@ export default function TournamentManagement() {
             <tr>
               <th className="text-left p-4">Tournament</th>
               <th className="text-left p-4">Game</th>
+              <th className="text-left p-4">Country</th>
               <th className="text-left p-4">Format</th>
               <th className="text-left p-4">Status</th>
               <th className="text-left p-4">Participants</th>
@@ -372,6 +373,17 @@ export default function TournamentManagement() {
                     </div>
                   </td>
                   <td className="p-4 text-gray-300">{t.game}</td>
+                  <td className="p-4">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-gray-800 border border-gray-700 text-white">
+                      <span className="text-lg" aria-hidden>
+                        {(() => {
+                          const c = (t.country || t.region || 'Ghana').toLowerCase();
+                          return c === 'nigeria' ? '🇳🇬' : '🇬🇭';
+                        })()}
+                      </span>
+                      {t.country || t.region || 'Ghana'}
+                    </span>
+                  </td>
                   <td className="p-4">{getFormatBadge(t.format)}</td>
                   <td className="p-4">
                     <button

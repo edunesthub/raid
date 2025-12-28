@@ -8,6 +8,7 @@ import AppProviders from "./AppProviders";
 import PWAInstallPrompt from "../components/PWAInstallPrompt";
 import OfflineLoader from "../components/OfflineLoader";
 import UpdatePrompt from "@/components/UpdatePrompt"; 
+import ProfileCompletionPrompt from "@/components/ProfileCompletionPrompt";
 import BottomNav from "../components/BottomNav";
 import { usePathname } from "next/navigation";
 import { SpeedInsights } from "@vercel/speed-insights/next"
@@ -73,6 +74,7 @@ const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/auth/onboardin
           
           <PWAInstallPrompt />
           <UpdatePrompt />
+          {!hideLayout && <ProfileCompletionPrompt hide={hideLayout} />}
           <OfflineLoader />
         </AppProviders>
 

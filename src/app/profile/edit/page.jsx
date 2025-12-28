@@ -19,6 +19,7 @@ export default function EditProfilePage() {
     contact: '',
     email: '',
     bio: '',
+    country: 'Ghana',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -52,6 +53,7 @@ export default function EditProfilePage() {
             contact: data.contact || '',
             email: data.email || user.email || '',
             bio: data.bio || '',
+            country: data.country || 'Ghana',
           });
 
           // Set avatar if exists
@@ -65,6 +67,7 @@ export default function EditProfilePage() {
             contact: user.contact || '',
             email: user.email || '',
             bio: '',
+            country: user.country || 'Ghana',
           });
         }
       } catch (err) {
@@ -133,13 +136,15 @@ export default function EditProfilePage() {
       return;
     }
 
+    // Preserve existing values when fields are left untouched/blank
     const safeFormData = {
-      username: formData.username || "",
-      firstName: formData.firstName || "",
-      lastName: formData.lastName || "",
-      contact: formData.contact || "",
-      email: formData.email || "",
-      bio: formData.bio || "",
+      username: formData.username?.trim() || user.username || "",
+      firstName: formData.firstName?.trim() || user.firstName || "",
+      lastName: formData.lastName?.trim() || user.lastName || "",
+      contact: formData.contact?.trim() || user.contact || "",
+      email: formData.email?.trim() || user.email || "",
+      bio: formData.bio?.trim() || user.bio || "",
+      country: formData.country || user.country || "Ghana",
     };
 
     if (!safeFormData.username.trim()) {
@@ -151,21 +156,24 @@ export default function EditProfilePage() {
       return;
     }
 
-        // ✅ Validate username format
-    const formatValidation = usernameService.validateUsernameFormat(safeFormData.username);
-    if (!formatValidation.isValid) {
-      setError(formatValidation.error);
-      return;
-    }
-
     try {
       setSaving(true);
       setError('');
 
       // ✅ Only validate username if it actually changed
-      const usernameChanged = safeFormData.username.toLowerCase().trim() !== (user.username || '').toLowerCase().trim();
+      const currentUsername = (user.username || '').toLowerCase().trim();
+      const incomingUsername = safeFormData.username.toLowerCase().trim();
+      const usernameChanged = incomingUsername !== currentUsername;
       
       if (usernameChanged) {
+        // ✅ Validate username format only if it changed
+        const formatValidation = usernameService.validateUsernameFormat(safeFormData.username);
+        if (!formatValidation.isValid) {
+          setError(formatValidation.error);
+          setSaving(false);
+          return;
+        }
+
         const isAvailable = await usernameService.isUsernameAvailable(
           safeFormData.username, 
           user.id
@@ -192,12 +200,14 @@ export default function EditProfilePage() {
         contact: safeFormData.contact.trim(),
         email: safeFormData.email.trim(),
         bio: safeFormData.bio.trim(),
+        country: safeFormData.country || 'Ghana',
         updatedAt: new Date(),
       });
 
       setSuccess(true);
+      // Reload to refresh auth context with new country
       setTimeout(() => {
-        router.push('/profile');
+        window.location.href = '/profile';
       }, 1500);
     } catch (err) {
       console.error('Error saving profile:', err);
@@ -348,6 +358,20 @@ export default function EditProfilePage() {
               placeholder="+233 123 456 789"
               className="w-full bg-gray-900 border border-orange-500 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-white placeholder-gray-400 transition"
             />
+          </div>
+
+          {/* Country */}
+          <div>
+            <label className="block text-sm text-gray-300 mb-2">Country</label>
+            <select
+              name="country"
+              value={formData.country}
+              onChange={handleChange}
+              className="w-full bg-gray-900 border border-orange-500 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-white placeholder-gray-400 transition"
+            >
+              <option value="Ghana">Ghana</option>
+              <option value="Nigeria">Nigeria</option>
+            </select>
           </div>
 
           {/* Email */}

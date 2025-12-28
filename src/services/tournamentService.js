@@ -41,6 +41,9 @@ class TournamentService {
 
   transformTournamentDoc(doc) {
     const data = doc.data();
+    const rawCountry = data.country || data.region || 'Ghana';
+    const normalized = typeof rawCountry === 'string' ? rawCountry.trim().toLowerCase() : 'ghana';
+    const country = normalized === 'nigeria' ? 'Nigeria' : 'Ghana';
     
     return {
       id: doc.id,
@@ -53,7 +56,8 @@ class TournamentService {
       currentPlayers: data.current_participants || 0,
       maxPlayers: data.max_participant || 0,
       format: data.format || data.platform || 'Knockout',
-      region: 'Ghana',
+      region: country,
+      country,
       status: this.determineStatus(data),
       startDate: this.convertTimestampToISO(data.start_date),
       endDate: this.convertTimestampToISO(data.end_date),

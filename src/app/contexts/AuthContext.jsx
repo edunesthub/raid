@@ -29,8 +29,11 @@ export function AuthProvider({ children }) {
           id: firebaseUser.uid,
           email: firebaseUser.email,
           username: userData?.username || firebaseUser.email.split('@')[0],
-          contact: userData?.contact || '',
+          contact: userData?.contact || userData?.phone || '',
+          phone: userData?.phone || userData?.contact || '',
+          bio: userData?.bio || '',
           avatarUrl: firebaseUser.photoURL || userData?.avatarUrl,
+          country: userData?.country || 'Ghana',
           firstName: userData?.firstName || firebaseUser.displayName?.split(' ')[0] || '',
           lastName: userData?.lastName || firebaseUser.displayName?.split(' ')[1] || '',
         });
