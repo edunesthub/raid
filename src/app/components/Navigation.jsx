@@ -15,6 +15,7 @@ import {
   Phone,
   ChevronRight,
   Bell,
+  MessageCircle,
 } from "lucide-react";
 
 export default function Navigation() {
@@ -26,6 +27,7 @@ export default function Navigation() {
   const navItems = [
     { href: "/", label: "Home", icon: <Home className="w-5 h-5" /> },
     { href: "/tournament", label: "Tournaments", icon: <Trophy className="w-5 h-5" /> },
+    { href: "/chat", label: "Chat", icon: <MessageCircle className="w-5 h-5" /> },
     { href: "/leaderboard", label: "Leaderboard", icon: <BarChart2 className="w-5 h-5" /> },
     { href: "/about", label: "About", icon: <FileText className="w-5 h-5" /> },
     { href: "/contact", label: "Contact", icon: <Phone className="w-5 h-5" /> },
