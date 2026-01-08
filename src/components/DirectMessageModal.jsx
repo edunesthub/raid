@@ -225,15 +225,15 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
                     <div className={`inline-flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
                       <div className={`inline-flex items-center gap-2 group relative ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
                         <div
-                          className={`px-4 py-2 rounded-2xl max-w-[96%] sm:max-w-[88%] ${
+                          className={`px-4 py-2 rounded-2xl max-w-[100%] sm:max-w-[92%] ${
                             isOwn
                               ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
                               : 'bg-gray-800 text-white'
                           }`}
                           style={{ 
-                            wordBreak: 'keep-all',
+                            wordBreak: 'break-word',
                             overflowWrap: 'break-word',
-                            hyphens: 'manual'
+                            hyphens: 'none'
                           }}
                         >
                           <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
