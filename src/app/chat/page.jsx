@@ -17,18 +17,14 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("Chat page useEffect triggered. Auth loading:", authLoading, "User:", user, "isAuthenticated:", isAuthenticated);
-    
     const fetchUserTournaments = async () => {
       // Wait for auth to finish loading
       if (authLoading) {
-        console.log("Auth still loading, waiting...");
         return;
       }
 
       // Redirect to login if not authenticated
       if (!isAuthenticated || !user) {
-        console.log("Not authenticated, redirecting to login");
         router.push("/auth/login");
         setLoading(false);
         return;
@@ -37,7 +33,6 @@ export default function ChatPage() {
       // Use user.id instead of user.uid (based on AuthContext structure)
       const userId = user.id || user.uid;
       if (!userId) {
-        console.log("No user ID found");
         setLoading(false);
         return;
       }
@@ -53,14 +48,11 @@ export default function ChatPage() {
         );
 
         const participantsSnapshot = await getDocs(participantsQuery);
-        console.log("Chat page - Found participant entries:", participantsSnapshot.docs.length);
 
         // Get unique tournament IDs
         const tournamentIds = [...new Set(
           participantsSnapshot.docs.map(doc => doc.data().tournamentId)
         )];
-
-        console.log("Chat page - Unique tournament IDs:", tournamentIds);
 
         if (tournamentIds.length === 0) {
           setTournaments([]);
@@ -78,11 +70,8 @@ export default function ChatPage() {
             
             // Skip completed tournaments
             if (tournamentData.status === "completed") {
-              console.log("Skipping completed tournament:", tournamentId, tournamentData.name);
               return null;
             }
-
-            console.log("Tournament:", tournamentId, "Status:", tournamentData.status, "Name:", tournamentData.tournament_name);
 
             // Count participants for this tournament
             const tournamentParticipantsQuery = query(
@@ -102,8 +91,6 @@ export default function ChatPage() {
 
         // Filter out null entries and sort by most recent
         const validTournaments = tournamentsData.filter(t => t !== null);
-        console.log("Chat page - Total tournaments to display:", validTournaments.length);
-        console.log("Chat page - Tournament data:", validTournaments);
 
         validTournaments.sort((a, b) => {
           const dateA = a.createdAt?.toDate?.() || new Date(0);
