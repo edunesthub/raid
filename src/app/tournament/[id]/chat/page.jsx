@@ -296,14 +296,18 @@ export default function TournamentChatPage({ params }) {
         </div>
         <button
           onClick={() => setShowParticipants(!showParticipants)}
-          className="relative p-1.5 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+          className="relative flex items-center gap-2 bg-orange-500/20 hover:bg-orange-500/30 px-3 py-2 rounded-lg transition-colors border border-orange-400/40"
+          aria-label="Toggle participants list"
         >
-          <UsersIcon className="w-5 h-5 text-white" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
+          <span className="text-[11px] leading-none text-orange-200 font-semibold">View participants</span>
+          <div className="relative">
+            <UsersIcon className="w-5 h-5 text-orange-200" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-orange-400 text-black text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </div>
         </button>
       </div>
 
