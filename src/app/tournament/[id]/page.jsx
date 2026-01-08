@@ -210,7 +210,7 @@ function TournamentPageContent({ resolvedParams }) {
     if (!user?.id || !resolvedParams?.id || !isParticipant) return;
 
     const unsubscribers = [];
-    const unreadCounts = {};
+    const unreadCountsRef = { counts: {} };
 
     // Subscribe to DMs with all participants
     const loadDMUnreads = async () => {
@@ -219,25 +219,33 @@ function TournamentPageContent({ resolvedParams }) {
         const q = query(participantsRef, where('tournamentId', '==', resolvedParams.id));
         const snapshot = await getDocs(q);
         
+        const participants = [];
         snapshot.forEach((docSnap) => {
           const data = docSnap.data();
           if (data.userId && data.userId !== user.id) {
-            const otherUserId = data.userId;
-            // Subscribe to DMs with this participant
-            const conversationId = [user.id, otherUserId].sort().join('_');
-            const dmQuery = query(
-              collection(db, 'direct_messages', conversationId, 'messages'),
-              where('recipientId', '==', user.id),
-              where('read', '==', false)
-            );
-            
-            const dmUnsub = onSnapshot(dmQuery, (dmSnapshot) => {
-              unreadCounts[otherUserId] = dmSnapshot.size;
-              const total = Object.values(unreadCounts).reduce((sum, count) => sum + count, 0);
-              setChatUnreadCount(total);
-            });
-            unsubscribers.push(dmUnsub);
+            participants.push(data.userId);
+            unreadCountsRef.counts[data.userId] = 0;
           }
+        });
+
+        // For each participant, subscribe to their unread DMs
+        participants.forEach((otherUserId) => {
+          const conversationId = [user.id, otherUserId].sort().join('_');
+          const dmQuery = query(
+            collection(db, 'direct_messages', conversationId, 'messages'),
+            where('recipientId', '==', user.id),
+            where('read', '==', false)
+          );
+          
+          const dmUnsub = onSnapshot(dmQuery, (dmSnapshot) => {
+            // Update count for this specific user
+            unreadCountsRef.counts[otherUserId] = dmSnapshot.size;
+            
+            // Recalculate total from all users
+            const total = Object.values(unreadCountsRef.counts).reduce((sum, count) => sum + count, 0);
+            setChatUnreadCount(total);
+          });
+          unsubscribers.push(dmUnsub);
         });
       } catch (err) {
         console.error('Error loading DM unreads:', err);

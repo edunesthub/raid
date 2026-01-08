@@ -371,7 +371,7 @@ export default function TournamentChatPage({ params }) {
           />
           
           {/* Sidebar */}
-          <div className="absolute top-14 right-0 w-64 sm:w-72 bg-[#0a0a0a]/98 backdrop-blur-xl border-l border-gray-800/50 h-[calc(100vh-3.5rem)] z-20 overflow-y-auto">
+          <div className="fixed top-14 right-0 bottom-24 w-64 sm:w-72 bg-[#0a0a0a]/98 backdrop-blur-xl border-l border-gray-800/50 z-20 overflow-y-auto">
             <div className="p-3">
             <h3 className="text-white font-semibold mb-2 text-sm">Participants ({participants.length})</h3>
             <div className="flex items-center gap-2 text-xs text-gray-400 bg-white/5 rounded-lg px-2.5 py-2 mb-2">
