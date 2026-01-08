@@ -205,32 +205,12 @@ function TournamentPageContent({ resolvedParams }) {
     loadWinnerData();
   }, [tournament, resolvedParams.id]);
 
-  // Subscribe to chat unread counts (tournament chat + DMs)
+  // Subscribe to chat unread counts (DMs only)
   useEffect(() => {
     if (!user?.id || !resolvedParams?.id || !isParticipant) return;
 
-    let totalUnread = 0;
     const unsubscribers = [];
-
-    // Subscribe to tournament chat messages
-    const chatQuery = query(
-      collection(db, 'tournament_chats', resolvedParams.id, 'messages'),
-      orderBy('createdAt', 'desc'),
-      limit(50)
-    );
-    
-    const chatUnsub = onSnapshot(chatQuery, (snapshot) => {
-      // Count unread tournament messages (simple approach: count messages from others since last visit)
-      // You can enhance this with a lastReadTimestamp stored in user's participant doc
-      const unreadChat = snapshot.docs.filter(doc => {
-        const data = doc.data();
-        return data.senderId !== user.id;
-      }).length;
-      
-      // For now, we'll just track DM unreads, not chat unreads to avoid noise
-      // If you want chat unreads, implement a lastReadTimestamp mechanism
-    });
-    unsubscribers.push(chatUnsub);
+    const unreadCounts = {};
 
     // Subscribe to DMs with all participants
     const loadDMUnreads = async () => {
@@ -239,13 +219,12 @@ function TournamentPageContent({ resolvedParams }) {
         const q = query(participantsRef, where('tournamentId', '==', resolvedParams.id));
         const snapshot = await getDocs(q);
         
-        let dmUnreadCount = 0;
-        
         snapshot.forEach((docSnap) => {
           const data = docSnap.data();
           if (data.userId && data.userId !== user.id) {
+            const otherUserId = data.userId;
             // Subscribe to DMs with this participant
-            const conversationId = [user.id, data.userId].sort().join('_');
+            const conversationId = [user.id, otherUserId].sort().join('_');
             const dmQuery = query(
               collection(db, 'direct_messages', conversationId, 'messages'),
               where('recipientId', '==', user.id),
@@ -253,9 +232,9 @@ function TournamentPageContent({ resolvedParams }) {
             );
             
             const dmUnsub = onSnapshot(dmQuery, (dmSnapshot) => {
-              const unreadFromThisUser = dmSnapshot.size;
-              dmUnreadCount += unreadFromThisUser;
-              setChatUnreadCount(dmUnreadCount);
+              unreadCounts[otherUserId] = dmSnapshot.size;
+              const total = Object.values(unreadCounts).reduce((sum, count) => sum + count, 0);
+              setChatUnreadCount(total);
             });
             unsubscribers.push(dmUnsub);
           }
