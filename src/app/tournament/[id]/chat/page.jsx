@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Send, ArrowLeft, Loader, AlertCircle, Users as UsersIcon, Trash2, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { chatService } from '@/services/chatService';
+import { directMessageService } from '@/services/directMessageService';
 import DirectMessageModal from '@/components/DirectMessageModal';
 import { doc, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -26,6 +27,10 @@ export default function TournamentChatPage({ params }) {
   const [participants, setParticipants] = useState([]);
   const [isParticipant, setIsParticipant] = useState(false);
   const [tournamentName, setTournamentName] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [lastReadMessageId, setLastReadMessageId] = useState(null);
+  const [participantUnreads, setParticipantUnreads] = useState({}); // Track unread per participant
+  const [lastMessages, setLastMessages] = useState({}); // Track last message per participant
 
   // Check if user is participant and load tournament details
   useEffect(() => {
@@ -63,7 +68,7 @@ export default function TournamentChatPage({ params }) {
 
   // Load participants
   useEffect(() => {
-    if (!resolvedParams?.id || !isParticipant) return;
+    if (!resolvedParams?.id || !isParticipant || !user?.id) return;
     
     const loadParticipants = async () => {
       try {
@@ -97,13 +102,54 @@ export default function TournamentChatPage({ params }) {
         users.forEach(u => u && participantsList.push(u));
         
         setParticipants(participantsList);
+        
+        // Subscribe to DMs with each participant
+        const unsubscribers = [];
+        users.forEach(participant => {
+          if (participant && participant.id !== user.id) {
+            const unsubscribe = directMessageService.subscribeToDirectMessages(
+              user.id,
+              participant.id,
+              (messages) => {
+                if (messages.length > 0) {
+                  const lastMsg = messages[messages.length - 1];
+                  setLastMessages(prev => ({
+                    ...prev,
+                    [participant.id]: {
+                      message: lastMsg.message,
+                      timestamp: lastMsg.timestamp,
+                      isFromMe: lastMsg.senderId === user.id
+                    }
+                  }));
+                  
+                  // Count unread messages (messages from them that we haven't seen)
+                  const unreadFromParticipant = messages.filter(
+                    msg => msg.senderId === participant.id && !msg.read
+                  ).length;
+                  
+                  setParticipantUnreads(prev => {
+                    const oldUnread = prev[participant.id] || 0;
+                    const updated = { ...prev, [participant.id]: unreadFromParticipant };
+                    setUnreadCount(prevUnread => prevUnread - oldUnread + unreadFromParticipant);
+                    return updated;
+                  });
+                }
+              }
+            );
+            unsubscribers.push(unsubscribe);
+          }
+        });
+        
+        return () => {
+          unsubscribers.forEach(unsub => unsub());
+        };
       } catch (error) {
         console.error('Error loading participants:', error);
       }
     };
     
     loadParticipants();
-  }, [resolvedParams?.id, isParticipant]);
+  }, [resolvedParams?.id, isParticipant, user?.id]);
 
   // Subscribe to chat messages
   useEffect(() => {
@@ -120,6 +166,20 @@ export default function TournamentChatPage({ params }) {
 
     return () => unsubscribe();
   }, [resolvedParams?.id, isParticipant]);
+
+  const handleOpenDM = (recipient) => {
+    if (recipient.id === user?.id) return; // Can't message yourself
+    // Clear unread for this participant
+    setParticipantUnreads(prev => {
+      const oldUnread = prev[recipient.id] || 0;
+      const updated = { ...prev };
+      delete updated[recipient.id];
+      setUnreadCount(prevUnread => Math.max(0, prevUnread - oldUnread));
+      return updated;
+    });
+    setSelectedRecipient(recipient);
+    setShowParticipants(false);
+  };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -158,12 +218,6 @@ export default function TournamentChatPage({ params }) {
     }
   };
 
-  const handleOpenDM = (recipient) => {
-    if (recipient.id === user?.id) return; // Can't message yourself
-    setSelectedRecipient(recipient);
-    setShowParticipants(false);
-  };
-
   const formatTime = (timestamp) => {
     if (!timestamp) return '';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -179,7 +233,7 @@ export default function TournamentChatPage({ params }) {
 
   if (!isAuthenticated || !isParticipant) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
         <Loader className="w-8 h-8 animate-spin text-white" />
       </div>
     );
@@ -221,6 +275,11 @@ export default function TournamentChatPage({ params }) {
           className="relative p-1.5 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
         >
           <UsersIcon className="w-5 h-5 text-white" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
         </button>
       </div>
 
@@ -236,16 +295,39 @@ export default function TournamentChatPage({ params }) {
           {/* Sidebar */}
           <div className="absolute top-14 right-0 w-64 sm:w-72 bg-[#0a0a0a]/98 backdrop-blur-xl border-l border-gray-800/50 h-[calc(100vh-3.5rem)] z-20 overflow-y-auto">
             <div className="p-3">
-            <h3 className="text-white font-semibold mb-3 text-sm">Participants ({participants.length})</h3>
+            <h3 className="text-white font-semibold mb-2 text-sm">Participants ({participants.length})</h3>
+            <div className="flex items-center gap-2 text-xs text-gray-400 bg-white/5 rounded-lg px-2.5 py-2 mb-2">
+              <MessageCircle className="w-4 h-4 text-orange-400" />
+              <span>Tap a player to start a direct message.</span>
+            </div>
             <div className="space-y-1.5">
-              {participants.map((participant) => (
+              {participants
+                .sort((a, b) => {
+                  // Always push the current user to the bottom of the list
+                  if (a.id === user?.id) return 1;
+                  if (b.id === user?.id) return -1;
+                  
+                  // Sort by most recent DM timestamp
+                  const aLast = lastMessages[a.id]?.timestamp?.toMillis ? lastMessages[a.id].timestamp.toMillis() : lastMessages[a.id]?.timestamp || 0;
+                  const bLast = lastMessages[b.id]?.timestamp?.toMillis ? lastMessages[b.id].timestamp.toMillis() : lastMessages[b.id]?.timestamp || 0;
+                  if (bLast !== aLast) return bLast - aLast;
+                  // Then by unread count (descending)
+                  const aUnread = participantUnreads[a.id] || 0;
+                  const bUnread = participantUnreads[b.id] || 0;
+                  if (bUnread !== aUnread) return bUnread - aUnread;
+                  // Finally alphabetical
+                  return a.username.localeCompare(b.username);
+                })
+                .map((participant) => {
+                const unreadForParticipant = participantUnreads[participant.id] || 0;
+                return (
                 <button
                   key={participant.id}
                   onClick={() => handleOpenDM(participant)}
                   disabled={participant.id === user?.id}
                   className={`w-full flex items-center gap-2.5 p-2.5 rounded-lg transition-colors ${
                     participant.id === user?.id
-                      ? 'bg-orange-500/10 cursor-default'
+                      ? 'cursor-default'
                       : 'hover:bg-orange-500/20 cursor-pointer active:bg-orange-500/30'
                   }`}
                 >
@@ -253,12 +335,12 @@ export default function TournamentChatPage({ params }) {
                     <Image
                       src={participant.avatarUrl}
                       alt={participant.username}
-                      width={32}
-                      height={32}
-                      className="rounded-full flex-shrink-0"
+                      width={36}
+                      height={36}
+                      className="rounded-full flex-shrink-0 w-9 h-9 object-cover"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center flex-shrink-0">
                       <span className="text-white font-bold text-sm">
                         {participant.username?.[0]?.toUpperCase() || '?'}
                       </span>
@@ -266,12 +348,25 @@ export default function TournamentChatPage({ params }) {
                   )}
                   <div className="flex-1 text-left min-w-0">
                     <p className="text-white font-medium text-sm truncate">{participant.username}</p>
-                    {participant.id === user?.id && (
+                    {participant.id === user?.id ? (
                       <p className="text-xs text-orange-400">You</p>
+                    ) : lastMessages[participant.id] ? (
+                      <p className={`text-xs truncate ${unreadForParticipant > 0 ? 'text-white font-medium' : 'text-gray-400'}`}>
+                        {lastMessages[participant.id].isFromMe && <span className="text-gray-500">You: </span>}
+                        {lastMessages[participant.id].message}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-500">No messages yet</p>
                     )}
                   </div>
+                  {unreadForParticipant > 0 && (
+                    <div className="bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold flex-shrink-0">
+                      {unreadForParticipant > 9 ? '9+' : unreadForParticipant}
+                    </div>
+                  )}
                 </button>
-              ))}
+              );
+            })}
             </div>
           </div>
         </div>
@@ -307,13 +402,13 @@ export default function TournamentChatPage({ params }) {
                   <Image
                     src={msg.senderAvatar}
                     alt={msg.senderName}
-                    width={32}
-                    height={32}
-                    className="rounded-full flex-shrink-0 w-8 h-8"
+                    width={36}
+                    height={36}
+                    className="rounded-full flex-shrink-0 w-9 h-9 object-cover"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold text-xs">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-sm">
                       {msg.senderName?.[0]?.toUpperCase() || '?'}
                     </span>
                   </div>
@@ -322,13 +417,19 @@ export default function TournamentChatPage({ params }) {
                   <div className={`flex items-baseline gap-1.5 mb-0.5 ${isOwn ? 'justify-end' : ''}`}>
                     <span className="text-xs font-medium text-orange-400 truncate">{msg.senderName}</span>
                   </div>
-                  <div className="group relative inline-block max-w-[85%] sm:max-w-[75%]">
+                  <div className="group relative inline-block max-w-[96%] sm:max-w-[88%]">
                     <div
-                      className={`inline-block px-3 py-2 rounded-2xl text-sm break-words ${
+                      className={`inline-block px-3 py-2 rounded-2xl text-sm ${
                         isOwn
                           ? 'bg-orange-500 text-white'
                           : 'bg-white/10 text-white'
                       }`}
+                      style={{ 
+                        wordBreak: 'normal',
+                        overflowWrap: 'break-word',
+                        hyphens: 'none',
+                        whiteSpace: 'pre-wrap'
+                      }}
                     >
                       {msg.message}
                     </div>
@@ -365,7 +466,7 @@ export default function TournamentChatPage({ params }) {
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
             disabled={sending}
-            className="flex-1 bg-gray-900/50 text-white placeholder-gray-500 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 border border-gray-800/50"
+            className="flex-1 bg-gray-900/50 text-white placeholder-gray-500 rounded-full px-4 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-orange-500/50 border border-gray-800/50"
           />
           <button
             type="submit"

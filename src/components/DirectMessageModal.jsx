@@ -203,7 +203,7 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
                   {/* Avatar */}
                   <div className="flex-shrink-0">
                     {(isOwn ? user?.avatarUrl : recipient?.avatarUrl) ? (
-                      <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-gray-700">
+                      <div className="relative w-9 h-9 rounded-full overflow-hidden border-2 border-gray-700">
                         <Image
                           src={isOwn ? user.avatarUrl : recipient.avatarUrl}
                           alt={isOwn ? user.username : recipient.username}
@@ -212,8 +212,8 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
                         />
                       </div>
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-600 flex items-center justify-center border-2 border-gray-700">
-                        <span className="text-white text-xs font-bold">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-700 to-gray-600 flex items-center justify-center border-2 border-gray-700">
+                        <span className="text-white text-sm font-bold">
                           {(isOwn ? user?.username : recipient?.username)?.charAt(0)?.toUpperCase() || '?'}
                         </span>
                       </div>
@@ -225,11 +225,16 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
                     <div className={`inline-flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
                       <div className={`inline-flex items-center gap-2 group relative ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
                         <div
-                          className={`px-4 py-2 rounded-2xl break-words max-w-[80%] ${
+                          className={`px-4 py-2 rounded-2xl max-w-[96%] sm:max-w-[88%] ${
                             isOwn
                               ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
                               : 'bg-gray-800 text-white'
                           }`}
+                          style={{ 
+                            wordBreak: 'keep-all',
+                            overflowWrap: 'break-word',
+                            hyphens: 'manual'
+                          }}
                         >
                           <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                         </div>
@@ -281,7 +286,7 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder={`Message ${recipient?.username || 'user'}...`}
             disabled={sending}
-            className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition disabled:opacity-50"
+            className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-base text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition disabled:opacity-50"
             maxLength={500}
           />
           <button
