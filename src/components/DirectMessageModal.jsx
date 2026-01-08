@@ -181,7 +181,7 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-32">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <Loader className="w-8 h-8 text-blue-500 animate-spin" />
@@ -319,21 +319,21 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
       )}
 
       {/* Input */}
-      <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-800 bg-gray-900/50 pb-safe">
-        <div className="flex gap-2">
+      <form onSubmit={handleSendMessage} className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800 bg-gray-900/95 backdrop-blur-md pb-safe z-10">
+        <div className="flex gap-2 items-center">
           <input
             ref={inputRef}
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder={`Message ${recipient?.username || 'user'}...`}
-            className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-base text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition disabled:opacity-50"
+            className="flex-1 min-w-0 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-base text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition disabled:opacity-50"
             maxLength={500}
           />
           <button
             type="submit"
             disabled={!newMessage.trim()}
-            className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-5 py-3 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center flex-shrink-0"
           >
             <Send className="w-5 h-5" />
           </button>

@@ -10,7 +10,7 @@ import PaystackPaymentModal from '@/components/PaystackPaymentModal';
 import PaymentSuccessHandler from '@/components/PaymentSuccessHandler';
 import { useTournament } from '@/hooks/useTournaments';
 import { useAuth } from '@/hooks/useAuth';
-import { doc, getDoc, collection, addDoc, serverTimestamp, onSnapshot, updateDoc, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, serverTimestamp, onSnapshot, updateDoc, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { paystackService } from '@/services/paystackService';
 import MatchResultSubmission from '@/components/MatchResultSubmission';
@@ -51,6 +51,7 @@ function TournamentPageContent({ resolvedParams }) {
   const [participantData, setParticipantData] = useState(null);
   const [showIgnModal, setShowIgnModal] = useState(false);
   const [ignPrompted, setIgnPrompted] = useState(false);
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
 
   // Show payment success handler if payment=success in URL
   const isPaymentSuccess = searchParams.get('payment') === 'success';
@@ -203,6 +204,73 @@ function TournamentPageContent({ resolvedParams }) {
 
     loadWinnerData();
   }, [tournament, resolvedParams.id]);
+
+  // Subscribe to chat unread counts (tournament chat + DMs)
+  useEffect(() => {
+    if (!user?.id || !resolvedParams?.id || !isParticipant) return;
+
+    let totalUnread = 0;
+    const unsubscribers = [];
+
+    // Subscribe to tournament chat messages
+    const chatQuery = query(
+      collection(db, 'tournament_chats', resolvedParams.id, 'messages'),
+      orderBy('createdAt', 'desc'),
+      limit(50)
+    );
+    
+    const chatUnsub = onSnapshot(chatQuery, (snapshot) => {
+      // Count unread tournament messages (simple approach: count messages from others since last visit)
+      // You can enhance this with a lastReadTimestamp stored in user's participant doc
+      const unreadChat = snapshot.docs.filter(doc => {
+        const data = doc.data();
+        return data.senderId !== user.id;
+      }).length;
+      
+      // For now, we'll just track DM unreads, not chat unreads to avoid noise
+      // If you want chat unreads, implement a lastReadTimestamp mechanism
+    });
+    unsubscribers.push(chatUnsub);
+
+    // Subscribe to DMs with all participants
+    const loadDMUnreads = async () => {
+      try {
+        const participantsRef = collection(db, 'tournament_participants');
+        const q = query(participantsRef, where('tournamentId', '==', resolvedParams.id));
+        const snapshot = await getDocs(q);
+        
+        let dmUnreadCount = 0;
+        
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (data.userId && data.userId !== user.id) {
+            // Subscribe to DMs with this participant
+            const conversationId = [user.id, data.userId].sort().join('_');
+            const dmQuery = query(
+              collection(db, 'direct_messages', conversationId, 'messages'),
+              where('recipientId', '==', user.id),
+              where('read', '==', false)
+            );
+            
+            const dmUnsub = onSnapshot(dmQuery, (dmSnapshot) => {
+              const unreadFromThisUser = dmSnapshot.size;
+              dmUnreadCount += unreadFromThisUser;
+              setChatUnreadCount(dmUnreadCount);
+            });
+            unsubscribers.push(dmUnsub);
+          }
+        });
+      } catch (err) {
+        console.error('Error loading DM unreads:', err);
+      }
+    };
+    
+    loadDMUnreads();
+
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+    };
+  }, [user?.id, resolvedParams?.id, isParticipant]);
 
   const handleJoinTournament = async () => {
     if (!isAuthenticated) {
@@ -668,7 +736,7 @@ const WinnerPodium = () => {
                       router.push(`/tournament/${resolvedParams.id}/chat`);
                     }}
                     disabled={actionLoading}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl transition-all transform hover:scale-105 flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="relative w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl transition-all transform hover:scale-105 flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {actionLoading ? (
                       <>
@@ -679,6 +747,11 @@ const WinnerPodium = () => {
                       <>
                         <MessageCircle className="w-5 h-5" />
                         <span>Tournament Chat</span>
+                        {chatUnreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center font-bold">
+                            {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+                          </span>
+                        )}
                       </>
                     )}
                   </button>
