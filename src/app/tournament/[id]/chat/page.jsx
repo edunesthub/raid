@@ -18,7 +18,6 @@ export default function TournamentChatPage({ params }) {
   const { user, isAuthenticated } = useAuth();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showParticipants, setShowParticipants] = useState(false);
@@ -31,6 +30,7 @@ export default function TournamentChatPage({ params }) {
   const [lastReadMessageId, setLastReadMessageId] = useState(null);
   const [participantUnreads, setParticipantUnreads] = useState({}); // Track unread per participant
   const [lastMessages, setLastMessages] = useState({}); // Track last message per participant
+  const [pendingMessages, setPendingMessages] = useState([]);
 
   // Check if user is participant and load tournament details
   useEffect(() => {
@@ -181,27 +181,51 @@ export default function TournamentChatPage({ params }) {
     setShowParticipants(false);
   };
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!newMessage.trim() || sending || !user) return;
-
-    setSending(true);
-    setError(null);
-
+  const sendChatMessage = async (messageText, tempId) => {
     try {
       await chatService.sendMessage(resolvedParams.id, {
         senderId: user.id,
         senderName: user.username || user.email,
         senderAvatar: user.avatarUrl || null,
-        message: newMessage.trim(),
+        message: messageText,
       });
-      setNewMessage('');
+      // Remove pending placeholder once sent; real message will arrive via subscription
+      setPendingMessages(prev => prev.filter(msg => msg.id !== tempId));
     } catch (err) {
       console.error('Error sending message:', err);
       setError('Failed to send message');
-    } finally {
-      setSending(false);
+      setPendingMessages(prev => prev.map(msg => msg.id === tempId ? { ...msg, status: 'error' } : msg));
     }
+  };
+
+  const handleSendMessage = async (e, retryMessageText = null) => {
+    if (e?.preventDefault) e.preventDefault();
+    const messageText = (retryMessageText ?? newMessage).trim();
+    if (!messageText || !user) return;
+
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage = {
+      id: tempId,
+      senderId: user.id,
+      senderName: user.username || user.email,
+      senderAvatar: user.avatarUrl || null,
+      message: messageText,
+      createdAt: new Date(),
+      status: 'sending'
+    };
+
+    // Clear input immediately and show pending bubble
+    setNewMessage('');
+    setPendingMessages(prev => [...prev, optimisticMessage]);
+    setError(null);
+
+    await sendChatMessage(messageText, tempId);
+  };
+
+  const handleRetryPending = (msg) => {
+    // Remove errored placeholder before retrying
+    setPendingMessages(prev => prev.filter(m => m.id !== msg.id));
+    handleSendMessage(null, msg.message);
   };
 
   const handleDeleteMessage = async (messageId) => {
@@ -386,7 +410,7 @@ export default function TournamentChatPage({ params }) {
               <p className="text-red-400">{error}</p>
             </div>
           </div>
-        ) : messages.length === 0 ? (
+        ) : [...messages, ...pendingMessages].length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <MessageCircle className="w-12 h-12 text-gray-600 mx-auto mb-2" />
@@ -394,7 +418,13 @@ export default function TournamentChatPage({ params }) {
             </div>
           </div>
         ) : (
-          messages.map((msg) => {
+          [...messages, ...pendingMessages]
+            .sort((a, b) => {
+              const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime();
+              const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime();
+              return aTime - bTime;
+            })
+            .map((msg) => {
             const isOwn = msg.senderId === user?.id;
             return (
               <div key={msg.id} className={`flex gap-2 ${isOwn ? 'flex-row-reverse' : ''}`}>
@@ -447,8 +477,25 @@ export default function TournamentChatPage({ params }) {
                       </button>
                     )}
                   </div>
-                  <div className="text-[10px] text-gray-500 mt-0.5">
-                    {formatTime(msg.createdAt)}
+                  <div className="flex items-center gap-2 text-[10px] mt-0.5">
+                    <span className="text-gray-500">{formatTime(msg.createdAt)}</span>
+                    {msg.status === 'sending' && (
+                      <div className="flex items-center gap-1 text-orange-400">
+                        <Loader className="w-3 h-3 animate-spin" />
+                        <span>Sending...</span>
+                      </div>
+                    )}
+                    {msg.status === 'error' && (
+                      <div className="flex items-center gap-1 text-red-400">
+                        <AlertCircle className="w-3 h-3" />
+                        <button
+                          className="underline text-red-300"
+                          onClick={() => handleRetryPending(msg)}
+                        >
+                          Retry
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -458,26 +505,21 @@ export default function TournamentChatPage({ params }) {
       </div>
 
       {/* Input Area */}
-      <div className="bg-black/40 backdrop-blur-md border-t border-gray-800/50 p-3 pb-safe">
+      <div className="bg-black/40 backdrop-blur-md border-t border-gray-800/50 p-3 pb-5 pb-safe">
         <form onSubmit={handleSendMessage} className="flex gap-2">
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
-            disabled={sending}
             className="flex-1 bg-gray-900/50 text-white placeholder-gray-500 rounded-full px-4 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-orange-500/50 border border-gray-800/50"
           />
           <button
             type="submit"
-            disabled={!newMessage.trim() || sending}
+            disabled={!newMessage.trim()}
             className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white p-2.5 rounded-full transition-colors flex-shrink-0"
           >
-            {sending ? (
-              <Loader className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
+            <Send className="w-5 h-5" />
           </button>
         </form>
       </div>

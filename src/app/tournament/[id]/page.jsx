@@ -662,11 +662,25 @@ const WinnerPodium = () => {
                   
                   {/* Chat Button */}
                   <button
-                    onClick={() => router.push(`/tournament/${resolvedParams.id}/chat`)}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl transition-all transform hover:scale-105 flex items-center justify-center gap-2 text-sm sm:text-base"
+                    onClick={() => {
+                      if (actionLoading) return;
+                      setActionLoading(true);
+                      router.push(`/tournament/${resolvedParams.id}/chat`);
+                    }}
+                    disabled={actionLoading}
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl transition-all transform hover:scale-105 flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    <MessageCircle className="w-5 h-5" />
-                    <span>Tournament Chat</span>
+                    {actionLoading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white/80 border-t-transparent rounded-full animate-spin" />
+                        <span>Opening Chat...</span>
+                      </>
+                    ) : (
+                      <>
+                        <MessageCircle className="w-5 h-5" />
+                        <span>Tournament Chat</span>
+                      </>
+                    )}
                   </button>
                   
                   <button 

@@ -11,10 +11,10 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deletingMessageId, setDeletingMessageId] = useState(null);
+  const [pendingMessages, setPendingMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -28,7 +28,7 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
       scrollToBottom();
       inputRef.current?.focus();
     }
-  }, [messages, isOpen]);
+  }, [messages, pendingMessages, isOpen]);
 
   // Subscribe to direct messages
   useEffect(() => {
@@ -53,33 +53,52 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
     return () => unsubscribe();
   }, [recipient?.id, user?.id, isOpen]);
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    
-    if (!newMessage.trim() || !user || !recipient) return;
-
+  const sendDirect = async (messageText, tempId) => {
     try {
-      setSending(true);
-      setError(null);
-
       await directMessageService.sendDirectMessage(
         user.id,
         user.username || user.email,
         user.avatarUrl,
         recipient.id,
         recipient.username,
-        newMessage,
+        messageText,
         tournamentId
       );
-
-      setNewMessage('');
-      scrollToBottom();
+      setPendingMessages((prev) => prev.filter((msg) => msg.id !== tempId));
     } catch (err) {
-      setError('Failed to send message');
       console.error(err);
-    } finally {
-      setSending(false);
+      setError('Failed to send message');
+      setPendingMessages((prev) => prev.map((msg) => msg.id === tempId ? { ...msg, status: 'error' } : msg));
     }
+  };
+
+  const handleSendMessage = async (e, retryText = null) => {
+    if (e?.preventDefault) e.preventDefault();
+    const messageText = (retryText ?? newMessage).trim();
+    if (!messageText || !user || !recipient) return;
+
+    const tempId = `temp-${Date.now()}`;
+    const optimistic = {
+      id: tempId,
+      senderId: user.id,
+      senderName: user.username || user.email,
+      senderAvatar: user.avatarUrl,
+      recipientId: recipient.id,
+      message: messageText,
+      timestamp: new Date(),
+      status: 'sending',
+    };
+
+    setNewMessage('');
+    setPendingMessages((prev) => [...prev, optimistic]);
+    setError(null);
+
+    await sendDirect(messageText, tempId);
+  };
+
+  const handleRetryPending = (msg) => {
+    setPendingMessages((prev) => prev.filter((m) => m.id !== msg.id));
+    handleSendMessage(null, msg.message);
   };
 
   const handleDeleteMessage = async (messageId) => {
@@ -167,7 +186,7 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
           <div className="flex items-center justify-center h-full">
             <Loader className="w-8 h-8 text-blue-500 animate-spin" />
           </div>
-        ) : messages.length === 0 ? (
+        ) : [...messages, ...pendingMessages].length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
             <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center mb-4">
               {recipient?.avatarUrl ? (
@@ -192,7 +211,13 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
           </div>
         ) : (
           <>
-            {messages.map((msg) => {
+            {[...messages, ...pendingMessages]
+              .sort((a, b) => {
+                const aTime = a.timestamp?.toMillis ? a.timestamp.toMillis() : new Date(a.timestamp).getTime();
+                const bTime = b.timestamp?.toMillis ? b.timestamp.toMillis() : new Date(b.timestamp).getTime();
+                return aTime - bTime;
+              })
+              .map((msg) => {
               const isOwn = msg.senderId === user?.id;
               
               return (
@@ -255,6 +280,23 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
                       </div>
                       <span className="text-xs text-gray-500 mt-1">
                         {formatTime(msg.timestamp)}
+                        {msg.status === 'sending' && (
+                          <span className="ml-2 inline-flex items-center gap-1 text-blue-400">
+                            <Loader className="w-3 h-3 animate-spin" />
+                            Sending...
+                          </span>
+                        )}
+                        {msg.status === 'error' && (
+                          <span className="ml-2 inline-flex items-center gap-1 text-red-400">
+                            <AlertCircle className="w-3 h-3" />
+                            <button
+                              className="underline text-red-300"
+                              onClick={() => handleRetryPending(msg)}
+                            >
+                              Retry
+                            </button>
+                          </span>
+                        )}
                       </span>
                     </div>
                   </div>
@@ -285,20 +327,15 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder={`Message ${recipient?.username || 'user'}...`}
-            disabled={sending}
             className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-base text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition disabled:opacity-50"
             maxLength={500}
           />
           <button
             type="submit"
-            disabled={!newMessage.trim() || sending}
+            disabled={!newMessage.trim()}
             className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-5 py-3 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            {sending ? (
-              <Loader className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
+            <Send className="w-5 h-5" />
           </button>
         </div>
         <p className="text-xs text-gray-500 mt-2">
