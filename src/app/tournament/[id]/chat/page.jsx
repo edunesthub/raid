@@ -191,77 +191,81 @@ export default function TournamentChatPage({ params }) {
       <DirectMessageModal
         tournamentId={resolvedParams.id}
         recipient={selectedRecipient}
+        isOpen={true}
         onClose={() => setSelectedRecipient(null)}
       />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex flex-col">
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col">
       {/* Header */}
-      <div className="bg-black/30 backdrop-blur-sm border-b border-orange-500/20 p-4 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-3">
+      <div className="bg-black/40 backdrop-blur-md border-b border-gray-800/50 px-3 py-3 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           <button
             onClick={() => router.push(`/tournament/${resolvedParams.id}`)}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
           >
             <ArrowLeft className="w-5 h-5 text-white" />
           </button>
-          <div className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-orange-400" />
-            <div>
-              <h1 className="text-white font-semibold">Tournament Chat</h1>
-              <p className="text-xs text-gray-400">{tournamentName}</p>
+          <div className="flex items-center gap-2 min-w-0">
+            <MessageCircle className="w-4 h-4 text-orange-400 flex-shrink-0" />
+            <div className="min-w-0">
+              <h1 className="text-white font-semibold text-sm truncate">Tournament Chat</h1>
+              <p className="text-xs text-gray-400 truncate">{tournamentName}</p>
             </div>
           </div>
         </div>
         <button
           onClick={() => setShowParticipants(!showParticipants)}
-          className="relative p-2 hover:bg-white/10 rounded-lg transition-colors"
+          className="relative p-1.5 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
         >
           <UsersIcon className="w-5 h-5 text-white" />
-          {participants.length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              {participants.length}
-            </span>
-          )}
         </button>
       </div>
 
       {/* Participants Sidebar */}
       {showParticipants && (
-        <div className="absolute top-16 right-0 w-72 bg-black/90 backdrop-blur-md border-l border-orange-500/20 h-[calc(100vh-4rem)] z-20 overflow-y-auto">
-          <div className="p-4">
-            <h3 className="text-white font-semibold mb-4">Participants ({participants.length})</h3>
-            <div className="space-y-2">
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-10"
+            onClick={() => setShowParticipants(false)}
+          />
+          
+          {/* Sidebar */}
+          <div className="absolute top-14 right-0 w-64 sm:w-72 bg-[#0a0a0a]/98 backdrop-blur-xl border-l border-gray-800/50 h-[calc(100vh-3.5rem)] z-20 overflow-y-auto">
+            <div className="p-3">
+            <h3 className="text-white font-semibold mb-3 text-sm">Participants ({participants.length})</h3>
+            <div className="space-y-1.5">
               {participants.map((participant) => (
                 <button
                   key={participant.id}
                   onClick={() => handleOpenDM(participant)}
                   disabled={participant.id === user?.id}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                  className={`w-full flex items-center gap-2.5 p-2.5 rounded-lg transition-colors ${
                     participant.id === user?.id
                       ? 'bg-orange-500/10 cursor-default'
-                      : 'hover:bg-orange-500/20 cursor-pointer'
+                      : 'hover:bg-orange-500/20 cursor-pointer active:bg-orange-500/30'
                   }`}
                 >
                   {participant.avatarUrl ? (
                     <Image
                       src={participant.avatarUrl}
                       alt={participant.username}
-                      width={40}
-                      height={40}
-                      className="rounded-full"
+                      width={32}
+                      height={32}
+                      className="rounded-full flex-shrink-0"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
-                      <span className="text-white font-bold">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white font-bold text-sm">
                         {participant.username?.[0]?.toUpperCase() || '?'}
                       </span>
                     </div>
                   )}
-                  <div className="flex-1 text-left">
-                    <p className="text-white font-medium">{participant.username}</p>
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-white font-medium text-sm truncate">{participant.username}</p>
                     {participant.id === user?.id && (
                       <p className="text-xs text-orange-400">You</p>
                     )}
@@ -271,6 +275,7 @@ export default function TournamentChatPage({ params }) {
             </div>
           </div>
         </div>
+        </>
       )}
 
       {/* Messages Area */}
@@ -297,29 +302,29 @@ export default function TournamentChatPage({ params }) {
           messages.map((msg) => {
             const isOwn = msg.senderId === user?.id;
             return (
-              <div key={msg.id} className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : ''}`}>
+              <div key={msg.id} className={`flex gap-2 ${isOwn ? 'flex-row-reverse' : ''}`}>
                 {msg.senderAvatar ? (
                   <Image
                     src={msg.senderAvatar}
                     alt={msg.senderName}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
+                    width={32}
+                    height={32}
+                    className="rounded-full flex-shrink-0 w-8 h-8"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold text-sm">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-xs">
                       {msg.senderName?.[0]?.toUpperCase() || '?'}
                     </span>
                   </div>
                 )}
-                <div className={`flex-1 ${isOwn ? 'text-right' : ''}`}>
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className="text-sm font-medium text-orange-400">{msg.senderName}</span>
+                <div className={`flex-1 min-w-0 ${isOwn ? 'text-right' : ''}`}>
+                  <div className={`flex items-baseline gap-1.5 mb-0.5 ${isOwn ? 'justify-end' : ''}`}>
+                    <span className="text-xs font-medium text-orange-400 truncate">{msg.senderName}</span>
                   </div>
-                  <div className="group relative inline-block">
+                  <div className="group relative inline-block max-w-[85%] sm:max-w-[75%]">
                     <div
-                      className={`inline-block px-4 py-2 rounded-2xl ${
+                      className={`inline-block px-3 py-2 rounded-2xl text-sm break-words ${
                         isOwn
                           ? 'bg-orange-500 text-white'
                           : 'bg-white/10 text-white'
@@ -331,17 +336,17 @@ export default function TournamentChatPage({ params }) {
                       <button
                         onClick={() => handleDeleteMessage(msg.id)}
                         disabled={deletingMessageId === msg.id}
-                        className="absolute -right-8 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -right-7 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         {deletingMessageId === msg.id ? (
-                          <Loader className="w-4 h-4 text-red-400 animate-spin" />
+                          <Loader className="w-3.5 h-3.5 text-red-400 animate-spin" />
                         ) : (
-                          <Trash2 className="w-4 h-4 text-red-400 group-hover:text-red-400" />
+                          <Trash2 className="w-3.5 h-3.5 text-red-400 group-hover:text-red-400" />
                         )}
                       </button>
                     )}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-[10px] text-gray-500 mt-0.5">
                     {formatTime(msg.createdAt)}
                   </div>
                 </div>
@@ -352,7 +357,7 @@ export default function TournamentChatPage({ params }) {
       </div>
 
       {/* Input Area */}
-      <div className="bg-black/30 backdrop-blur-sm border-t border-orange-500/20 p-4 pb-safe">
+      <div className="bg-black/40 backdrop-blur-md border-t border-gray-800/50 p-3 pb-safe">
         <form onSubmit={handleSendMessage} className="flex gap-2">
           <input
             type="text"
@@ -360,12 +365,12 @@ export default function TournamentChatPage({ params }) {
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
             disabled={sending}
-            className="flex-1 bg-white/10 text-white placeholder-gray-400 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="flex-1 bg-gray-900/50 text-white placeholder-gray-500 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 border border-gray-800/50"
           />
           <button
             type="submit"
             disabled={!newMessage.trim() || sending}
-            className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white p-3 rounded-full transition-colors"
+            className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white p-2.5 rounded-full transition-colors flex-shrink-0"
           >
             {sending ? (
               <Loader className="w-5 h-5 animate-spin" />
