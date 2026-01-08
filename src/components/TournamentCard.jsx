@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { Loader } from "lucide-react";
 
 const TournamentCard = ({ tournament }) => {
+  const [isNavigating, setIsNavigating] = useState(false);
+  
   return (
     <div className="relative group bg-[#0f0f10]/90 backdrop-blur-md border border-orange-500/40 rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_25px_-5px_rgba(255,120,0,0.6)]">
       {/* glowing accent edge */}
@@ -104,9 +107,17 @@ const TournamentCard = ({ tournament }) => {
         {/* CTA */}
         <Link
           href={`/tournament/${tournament.id}/`}
-          className="block w-full text-center bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-sm font-bold py-2 rounded-xl transition-all duration-300 shadow-[0_0_12px_rgba(255,120,0,0.4)] hover:shadow-[0_0_20px_rgba(255,140,0,0.6)] active:scale-[0.97]"
+          onClick={() => setIsNavigating(true)}
+          className="block w-full text-center bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-sm font-bold py-2 rounded-xl transition-all duration-300 shadow-[0_0_12px_rgba(255,120,0,0.4)] hover:shadow-[0_0_20px_rgba(255,140,0,0.6)] active:scale-[0.97] disabled:opacity-60 flex items-center justify-center gap-2"
         >
-          View Details
+          {isNavigating ? (
+            <>
+              <Loader className="w-4 h-4 animate-spin" />
+              <span>Loading...</span>
+            </>
+          ) : (
+            'View Details'
+          )}
         </Link>
       </div>
     </div>

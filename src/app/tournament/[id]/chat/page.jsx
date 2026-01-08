@@ -31,6 +31,7 @@ export default function TournamentChatPage({ params }) {
   const [participantUnreads, setParticipantUnreads] = useState({}); // Track unread per participant
   const [lastMessages, setLastMessages] = useState({}); // Track last message per participant
   const [pendingMessages, setPendingMessages] = useState([]);
+  const [navigatingBack, setNavigatingBack] = useState(false);
 
   // Check if user is participant and load tournament details
   useEffect(() => {
@@ -281,10 +282,18 @@ export default function TournamentChatPage({ params }) {
       <div className="bg-black/40 backdrop-blur-md border-b border-gray-800/50 px-3 py-3 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <button
-            onClick={() => router.push(`/tournament/${resolvedParams.id}`)}
-            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+            onClick={() => {
+              setNavigatingBack(true);
+              router.push(`/tournament/${resolvedParams.id}`);
+            }}
+            disabled={navigatingBack}
+            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0 disabled:opacity-60"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            {navigatingBack ? (
+              <Loader className="w-5 h-5 animate-spin text-white" />
+            ) : (
+              <ArrowLeft className="w-5 h-5 text-white" />
+            )}
           </button>
           <div className="flex items-center gap-2 min-w-0">
             <MessageCircle className="w-4 h-4 text-orange-400 flex-shrink-0" />
@@ -447,9 +456,11 @@ export default function TournamentChatPage({ params }) {
                   </div>
                 )}
                 <div className={`flex-1 min-w-0 ${isOwn ? 'text-right' : ''}`}>
-                  <div className={`flex items-baseline gap-1.5 mb-0.5 ${isOwn ? 'justify-end' : ''}`}>
-                    <span className="text-xs font-medium text-orange-400 truncate">{msg.senderName}</span>
-                  </div>
+                  {!isOwn && (
+                    <div className={`flex items-baseline gap-1.5 mb-0.5 ${isOwn ? 'justify-end' : ''}`}>
+                      <span className="text-xs font-medium text-orange-400 truncate">{msg.senderName}</span>
+                    </div>
+                  )}
                   <div className="group relative inline-block max-w-[96%] sm:max-w-[88%]">
                     <div
                       className={`inline-block px-3 py-2 rounded-2xl text-sm ${
@@ -480,7 +491,7 @@ export default function TournamentChatPage({ params }) {
                       </button>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] mt-0.5">
+                  <div className={`flex items-center gap-2 text-[10px] mt-0.5 ${isOwn ? 'justify-end' : ''}`}>
                     <span className="text-gray-500">{formatTime(msg.createdAt)}</span>
                     {msg.status === 'sending' && (
                       <div className="flex items-center gap-1 text-orange-400">
