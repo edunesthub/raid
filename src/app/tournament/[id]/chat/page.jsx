@@ -1,7 +1,7 @@
 // src/app/tournament/[id]/chat/page.jsx
 'use client';
 
-import { use, useState, useEffect } from 'react';
+import { use, useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send, ArrowLeft, Loader, AlertCircle, Users as UsersIcon, Trash2, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -32,6 +32,9 @@ export default function TournamentChatPage({ params }) {
   const [lastMessages, setLastMessages] = useState({}); // Track last message per participant
   const [pendingMessages, setPendingMessages] = useState([]);
   const [navigatingBack, setNavigatingBack] = useState(false);
+  const [lastReadTimestamp, setLastReadTimestamp] = useState(null);
+  const unreadSeparatorRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
   // Check if user is participant and load tournament details
   useEffect(() => {
@@ -154,7 +157,22 @@ export default function TournamentChatPage({ params }) {
 
   // Subscribe to chat messages
   useEffect(() => {
-    if (!resolvedParams?.id || !isParticipant) return;
+    if (!resolvedParams?.id || !isParticipant || !user?.id) return;
+
+    // Load last read timestamp from participant doc
+    const loadLastRead = async () => {
+      try {
+        const participantRef = doc(db, 'tournament_participants', `${resolvedParams.id}_${user.id}`);
+        const participantSnap = await getDoc(participantRef);
+        if (participantSnap.exists()) {
+          const data = participantSnap.data();
+          setLastReadTimestamp(data.lastReadChatTimestamp || null);
+        }
+      } catch (err) {
+        console.error('Error loading last read:', err);
+      }
+    };
+    loadLastRead();
 
     setLoading(true);
     const unsubscribe = chatService.subscribeToChat(
@@ -162,11 +180,35 @@ export default function TournamentChatPage({ params }) {
       (newMessages) => {
         setMessages(newMessages);
         setLoading(false);
+        
+        // Scroll to unread or bottom after messages load
+        setTimeout(() => {
+          if (unreadSeparatorRef.current) {
+            unreadSeparatorRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+        
+        // Update last read timestamp when viewing
+        if (newMessages.length > 0) {
+          const latestTimestamp = newMessages[newMessages.length - 1].createdAt;
+          const participantRef = doc(db, 'tournament_participants', `${resolvedParams.id}_${user.id}`);
+          getDoc(participantRef).then(snap => {
+            if (snap.exists()) {
+              const updateData = { lastReadChatTimestamp: latestTimestamp };
+              const docRef = doc(db, 'tournament_participants', `${resolvedParams.id}_${user.id}`);
+              import('firebase/firestore').then(({ updateDoc, serverTimestamp }) => {
+                updateDoc(docRef, updateData).catch(err => console.error('Error updating last read:', err));
+              });
+            }
+          });
+        }
       }
     );
 
     return () => unsubscribe();
-  }, [resolvedParams?.id, isParticipant]);
+  }, [resolvedParams?.id, isParticipant, user?.id]);
 
   const handleOpenDM = (recipient) => {
     if (recipient.id === user?.id) return; // Can't message yourself
@@ -436,10 +478,24 @@ export default function TournamentChatPage({ params }) {
               const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime();
               return aTime - bTime;
             })
-            .map((msg) => {
+            .map((msg, index, array) => {
             const isOwn = msg.senderId === user?.id;
-            return (
-              <div key={msg.id} className={`flex gap-2 ${isOwn ? 'flex-row-reverse' : ''}`}>
+            
+            // Check if this is the first unread message
+            const msgTime = msg.createdAt?.toMillis ? msg.createdAt.toMillis() : new Date(msg.createdAt).getTime();
+            const lastReadTime = lastReadTimestamp?.toMillis ? lastReadTimestamp.toMillis() : (lastReadTimestamp ? new Date(lastReadTimestamp).getTime() : 0);
+            const isFirstUnread = !isOwn && lastReadTime && msgTime > lastReadTime && (index === 0 || array[index - 1].createdAt?.toMillis ? array[index - 1].createdAt.toMillis() : new Date(array[index - 1].createdAt).getTime()) <= lastReadTime;
+            
+              return (
+              <div key={msg.id}>
+                {isFirstUnread && (
+                  <div ref={unreadSeparatorRef} className="flex items-center gap-3 my-4">
+                    <div className="flex-1 h-px bg-orange-500/50"></div>
+                    <span className="text-xs font-semibold text-orange-400 px-2 py-1 bg-orange-500/10 rounded-full border border-orange-500/30">New Messages</span>
+                    <div className="flex-1 h-px bg-orange-500/50"></div>
+                  </div>
+                )}
+              <div className={`flex gap-2 ${isOwn ? 'flex-row-reverse' : ''}`}>
                 {msg.senderAvatar ? (
                   <Image
                     src={msg.senderAvatar}
@@ -513,9 +569,11 @@ export default function TournamentChatPage({ params }) {
                   </div>
                 </div>
               </div>
+              </div>
             );
           })
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}

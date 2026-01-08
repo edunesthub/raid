@@ -17,10 +17,16 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
   const [pendingMessages, setPendingMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const [lastReadTimestamp, setLastReadTimestamp] = useState(null);
+  const unreadSeparatorRef = useRef(null);
 
   // Scroll to bottom when new messages arrive
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (unreadSeparatorRef.current) {
+      unreadSeparatorRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   useEffect(() => {
@@ -39,6 +45,13 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
       user.id,
       recipient.id,
       (newMessages) => {
+        // Find last read message before updating
+        const unreadMsgs = newMessages.filter(msg => msg.senderId === recipient.id && !msg.read);
+        if (unreadMsgs.length > 0) {
+          const firstUnread = unreadMsgs[0];
+          setLastReadTimestamp(firstUnread.timestamp);
+        }
+        
         setMessages(newMessages);
         setLoading(false);
         
@@ -217,10 +230,33 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
                 const bTime = b.timestamp?.toMillis ? b.timestamp.toMillis() : new Date(b.timestamp).getTime();
                 return aTime - bTime;
               })
-              .map((msg) => {
+              .map((msg, index, array) => {
               const isOwn = msg.senderId === user?.id;
               
+              // Check if this is the first unread message from recipient
+              const msgTime = msg.timestamp?.toMillis ? msg.timestamp.toMillis() : new Date(msg.timestamp).getTime();
+              const lastReadTime = lastReadTimestamp?.toMillis ? lastReadTimestamp.toMillis() : (lastReadTimestamp ? new Date(lastReadTimestamp).getTime() : 0);
+              
+              let isFirstUnread = false;
+              if (!isOwn && lastReadTime && msgTime >= lastReadTime) {
+                if (index === 0) {
+                  isFirstUnread = true;
+                } else {
+                  const prevMsg = array[index - 1];
+                  const prevTime = prevMsg.timestamp?.toMillis ? prevMsg.timestamp.toMillis() : new Date(prevMsg.timestamp).getTime();
+                  isFirstUnread = prevTime < lastReadTime;
+                }
+              }
+              
               return (
+                <div key={msg.id}>
+                  {isFirstUnread && (
+                    <div ref={unreadSeparatorRef} className="flex items-center gap-3 my-4">
+                      <div className="flex-1 h-px bg-blue-500/50"></div>
+                      <span className="text-xs font-semibold text-blue-400 px-2 py-1 bg-blue-500/10 rounded-full border border-blue-500/30">New Messages</span>
+                      <div className="flex-1 h-px bg-blue-500/50"></div>
+                    </div>
+                  )}
                 <div
                   key={msg.id}
                   className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
@@ -300,6 +336,7 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
                       </span>
                     </div>
                   </div>
+                </div>
                 </div>
               );
             })}
