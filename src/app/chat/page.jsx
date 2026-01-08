@@ -8,6 +8,7 @@ import { db } from "@/lib/firebase";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { MessageCircle, Users, Trophy } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function ChatPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -171,7 +172,22 @@ export default function ChatPage() {
                 href={`/tournament/${tournament.id}/chat`}
                 className="block bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 hover:border-orange-500/30 transition-all group"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-4">
+                  {/* Tournament Image */}
+                  <div className="flex-shrink-0">
+                    {tournament.tournament_flyer ? (
+                      <img
+                        src={tournament.tournament_flyer}
+                        alt={tournament.tournament_name}
+                        className="w-20 h-20 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center">
+                        <Trophy className="w-10 h-10 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  {/* Tournament Info */}
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-white group-hover:text-orange-400 transition-colors mb-1">
                       {tournament.tournament_name || tournament.title || tournament.name || `Tournament ${tournament.id.slice(0, 8)}`}
