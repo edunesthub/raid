@@ -290,7 +290,6 @@ export default function TournamentChatPage({ params }) {
             <MessageCircle className="w-4 h-4 text-orange-400 flex-shrink-0" />
             <div className="min-w-0">
               <h1 className="text-white font-semibold text-sm truncate">Tournament Chat</h1>
-              <p className="text-xs text-gray-400 truncate">{tournamentName}</p>
             </div>
           </div>
         </div>
