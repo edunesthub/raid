@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Send, MessageCircle, X, Loader, AlertCircle, Users as UsersIcon } from 'lucide-react';
+import { Send, MessageCircle, X, Loader, AlertCircle, Users as UsersIcon, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { chatService } from '@/services/chatService';
 import DirectMessageModal from './DirectMessageModal';
@@ -17,6 +17,7 @@ export default function TournamentChat({ tournamentId, isOpen, onClose, particip
   const [error, setError] = useState(null);
   const [showParticipants, setShowParticipants] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState(null);
+  const [deletingMessageId, setDeletingMessageId] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -72,6 +73,20 @@ export default function TournamentChat({ tournamentId, isOpen, onClose, particip
       console.error(err);
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm('Delete this message?')) return;
+    
+    try {
+      setDeletingMessageId(messageId);
+      await chatService.deleteMessage(messageId);
+    } catch (err) {
+      setError('Failed to delete message');
+      console.error(err);
+    } finally {
+      setDeletingMessageId(null);
     }
   };
 
@@ -247,14 +262,30 @@ export default function TournamentChat({ tournamentId, isOpen, onClose, particip
                           {formatTime(msg.timestamp)}
                         </span>
                       </div>
-                      <div
-                        className={`inline-block px-4 py-2 rounded-2xl break-words max-w-[80%] ${
-                          isOwn
-                            ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white'
-                            : 'bg-gray-800 text-white'
-                        }`}
-                      >
-                        <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                      <div className={`inline-flex items-center gap-2 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <div
+                          className={`px-4 py-2 rounded-2xl break-words max-w-[80%] ${
+                            isOwn
+                              ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white'
+                              : 'bg-gray-800 text-white'
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                        </div>
+                        {isOwn && (
+                          <button
+                            onClick={() => handleDeleteMessage(msg.id)}
+                            disabled={deletingMessageId === msg.id}
+                            className="opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity p-1.5 hover:bg-red-500/20 rounded-lg group"
+                            title="Delete message"
+                          >
+                            {deletingMessageId === msg.id ? (
+                              <Loader className="w-4 h-4 text-gray-400 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4 text-gray-400 group-hover:text-red-400" />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

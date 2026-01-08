@@ -8,7 +8,6 @@ import LoadingSpinner from '@/components/LoadingSpinner.jsx';
 import TournamentBracket from '@/components/TournamentBracket';
 import PaystackPaymentModal from '@/components/PaystackPaymentModal';
 import PaymentSuccessHandler from '@/components/PaymentSuccessHandler';
-import TournamentChat from '@/components/TournamentChat';
 import { useTournament } from '@/hooks/useTournaments';
 import { useAuth } from '@/hooks/useAuth';
 import { doc, getDoc, collection, addDoc, serverTimestamp, onSnapshot, updateDoc, query, where, getDocs } from 'firebase/firestore';
@@ -52,8 +51,6 @@ function TournamentPageContent({ resolvedParams }) {
   const [participantData, setParticipantData] = useState(null);
   const [showIgnModal, setShowIgnModal] = useState(false);
   const [ignPrompted, setIgnPrompted] = useState(false);
-  const [showChat, setShowChat] = useState(false);
-  const [tournamentParticipants, setTournamentParticipants] = useState([]);
 
   // Show payment success handler if payment=success in URL
   const isPaymentSuccess = searchParams.get('payment') === 'success';
@@ -85,50 +82,6 @@ function TournamentPageContent({ resolvedParams }) {
     const participantRef = doc(db, 'tournament_participants', `${resolvedParams.id}_${user.id}`);
     await updateDoc(participantRef, { inGameName: ign, inGameNameUpdatedAt: serverTimestamp() });
   };
-
-  // Load tournament participants for chat
-  useEffect(() => {
-    if (!resolvedParams?.id || !isParticipant) return;
-    
-    const loadParticipants = async () => {
-      try {
-        const participantsRef = collection(db, 'tournament_participants');
-        const q = query(participantsRef, where('tournamentId', '==', resolvedParams.id));
-        const snapshot = await getDocs(q);
-        
-        const participantsList = [];
-        const userPromises = [];
-        
-        snapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          if (data.userId) {
-            userPromises.push(
-              getDoc(doc(db, 'users', data.userId)).then(userDoc => {
-                if (userDoc.exists()) {
-                  const userData = userDoc.data();
-                  return {
-                    id: data.userId,
-                    username: userData.username || userData.email,
-                    avatarUrl: userData.avatarUrl || null
-                  };
-                }
-                return null;
-              })
-            );
-          }
-        });
-        
-        const users = await Promise.all(userPromises);
-        users.forEach(u => u && participantsList.push(u));
-        
-        setTournamentParticipants(participantsList);
-      } catch (error) {
-        console.error('Error loading participants:', error);
-      }
-    };
-    
-    loadParticipants();
-  }, [resolvedParams?.id, isParticipant]);
 
   // Recovery: if user has paid but isn't joined yet, auto-join idempotently
   useEffect(() => {
@@ -709,7 +662,7 @@ const WinnerPodium = () => {
                   
                   {/* Chat Button */}
                   <button
-                    onClick={() => setShowChat(true)}
+                    onClick={() => router.push(`/tournament/${resolvedParams.id}/chat`)}
                     className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl transition-all transform hover:scale-105 flex items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     <MessageCircle className="w-5 h-5" />
@@ -948,16 +901,6 @@ const WinnerPodium = () => {
         user={user}
         onPaymentError={handlePaymentError}
       />
-
-      {/* Tournament Chat */}
-      {isParticipant && (
-        <TournamentChat
-          tournamentId={resolvedParams?.id}
-          isOpen={showChat}
-          onClose={() => setShowChat(false)}
-          participants={tournamentParticipants}
-        />
-      )}
 
       <style jsx>{`
         @keyframes shimmer {

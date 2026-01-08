@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Send, X, Loader, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Send, X, Loader, AlertCircle, ArrowLeft, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { directMessageService } from '@/services/directMessageService';
 import Image from 'next/image';
@@ -14,6 +14,7 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deletingMessageId, setDeletingMessageId] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -78,6 +79,20 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
       console.error(err);
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm('Delete this message?')) return;
+    
+    try {
+      setDeletingMessageId(messageId);
+      await directMessageService.deleteDirectMessage(messageId);
+    } catch (err) {
+      setError('Failed to delete message');
+      console.error(err);
+    } finally {
+      setDeletingMessageId(null);
     }
   };
 
@@ -207,19 +222,35 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
 
                   {/* Message */}
                   <div className={`flex-1 ${isOwn ? 'text-right' : 'text-left'}`}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs text-gray-500">
+                    <div className={`inline-flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+                      <div className={`inline-flex items-center gap-2 group relative ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <div
+                          className={`px-4 py-2 rounded-2xl break-words max-w-[80%] ${
+                            isOwn
+                              ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
+                              : 'bg-gray-800 text-white'
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                        </div>
+                        {isOwn && (
+                          <button
+                            onClick={() => handleDeleteMessage(msg.id)}
+                            disabled={deletingMessageId === msg.id}
+                            className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1.5 hover:bg-red-500/20 rounded-lg"
+                            title="Delete message"
+                          >
+                            {deletingMessageId === msg.id ? (
+                              <Loader className="w-4 h-4 text-gray-400 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-400" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500 mt-1">
                         {formatTime(msg.timestamp)}
                       </span>
-                    </div>
-                    <div
-                      className={`inline-block px-4 py-2 rounded-2xl break-words max-w-[80%] ${
-                        isOwn
-                          ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
-                          : 'bg-gray-800 text-white'
-                      }`}
-                    >
-                      <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                     </div>
                   </div>
                 </div>

@@ -19,17 +19,16 @@ class ChatService {
   /**
    * Send a message to a tournament chat
    */
-  async sendMessage(tournamentId, userId, username, avatarUrl, message) {
+  async sendMessage(tournamentId, messageData) {
     try {
       const chatRef = collection(db, 'tournamentChats');
       await addDoc(chatRef, {
         tournamentId,
-        userId,
-        username,
-        avatarUrl: avatarUrl || null,
-        message: message.trim(),
-        timestamp: serverTimestamp(),
-        createdAt: new Date()
+        senderId: messageData.senderId,
+        senderName: messageData.senderName,
+        senderAvatar: messageData.senderAvatar || null,
+        message: messageData.message.trim(),
+        createdAt: serverTimestamp()
       });
       return { success: true };
     } catch (error) {
@@ -47,7 +46,7 @@ class ChatService {
       const q = query(
         chatRef,
         where('tournamentId', '==', tournamentId),
-        orderBy('timestamp', 'desc'),
+        orderBy('createdAt', 'desc'),
         limit(limitCount)
       );
 
@@ -81,7 +80,7 @@ class ChatService {
       let q = query(
         chatRef,
         where('tournamentId', '==', tournamentId),
-        orderBy('timestamp', 'desc'),
+        orderBy('createdAt', 'desc'),
         limit(limitCount)
       );
 

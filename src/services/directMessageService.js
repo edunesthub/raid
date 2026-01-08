@@ -13,7 +13,8 @@ import {
   and,
   doc,
   setDoc,
-  getDoc
+  getDoc,
+  deleteDoc
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
@@ -180,6 +181,19 @@ class DirectMessageService {
     } catch (error) {
       console.error('Error getting unread count:', error);
       return 0;
+    }
+  }
+
+  /**
+   * Delete a direct message
+   */
+  async deleteDirectMessage(messageId) {
+    try {
+      await deleteDoc(doc(db, 'directMessages', messageId));
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting direct message:', error);
+      throw new Error('Failed to delete message');
     }
   }
 }

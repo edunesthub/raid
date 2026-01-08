@@ -20,7 +20,7 @@ export default function RootLayout({ children }) {
   const pathname = usePathname();
   
   // Pages that should hide navigation and footer completely
-const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/auth/onboarding", "/admin/login"].includes(pathname) || pathname.startsWith("/admin");
+const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/auth/onboarding", "/admin/login"].includes(pathname) || pathname.startsWith("/admin") || pathname.includes("/tournament/") && pathname.endsWith("/chat");
   return (
     <html lang="en" className="h-full">
       <head>
