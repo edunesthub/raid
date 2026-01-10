@@ -15,6 +15,7 @@ export default function ChatPage() {
   const router = useRouter();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [unreadCounts, setUnreadCounts] = useState({});
 
   useEffect(() => {
     const fetchUserTournaments = async () => {
@@ -92,10 +93,24 @@ export default function ChatPage() {
             const tournamentParticipantsSnapshot = await getDocs(tournamentParticipantsQuery);
             const participantCount = tournamentParticipantsSnapshot.docs.length;
 
+            // Get unread count from localStorage
+            const lastRead = localStorage.getItem(`chat_last_read_${tournamentId}_${userId}`);
+            const lastReadTimestamp = lastRead ? parseInt(lastRead) : 0;
+            
+            // Count unread messages
+            const messagesQuery = query(
+              collection(db, "tournament_chats"),
+              where("tournamentId", "==", tournamentId),
+              where("createdAt", ">", new Date(lastReadTimestamp))
+            );
+            const messagesSnapshot = await getDocs(messagesQuery);
+            const unreadCount = messagesSnapshot.docs.filter(doc => doc.data().senderId !== userId).length;
+
             return {
               id: tournamentDoc.id,
               ...tournamentData,
               participantCount,
+              unreadCount,
             };
           })
         );
@@ -119,6 +134,39 @@ export default function ChatPage() {
 
     fetchUserTournaments();
   }, [user, isAuthenticated, authLoading, router]);
+
+  // Listen for localStorage changes to update unread counts in real-time
+  useEffect(() => {
+    const handleStorageChange = () => {
+      // Refetch tournaments to update unread counts
+      const userId = user?.id || user?.uid;
+      if (!userId || !tournaments.length) return;
+
+      tournaments.forEach(async (tournament) => {
+        const lastRead = localStorage.getItem(`chat_last_read_${tournament.id}_${userId}`);
+        const lastReadTimestamp = lastRead ? parseInt(lastRead) : 0;
+        
+        try {
+          const messagesQuery = query(
+            collection(db, "tournament_chats"),
+            where("tournamentId", "==", tournament.id),
+            where("createdAt", ">", new Date(lastReadTimestamp))
+          );
+          const messagesSnapshot = await getDocs(messagesQuery);
+          const unreadCount = messagesSnapshot.docs.filter(doc => doc.data().senderId !== userId).length;
+          
+          setTournaments(prev => prev.map(t => 
+            t.id === tournament.id ? { ...t, unreadCount } : t
+          ));
+        } catch (error) {
+          console.error("Error updating unread count:", error);
+        }
+      });
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [user, tournaments]);
 
   if (loading) {
     return (
@@ -190,18 +238,19 @@ export default function ChatPage() {
                     <h3 className="text-lg font-semibold text-white group-hover:text-orange-400 transition-colors mb-1">
                       {tournament.tournament_name || tournament.title || tournament.name || `Tournament ${tournament.id.slice(0, 8)}`}
                     </h3>
-                    <div className="flex items-center space-x-4 text-sm text-gray-400">
-                      <div className="flex items-center space-x-1">
-                        <Users className="w-4 h-4" />
-                        <span>{tournament.participantCount} participants</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Trophy className="w-4 h-4" />
-                        <span className="capitalize">{tournament.status || "upcoming"}</span>
-                      </div>
+                    <div className="flex items-center space-x-1 text-sm text-gray-400">
+                      <Users className="w-4 h-4" />
+                      <span>{tournament.participantCount} participants</span>
                     </div>
                   </div>
-                  <MessageCircle className="w-6 h-6 text-gray-500 group-hover:text-orange-400 transition-colors" />
+                  <div className="flex items-center gap-2">
+                    {tournament.unreadCount > 0 && (
+                      <div className="bg-orange-500 text-white text-xs rounded-full px-2 py-1 font-bold min-w-[24px] text-center">
+                        {tournament.unreadCount > 99 ? '99+' : tournament.unreadCount}
+                      </div>
+                    )}
+                    <MessageCircle className="w-6 h-6 text-gray-500 group-hover:text-orange-400 transition-colors" />
+                  </div>
                 </div>
               </Link>
             ))}

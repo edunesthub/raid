@@ -334,7 +334,7 @@ export default function TournamentChatPage({ params }) {
           <button
             onClick={() => {
               setNavigatingBack(true);
-              router.push(`/tournament/${resolvedParams.id}`);
+              router.back();
             }}
             disabled={navigatingBack}
             className="p-1.5 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0 disabled:opacity-60"
