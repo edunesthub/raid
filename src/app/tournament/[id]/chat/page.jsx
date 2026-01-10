@@ -45,12 +45,20 @@ export default function TournamentChatPage({ params }) {
       }
 
       try {
-        const participantRef = doc(db, 'tournament_participants', `${resolvedParams.id}_${user.id}`);
-        const participantSnap = await getDoc(participantRef);
-        
-        if (!participantSnap.exists()) {
-          router.push(`/tournament/${resolvedParams.id}`);
-          return;
+        // Check if user is admin
+        const userDoc = await getDoc(doc(db, 'users', user.id));
+        const userData = userDoc.data();
+        const isAdmin = userData?.role === 'admin' || userData?.adminRole || user.email === 'admin@raidarena.com';
+
+        if (!isAdmin) {
+          // Only check participation for non-admin users
+          const participantRef = doc(db, 'tournament_participants', `${resolvedParams.id}_${user.id}`);
+          const participantSnap = await getDoc(participantRef);
+          
+          if (!participantSnap.exists()) {
+            router.push(`/tournament/${resolvedParams.id}`);
+            return;
+          }
         }
         
         setIsParticipant(true);
@@ -59,7 +67,7 @@ export default function TournamentChatPage({ params }) {
         const tournamentRef = doc(db, 'tournaments', resolvedParams.id);
         const tournamentSnap = await getDoc(tournamentRef);
         if (tournamentSnap.exists()) {
-          setTournamentName(tournamentSnap.data().name || 'Tournament');
+          setTournamentName(tournamentSnap.data().tournament_name || tournamentSnap.data().name || 'Tournament');
         }
       } catch (error) {
         console.error('Error checking participant:', error);

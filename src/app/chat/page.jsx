@@ -41,18 +41,29 @@ export default function ChatPage() {
         console.log("Starting tournament fetch for user:", userId);
         setLoading(true);
 
-        // Get all tournament_participants entries for this user
-        const participantsQuery = query(
-          collection(db, "tournament_participants"),
-          where("userId", "==", userId)
-        );
+        // Check if user is admin
+        const userDoc = await getDoc(doc(db, "users", userId));
+        const userData = userDoc.data();
+        const isAdmin = userData?.role === 'admin' || userData?.adminRole || user.email === 'admin@raidarena.com';
 
-        const participantsSnapshot = await getDocs(participantsQuery);
+        let tournamentIds = [];
 
-        // Get unique tournament IDs
-        const tournamentIds = [...new Set(
-          participantsSnapshot.docs.map(doc => doc.data().tournamentId)
-        )];
+        if (isAdmin) {
+          // Admin sees all tournaments
+          console.log("Admin user detected - fetching all tournaments");
+          const allTournamentsSnapshot = await getDocs(collection(db, "tournaments"));
+          tournamentIds = allTournamentsSnapshot.docs.map(doc => doc.id);
+        } else {
+          // Regular users see only tournaments they're part of
+          const participantsQuery = query(
+            collection(db, "tournament_participants"),
+            where("userId", "==", userId)
+          );
+          const participantsSnapshot = await getDocs(participantsQuery);
+          tournamentIds = [...new Set(
+            participantsSnapshot.docs.map(doc => doc.data().tournamentId)
+          )];
+        }
 
         if (tournamentIds.length === 0) {
           setTournaments([]);
@@ -68,7 +79,7 @@ export default function ChatPage() {
 
             const tournamentData = tournamentDoc.data();
             
-            // Skip completed tournaments
+            // Skip completed tournaments for all users
             if (tournamentData.status === "completed") {
               return null;
             }
