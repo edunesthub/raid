@@ -15,15 +15,15 @@ import { db } from '@/lib/firebase';
 import { paystackService } from '@/services/paystackService';
 import MatchResultSubmission from '@/components/MatchResultSubmission';
 import InGameNameModal from '@/components/InGameNameModal';
-import { 
-  Trophy, 
-  Medal, 
-  Award, 
-  Crown, 
-  Star, 
-  Users, 
-  Calendar, 
-  Clock, 
+import {
+  Trophy,
+  Medal,
+  Award,
+  Crown,
+  Star,
+  Users,
+  Calendar,
+  Clock,
   DollarSign,
   Sparkles,
   TrendingUp,
@@ -111,7 +111,7 @@ function TournamentPageContent({ resolvedParams }) {
             paymentStatus: 'completed',
             paidAt: serverTimestamp(),
           });
-        } catch {}
+        } catch { }
       } catch (err) {
         console.warn('Recover join check failed:', err?.message);
       }
@@ -124,7 +124,7 @@ function TournamentPageContent({ resolvedParams }) {
   useEffect(() => {
     const loadWinnerData = async () => {
       if (!tournament) return;
-      
+
       if (tournament.status !== 'completed') {
         setPlacementData({ first: null, second: null, third: null });
         setWinnerStats({ first: null, second: null, third: null });
@@ -133,21 +133,21 @@ function TournamentPageContent({ resolvedParams }) {
       try {
         const placements = { first: null, second: null, third: null };
         const stats = { first: null, second: null, third: null };
-        
+
         const tournamentRef = doc(db, 'tournaments', resolvedParams.id);
         const tournamentSnap = await getDoc(tournamentRef);
-        
+
         if (!tournamentSnap.exists()) return;
-        
+
         const rawData = tournamentSnap.data();
-        
+
         // Load first place with stats
         if (rawData.winnerId) {
           const [firstDoc, firstStatsDoc] = await Promise.all([
             getDoc(doc(db, 'users', rawData.winnerId)),
             getDoc(doc(db, 'userStats', rawData.winnerId))
           ]);
-          
+
           if (firstDoc.exists()) {
             placements.first = { id: firstDoc.id, ...firstDoc.data() };
             stats.first = firstStatsDoc.exists() ? firstStatsDoc.data() : {
@@ -165,7 +165,7 @@ function TournamentPageContent({ resolvedParams }) {
             getDoc(doc(db, 'users', rawData.secondPlaceId)),
             getDoc(doc(db, 'userStats', rawData.secondPlaceId))
           ]);
-          
+
           if (secondDoc.exists()) {
             placements.second = { id: secondDoc.id, ...secondDoc.data() };
             stats.second = secondStatsDoc.exists() ? secondStatsDoc.data() : {
@@ -183,7 +183,7 @@ function TournamentPageContent({ resolvedParams }) {
             getDoc(doc(db, 'users', rawData.thirdPlaceId)),
             getDoc(doc(db, 'userStats', rawData.thirdPlaceId))
           ]);
-          
+
           if (thirdDoc.exists()) {
             placements.third = { id: thirdDoc.id, ...thirdDoc.data() };
             stats.third = thirdStatsDoc.exists() ? thirdStatsDoc.data() : {
@@ -218,7 +218,7 @@ function TournamentPageContent({ resolvedParams }) {
         const participantsRef = collection(db, 'tournament_participants');
         const q = query(participantsRef, where('tournamentId', '==', resolvedParams.id));
         const snapshot = await getDocs(q);
-        
+
         const participants = [];
         snapshot.forEach((docSnap) => {
           const data = docSnap.data();
@@ -236,11 +236,11 @@ function TournamentPageContent({ resolvedParams }) {
             where('recipientId', '==', user.id),
             where('read', '==', false)
           );
-          
+
           const dmUnsub = onSnapshot(dmQuery, (dmSnapshot) => {
             // Update count for this specific user
             unreadCountsRef.counts[otherUserId] = dmSnapshot.size;
-            
+
             // Recalculate total from all users
             const total = Object.values(unreadCountsRef.counts).reduce((sum, count) => sum + count, 0);
             setChatUnreadCount(total);
@@ -251,7 +251,7 @@ function TournamentPageContent({ resolvedParams }) {
         console.error('Error loading DM unreads:', err);
       }
     };
-    
+
     loadDMUnreads();
 
     return () => {
@@ -371,181 +371,180 @@ function TournamentPageContent({ resolvedParams }) {
   const canJoin = (tournament.status === 'registration-open' || tournament.status === 'upcoming') && spotsLeft > 0;
   const showBracket = tournament.bracketGenerated && (tournament.status === 'live' || tournament.status === 'completed');
 
-// Winners Podium - Enhanced & More User Friendly
-const WinnerPodium = () => {
-  if (!placementData.first) return null;
+  // Winners Podium - Enhanced & More User Friendly
+  const WinnerPodium = () => {
+    if (!placementData.first) return null;
 
-  const WinnerCard = ({ player, stats, placement }) => {
-    const configs = {
-      first: {
-        icon: Crown,
-        color: 'text-yellow-400',
-        bg: 'from-yellow-500/25 to-yellow-600/10',
-        border: 'border-yellow-500/40',
-        ring: 'ring-yellow-500/30',
-        title: 'CHAMPION',
-        emoji: '🥇',
-        position: '1st'
-      },
-      second: {
-        icon: Medal,
-        color: 'text-gray-300',
-        bg: 'from-gray-500/25 to-gray-600/10',
-        border: 'border-gray-500/40',
-        ring: 'ring-gray-500/30',
-        title: '2nd Place',
-        emoji: '🥈',
-        position: '2nd'
-      },
-      third: {
-        icon: Medal,
-        color: 'text-orange-400',
-        bg: 'from-orange-500/25 to-orange-600/10',
-        border: 'border-orange-500/40',
-        ring: 'ring-orange-500/30',
-        title: '3rd Place',
-        emoji: '🥉',
-        position: '3rd'
-      }
+    const WinnerCard = ({ player, stats, placement }) => {
+      const configs = {
+        first: {
+          icon: Crown,
+          color: 'text-yellow-400',
+          bg: 'from-yellow-500/25 to-yellow-600/10',
+          border: 'border-yellow-500/40',
+          ring: 'ring-yellow-500/30',
+          title: 'CHAMPION',
+          emoji: '🥇',
+          position: '1st'
+        },
+        second: {
+          icon: Medal,
+          color: 'text-gray-300',
+          bg: 'from-gray-500/25 to-gray-600/10',
+          border: 'border-gray-500/40',
+          ring: 'ring-gray-500/30',
+          title: '2nd Place',
+          emoji: '🥈',
+          position: '2nd'
+        },
+        third: {
+          icon: Medal,
+          color: 'text-orange-400',
+          bg: 'from-orange-500/25 to-orange-600/10',
+          border: 'border-orange-500/40',
+          ring: 'ring-orange-500/30',
+          title: '3rd Place',
+          emoji: '🥉',
+          position: '3rd'
+        }
+      };
+
+      const config = configs[placement];
+      const Icon = config.icon;
+
+      return (
+        <Link href={`/users/${player.id}`}>
+          <div
+            className={`bg-gradient-to-br ${config.bg} rounded-2xl p-4 pb-8 border ${config.border} hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-xl`}
+          >
+            {/* Title Row */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Icon className={`w-6 h-6 ${config.color}`} />
+                <span className={`${config.color} font-bold`}>{config.title}</span>
+              </div>
+              <span className="text-2xl">{config.emoji}</span>
+            </div>
+
+            {/* Avatar + Crown (Champion Only) */}
+            <div className="flex justify-center mb-4 relative">
+              {placement === 'first' && (
+                <div className="absolute -top-8 right-24 animate-bounce transform rotate-25">
+                  <Crown className="w-10 h-10 text-yellow-400 drop-shadow-lg" />
+                </div>
+              )}
+
+
+              <div className="relative w-24 h-24">
+                <div
+                  className={`absolute inset-0 rounded-full blur-xl opacity-40 ${placement === 'first'
+                      ? 'bg-yellow-500'
+                      : placement === 'second'
+                        ? 'bg-gray-400'
+                        : 'bg-orange-400'
+                    }`}
+                ></div>
+
+                <div
+                  className={`relative w-full h-full rounded-full overflow-hidden border-4 ${config.border} ring-4 ${config.ring}`}
+                >
+                  {player.avatarUrl ? (
+                    <img
+                      src={player.avatarUrl}
+                      alt={player.username}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+                      <span className="text-white text-xl font-bold">
+                        {player.username?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+
+            {/* Username */}
+            <h3 className="text-center font-bold text-lg text-white truncate">
+              {player.username}
+            </h3>
+            <p className="text-center text-gray-400 text-xs mb-5">
+              {player.firstName} {player.lastName}
+            </p>
+
+            {/* Stats Section */}
+            {stats && (
+              <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/10">
+                <div className="text-center">
+                  <Trophy className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
+                  <p className="text-white font-bold text-sm">{stats.tournamentsWon || 0}</p>
+                  <p className="text-gray-400 text-xs">Wins</p>
+                </div>
+                <div className="text-center">
+                  <Target className="w-5 h-5 text-blue-500 mx-auto mb-1" />
+                  <p className="text-white font-bold text-sm">{stats.tournamentsPlayed || 0}</p>
+                  <p className="text-gray-400 text-xs">Played</p>
+                </div>
+                <div className="text-center">
+                  <TrendingUp className="w-5 h-5 text-green-500 mx-auto mb-1" />
+                  <p className="text-white font-bold text-sm">{stats.winRate?.toFixed(0) || 0}%</p>
+                  <p className="text-gray-400 text-xs">Rate</p>
+                </div>
+              </div>
+            )}
+
+            {/* CTA */}
+            <div className="mt-5 flex items-center justify-center gap-2 text-gray-300 hover:text-white transition-colors">
+              <span className="text-xs font-medium">View Profile</span>
+              <ChevronRight className="w-4 h-4" />
+            </div>
+          </div>
+        </Link>
+      );
     };
 
-    const config = configs[placement];
-    const Icon = config.icon;
-
     return (
-      <Link href={`/users/${player.id}`}>
-        <div
-          className={`bg-gradient-to-br ${config.bg} rounded-2xl p-4 pb-8 border ${config.border} hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-xl`}
-        >
-          {/* Title Row */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Icon className={`w-6 h-6 ${config.color}`} />
-              <span className={`${config.color} font-bold`}>{config.title}</span>
+      <div className="mb-10 animate-fade-in">
+        <div className="bg-gradient-to-br from-orange-500/10 to-purple-500/10 rounded-3xl p-5 border border-orange-500/30 shadow-2xl relative overflow-hidden">
+          <div className="relative z-10">
+            {/* Section Header */}
+            <div className="text-center mb-6">
+              <h2 className="flex items-center justify-center gap-2 text-2xl sm:text-3xl font-bold text-white">
+                🏆 Champions
+              </h2>
+              <p className="text-gray-400 text-sm">
+                The top players of this tournament
+              </p>
             </div>
-            <span className="text-2xl">{config.emoji}</span>
-          </div>
 
-{/* Avatar + Crown (Champion Only) */}
-<div className="flex justify-center mb-4 relative">
- {placement === 'first' && (
-  <div className="absolute -top-8 right-24 animate-bounce transform rotate-25">
-    <Crown className="w-10 h-10 text-yellow-400 drop-shadow-lg" />
-  </div>
-)}
-
-
-  <div className="relative w-24 h-24">
-    <div
-      className={`absolute inset-0 rounded-full blur-xl opacity-40 ${
-        placement === 'first'
-          ? 'bg-yellow-500'
-          : placement === 'second'
-          ? 'bg-gray-400'
-          : 'bg-orange-400'
-      }`}
-    ></div>
-
-    <div
-      className={`relative w-full h-full rounded-full overflow-hidden border-4 ${config.border} ring-4 ${config.ring}`}
-    >
-      {player.avatarUrl ? (
-        <img
-          src={player.avatarUrl}
-          alt={player.username}
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-          <span className="text-white text-xl font-bold">
-            {player.username?.charAt(0).toUpperCase()}
-          </span>
-        </div>
-      )}
-    </div>
-  </div>
-</div>
-
-
-          {/* Username */}
-          <h3 className="text-center font-bold text-lg text-white truncate">
-            {player.username}
-          </h3>
-          <p className="text-center text-gray-400 text-xs mb-5">
-            {player.firstName} {player.lastName}
-          </p>
-
-          {/* Stats Section */}
-          {stats && (
-            <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/10">
-              <div className="text-center">
-                <Trophy className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
-                <p className="text-white font-bold text-sm">{stats.tournamentsWon || 0}</p>
-                <p className="text-gray-400 text-xs">Wins</p>
-              </div>
-              <div className="text-center">
-                <Target className="w-5 h-5 text-blue-500 mx-auto mb-1" />
-                <p className="text-white font-bold text-sm">{stats.tournamentsPlayed || 0}</p>
-                <p className="text-gray-400 text-xs">Played</p>
-              </div>
-              <div className="text-center">
-                <TrendingUp className="w-5 h-5 text-green-500 mx-auto mb-1" />
-                <p className="text-white font-bold text-sm">{stats.winRate?.toFixed(0) || 0}%</p>
-                <p className="text-gray-400 text-xs">Rate</p>
-              </div>
+            {/* Desktop Layout */}
+            <div className="hidden sm:grid sm:grid-cols-3 gap-6">
+              {placementData.second && <WinnerCard player={placementData.second} stats={winnerStats.second} placement="second" />}
+              <WinnerCard player={placementData.first} stats={winnerStats.first} placement="first" />
+              {placementData.third && <WinnerCard player={placementData.third} stats={winnerStats.third} placement="third" />}
             </div>
-          )}
 
-          {/* CTA */}
-          <div className="mt-5 flex items-center justify-center gap-2 text-gray-300 hover:text-white transition-colors">
-            <span className="text-xs font-medium">View Profile</span>
-            <ChevronRight className="w-4 h-4" />
-          </div>
-        </div>
-      </Link>
-    );
-  };
-
-  return (
-    <div className="mb-10 animate-fade-in">
-      <div className="bg-gradient-to-br from-orange-500/10 to-purple-500/10 rounded-3xl p-5 border border-orange-500/30 shadow-2xl relative overflow-hidden">
-        <div className="relative z-10">
-          {/* Section Header */}
-          <div className="text-center mb-6">
-            <h2 className="flex items-center justify-center gap-2 text-2xl sm:text-3xl font-bold text-white">
-              🏆 Champions
-            </h2>
-            <p className="text-gray-400 text-sm">
-              The top players of this tournament
-            </p>
-          </div>
-
-          {/* Desktop Layout */}
-          <div className="hidden sm:grid sm:grid-cols-3 gap-6">
-            {placementData.second && <WinnerCard player={placementData.second} stats={winnerStats.second} placement="second" />}
-            <WinnerCard player={placementData.first} stats={winnerStats.first} placement="first" />
-            {placementData.third && <WinnerCard player={placementData.third} stats={winnerStats.third} placement="third" />}
-          </div>
-
-          {/* Mobile Layout – stacked with bigger spacing */}
-          <div className="sm:hidden space-y-8">
-            <WinnerCard player={placementData.first} stats={winnerStats.first} placement="first" />
-            {placementData.second && (
-              <div className="mt-4">
-                <WinnerCard player={placementData.second} stats={winnerStats.second} placement="second" />
-              </div>
-            )}
-            {placementData.third && (
-              <div className="mt-2">
-                <WinnerCard player={placementData.third} stats={winnerStats.third} placement="third" />
-              </div>
-            )}
+            {/* Mobile Layout – stacked with bigger spacing */}
+            <div className="sm:hidden space-y-8">
+              <WinnerCard player={placementData.first} stats={winnerStats.first} placement="first" />
+              {placementData.second && (
+                <div className="mt-4">
+                  <WinnerCard player={placementData.second} stats={winnerStats.second} placement="second" />
+                </div>
+              )}
+              {placementData.third && (
+                <div className="mt-2">
+                  <WinnerCard player={placementData.third} stats={winnerStats.third} placement="third" />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 
   return (
@@ -578,7 +577,7 @@ const WinnerPodium = () => {
       {/* Tournament Hero Section */}
       <div className={`card-raid p-4 sm:p-6 mb-6 bg-gradient-to-br ${statusConfig.gradient} relative overflow-hidden`}>
         <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/5 to-orange-500/0 animate-shimmer"></div>
-        
+
         <div className="relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
             <div className="flex-1">
@@ -591,7 +590,7 @@ const WinnerPodium = () => {
                 <p className="text-gray-300 text-sm sm:text-base leading-relaxed">{tournament.description}</p>
               )}
             </div>
-            
+
             <div className={`${statusConfig.color} px-4 sm:px-6 py-2 sm:py-3 rounded-full text-xs sm:text-sm font-bold text-white flex items-center gap-2 animate-pulse shadow-lg`}>
               <span className="text-base sm:text-xl">{statusConfig.icon}</span>
               <span className="whitespace-nowrap">{statusConfig.text}</span>
@@ -694,7 +693,7 @@ const WinnerPodium = () => {
                   {isParticipant && (
                     <>
                       <p className="text-gray-300 text-xs sm:text-sm mb-4 text-center">Check your matches and submit results below</p>
-                      
+
                       <button
                         onClick={() => setShowResultsModal(true)}
                         className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 transform hover:scale-105 text-sm sm:text-base"
@@ -714,7 +713,7 @@ const WinnerPodium = () => {
                     <p className="text-green-400 font-semibold text-base sm:text-lg">You're Registered!</p>
                     <p className="text-gray-300 text-xs sm:text-sm mt-1">Get ready for the tournament</p>
                   </div>
-                  
+
                   {/* Chat Button */}
                   <button
                     onClick={() => {
@@ -742,8 +741,8 @@ const WinnerPodium = () => {
                       </>
                     )}
                   </button>
-                  
-                  <button 
+
+                  <button
                     onClick={handleLeaveTournament}
                     disabled={actionLoading}
                     className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 text-sm sm:text-base"
@@ -752,7 +751,7 @@ const WinnerPodium = () => {
                   </button>
                 </div>
               ) : (
-                <button 
+                <button
                   onClick={handleJoinTournament}
                   disabled={actionLoading || spotsLeft === 0}
                   className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-4 sm:py-5 px-4 sm:px-6 rounded-xl transition-all shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 flex items-center justify-center gap-2 sm:gap-3 text-base sm:text-lg"
@@ -793,22 +792,20 @@ const WinnerPodium = () => {
           <div className="flex gap-2 bg-gray-800 border border-gray-700 rounded-xl p-1">
             <button
               onClick={() => setActiveTab('details')}
-              className={`flex-1 py-2 sm:py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base ${
-                activeTab === 'details'
+              className={`flex-1 py-2 sm:py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base ${activeTab === 'details'
                   ? 'bg-orange-500 text-white shadow-lg'
                   : 'text-gray-400 hover:text-white'
-              }`}
+                }`}
             >
               <Award className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Details</span>
             </button>
             <button
               onClick={() => setActiveTab('bracket')}
-              className={`flex-1 py-2 sm:py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base ${
-                activeTab === 'bracket'
+              className={`flex-1 py-2 sm:py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base ${activeTab === 'bracket'
                   ? 'bg-orange-500 text-white shadow-lg'
                   : 'text-gray-400 hover:text-white'
-              }`}
+                }`}
             >
               <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Bracket</span>
@@ -880,7 +877,7 @@ const WinnerPodium = () => {
             </div>
           )}
 
-          {tournament.prizeDistribution && tournament.prizeDistribution.length > 0 && (
+          {tournament.entryFee > 0 && tournament.prizeDistribution && tournament.prizeDistribution.length > 0 && (
             <div className="card-raid p-4 sm:p-6 mb-6">
               <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
@@ -895,7 +892,7 @@ const WinnerPodium = () => {
                   ];
                   const config = icons[index] || icons[2];
                   const Icon = config.icon;
-                  
+
                   return (
                     <div key={index} className={`flex items-center justify-between ${config.bg} p-3 sm:p-4 rounded-xl border ${config.border} hover:scale-102 transition-transform`}>
                       <div className="flex items-center gap-2 sm:gap-3">
@@ -910,7 +907,7 @@ const WinnerPodium = () => {
                   );
                 })}
               </div>
-              
+
               <div className="mt-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />

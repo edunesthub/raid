@@ -27,7 +27,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
       return { id: user.id, name: user?.username || null, role: user?.adminRole || null };
     }
   };
-  
+
   const [form, setForm] = useState({
     tournament_name: "",
     game: "",
@@ -37,8 +37,9 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
     description: "",
     format: "Battle Royale",
     country: "Ghana",
+    rules: [],
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
@@ -64,8 +65,9 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
         description: tournament.description || "",
         format: tournament.format || "Battle Royale",
         country: tournament.country || tournament.region || "Ghana",
+        rules: Array.isArray(tournament.rules) ? tournament.rules : [],
       });
-      
+
       if (tournament.tournament_flyer) {
         setExistingFlyerUrl(tournament.tournament_flyer);
         setImagePreview(tournament.tournament_flyer);
@@ -75,6 +77,26 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleAddRule = () => {
+    setForm(prev => ({
+      ...prev,
+      rules: Array.isArray(prev.rules) ? [...prev.rules, ""] : [""]
+    }));
+  };
+
+  const handleRemoveRule = (index) => {
+    setForm(prev => ({
+      ...prev,
+      rules: Array.isArray(prev.rules) ? prev.rules.filter((_, i) => i !== index) : []
+    }));
+  };
+
+  const handleRuleChange = (index, value) => {
+    const newRules = [...form.rules];
+    newRules[index] = value;
+    setForm(prev => ({ ...prev, rules: newRules }));
   };
 
   const handleImageSelect = (e) => {
@@ -108,7 +130,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
     formData.append('folder', 'tournaments');
 
     const cloudName = 'drgz6qqo5';
-    
+
     try {
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
@@ -158,6 +180,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
         tournament_flyer: flyerUrl,
         format: form.format,
         country: form.country || "Ghana",
+        rules: form.rules.filter(rule => rule.trim() !== ""),
         updated_at: serverTimestamp(),
       };
 
@@ -241,8 +264,8 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
               </>
             )}
           </h3>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
           >
             <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
@@ -255,16 +278,16 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
             <label className="block text-sm text-gray-300 font-medium">
               Tournament Flyer {!isEditing && "(Optional)"}
             </label>
-            
-            <div 
+
+            <div
               onClick={() => fileInputRef.current?.click()}
               className="relative border-2 border-dashed border-gray-700 rounded-xl p-4 sm:p-6 hover:border-orange-500 transition-colors cursor-pointer group"
             >
               {imagePreview ? (
                 <div className="relative">
-                  <img 
-                    src={imagePreview} 
-                    alt="Tournament flyer preview" 
+                  <img
+                    src={imagePreview}
+                    alt="Tournament flyer preview"
                     className="w-full h-40 sm:h-48 object-cover rounded-lg"
                   />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
@@ -346,8 +369,8 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
             )}
             <div className="mt-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
               <p className="text-blue-400 text-xs">
-                {form.format === "Bracket" 
-                  ? "⚡ Bracket will be auto-generated when tournament goes live" 
+                {form.format === "Bracket"
+                  ? "⚡ Bracket will be auto-generated when tournament goes live"
                   : "📋 Winners will be selected manually by admin after completion"}
               </p>
             </div>
@@ -378,12 +401,65 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
             </label>
             <textarea
               name="description"
-              placeholder="Enter tournament description, rules, and requirements..."
+              placeholder="Enter tournament description and general overview..."
               value={form.description}
               onChange={handleChange}
               rows="3"
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm resize-none focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition"
             />
+          </div>
+
+          {/* Rules and Guidelines */}
+          <div className="space-y-3 bg-gray-800/30 p-4 rounded-xl border border-gray-700/50">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm text-gray-300 font-medium">
+                Rules & Guidelines
+              </label>
+              <button
+                type="button"
+                onClick={handleAddRule}
+                className="text-xs flex items-center gap-1 text-orange-400 hover:text-orange-300 transition-colors bg-orange-400/10 px-2 py-1 rounded"
+              >
+                <Plus className="w-3 h-3" />
+                Add Rule
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {Array.isArray(form.rules) && form.rules.map((rule, index) => (
+                <div key={index} className="flex gap-2 animate-in fade-in slide-in-from-left-2 duration-200">
+                  <div className="flex-1 relative">
+                    <span className="absolute left-3 top-2.5 text-gray-500 font-bold text-xs">{index + 1}</span>
+                    <input
+                      value={rule}
+                      onChange={(e) => handleRuleChange(index, e.target.value)}
+                      placeholder={`Enter rule #${index + 1}`}
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-8 pr-4 py-2 text-white text-sm focus:outline-none focus:border-orange-500 transition"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveRule(index)}
+                    className="p-2 text-gray-500 hover:text-red-400 transition-colors bg-gray-900 rounded-lg border border-gray-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+
+              {form.rules.length === 0 && (
+                <div className="text-center py-4 bg-gray-900/50 rounded-lg border border-dashed border-gray-700">
+                  <p className="text-gray-500 text-xs italic">No specific rules added yet.</p>
+                  <button
+                    type="button"
+                    onClick={handleAddRule}
+                    className="mt-2 text-xs text-orange-400 hover:underline"
+                  >
+                    Add the first rule
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Entry Fee and Max Participants - Stacked on mobile */}
@@ -447,9 +523,8 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
             <button
               type="submit"
               disabled={loading || uploadingImage}
-              className={`flex-1 bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 order-1 sm:order-2 ${
-                (loading || uploadingImage) ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
-              }`}
+              className={`flex-1 bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 order-1 sm:order-2 ${(loading || uploadingImage) ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
+                }`}
             >
               {uploadingImage ? (
                 <>
