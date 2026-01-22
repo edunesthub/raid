@@ -1,14 +1,17 @@
 "use client";
 import React, { useState } from 'react';
 
-const WHATSAPP_NUMBER = "+233201624018";
+const WHATSAPP_NUMBER = "+233547921454";
+const WHATSAPP_COMMUNITY_LINK = "https://chat.whatsapp.com/Gjg0O27vntADU2WjTHmCgw";
 
 function formatWhatsAppNumber(number) {
-  // Convert "+233201624018" -> "233201624018" for wa.me format
+  // Convert "+233547921454" -> "233201624018" for wa.me format
   const digits = (number || "").replace(/[^\d+]/g, "");
   if (digits.startsWith("+")) return digits.slice(1);
   return digits;
 }
+
+import { Instagram, Twitter, Facebook, MessageCircle } from 'lucide-react';
 
 const ContactPage = () => {
   const [name, setName] = useState("");
@@ -136,25 +139,25 @@ const ContactPage = () => {
         </section>
 
         <section className="mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gray-900/70 border border-gray-800 rounded-2xl p-6 shadow-xl">
-              <h2 className="text-xl font-semibold text-raid-gold mb-3">WhatsApp Direct</h2>
-              <p className="text-sm text-gray-400 mb-2">Prefer chatting? Reach us instantly on WhatsApp:</p>
+          <div className="bg-gray-900/70 border border-gray-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center gap-6">
+            <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 relative bg-green-500/10 rounded-2xl flex items-center justify-center p-4">
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                alt="WhatsApp Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <h2 className="text-xl font-semibold text-raid-gold mb-3">Join our WhatsApp community</h2>
+              <p className="text-sm text-gray-400 mb-4">Connect, chat and stay updated with the community.</p>
               <a
-                href={`https://wa.me/${formatWhatsAppNumber(WHATSAPP_NUMBER)}`}
+                href={WHATSAPP_COMMUNITY_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-200 rounded-xl px-4 py-2 text-sm"
+                className="inline-block bg-orange-600 hover:bg-orange-500 text-white rounded-xl px-6 py-2.5 text-sm font-semibold transition-colors shadow-lg shadow-orange-600/20"
               >
-                {WHATSAPP_NUMBER}
+                Join our WhatsApp Group
               </a>
-            </div>
-            <div className="bg-gray-900/70 border border-gray-800 rounded-2xl p-6 shadow-xl">
-              <h2 className="text-xl font-semibold text-raid-gold mb-3">Support</h2>
-              <p className="text-sm text-gray-400 mb-2">Technical support and account inquiries:</p>
-              <p className="text-sm font-medium text-raid-gold">
-                <a href="mailto:support@raidarena.com" className="hover:underline">raid00arena@gmail.com</a>
-              </p>
             </div>
           </div>
         </section>
@@ -164,7 +167,7 @@ const ContactPage = () => {
             <h2 className="text-xl font-semibold text-raid-gold mb-3">Business Inquiries</h2>
             <p className="text-sm text-gray-400 mb-2">Partnerships, media, and other opportunities:</p>
             <p className="text-sm font-medium text-raid-gold">
-              <a href="mailto:business@raidarena.com" className="hover:underline">raid00arena@gmail.com</a>
+              <a href="mailto:raidconductor@gmail.com" className="hover:underline">raidconductor@gmail.com</a>
             </p>
           </div>
         </section>
@@ -173,11 +176,34 @@ const ContactPage = () => {
           <div className="bg-gray-900/70 border border-gray-800 rounded-2xl p-6 shadow-xl">
             <h2 className="text-xl font-semibold text-raid-gold mb-3">Social Media</h2>
             <p className="text-sm text-gray-400 mb-4">Follow us for updates on tournaments and events:</p>
-            <div className="flex flex-wrap gap-3">
-              <a href="#" className="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-200 text-sm">Twitter</a>
-              <a href="#" className="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-200 text-sm">Facebook</a>
-              <a href="#" className="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-200 text-sm">Instagram</a>
-              <a href="#" className="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-200 text-sm">Discord</a>
+            <div className="flex flex-wrap gap-4">
+              {[
+                { name: 'Twitter', icon: <Twitter className="w-5 h-5" />, href: "#", color: "#1DA1F2" },
+                { name: 'Facebook', icon: <Facebook className="w-5 h-5" />, href: "#", color: "#1877F2" },
+                { name: 'Instagram', icon: <Instagram className="w-5 h-5" />, href: "#", color: "#E4405F" },
+                { name: 'WhatsApp', icon: <MessageCircle className="w-5 h-5" />, href: WHATSAPP_COMMUNITY_LINK, color: "#25D366" },
+              ].map((social) => (
+                <a
+                  key={social.name}
+                  href={social.href}
+                  target={social.name === 'WhatsApp' ? "_blank" : undefined}
+                  rel={social.name === 'WhatsApp' ? "noopener noreferrer" : undefined}
+                  className="p-3 rounded-full bg-gray-800 border border-gray-700 hover:text-white transition-all duration-300 shadow-lg group"
+                  title={social.name}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = social.color;
+                    e.currentTarget.style.borderColor = social.color;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '';
+                    e.currentTarget.style.borderColor = '';
+                  }}
+                >
+                  <div style={{ color: social.color }} className="group-hover:text-white transition-colors duration-300">
+                    {social.icon}
+                  </div>
+                </a>
+              ))}
             </div>
           </div>
         </section>
