@@ -38,6 +38,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
     format: "Battle Royale",
     country: "Ghana",
     rules: [],
+    twitch_link: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -66,6 +67,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
         format: tournament.format || "Battle Royale",
         country: tournament.country || tournament.region || "Ghana",
         rules: Array.isArray(tournament.rules) ? tournament.rules : [],
+        twitch_link: tournament.twitch_link || "",
       });
 
       if (tournament.tournament_flyer) {
@@ -181,6 +183,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
         format: form.format,
         country: form.country || "Ghana",
         rules: form.rules.filter(rule => rule.trim() !== ""),
+        twitch_link: form.twitch_link || "",
         updated_at: serverTimestamp(),
       };
 
@@ -341,6 +344,28 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition"
               required
             />
+          </div>
+
+          {/* Twitch Livestream Link */}
+          <div>
+            <label className="block text-sm text-gray-300 font-medium mb-2">
+              Twitch Livestream Link (Optional)
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
+                </svg>
+              </div>
+              <input
+                name="twitch_link"
+                placeholder="https://twitch.tv/yourchannel"
+                value={form.twitch_link}
+                onChange={handleChange}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition"
+              />
+            </div>
+            <p className="text-gray-400 text-xs mt-2">Visible to players on the tournament page.</p>
           </div>
 
           {/* Tournament Format */}

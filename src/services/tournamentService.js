@@ -1,12 +1,12 @@
 // src/services/tournamentService.js - COMPLETE KNOCKOUT SYSTEM
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  query, 
-  where, 
-  orderBy, 
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  orderBy,
   limit,
   addDoc,
   updateDoc,
@@ -27,7 +27,7 @@ const MATCHES_COLLECTION = 'tournament_matches';
 
 class TournamentService {
   // ========== EXISTING METHODS (unchanged) ==========
-  
+
   convertTimestampToISO(timestamp) {
     if (!timestamp) return null;
     if (timestamp instanceof Timestamp) {
@@ -45,7 +45,7 @@ class TournamentService {
     const normalized = typeof rawCountry === 'string' ? rawCountry.trim().toLowerCase() : 'ghana';
     const country = normalized === 'nigeria' ? 'Nigeria' : 'Ghana';
     const currency = country === 'Nigeria' ? '₦' : '₵';
-    
+
     return {
       id: doc.id,
       title: data.tournament_name || 'Untitled Tournament',
@@ -63,7 +63,8 @@ class TournamentService {
       startDate: this.convertTimestampToISO(data.start_date),
       endDate: this.convertTimestampToISO(data.end_date),
       currency,
-      rules: data.rules ? [data.rules] : [],
+      rules: Array.isArray(data.rules) ? data.rules : (data.rules ? [data.rules] : []),
+      twitch_link: data.twitch_link || '',
       requirements: [],
       organizer: data.organizer || 'RAID Arena',
       prizeDistribution: [
@@ -88,7 +89,7 @@ class TournamentService {
     const now = new Date();
     const startDate = data.start_date?.toDate ? data.start_date.toDate() : new Date(data.start_date);
     const endDate = data.end_date?.toDate ? data.end_date.toDate() : new Date(data.end_date);
-    
+
     if (now < startDate) {
       return 'registration-open';
     } else if (now >= startDate && now <= endDate) {
@@ -146,11 +147,11 @@ class TournamentService {
       const tournaments = await Promise.all(
         snapshot.docs.map(async (doc) => {
           const tournament = this.transformTournamentDoc(doc);
-          
+
           if (options.userId) {
             tournament.isUserParticipant = await this.isUserParticipant(tournament.id, options.userId);
           }
-          
+
           return tournament;
         })
       );
@@ -170,15 +171,15 @@ class TournamentService {
     try {
       const tournamentDoc = doc(db, TOURNAMENTS_COLLECTION, tournamentId);
       const snapshot = await getDoc(tournamentDoc);
-      
+
       if (!snapshot.exists()) {
         return null;
       }
 
       const tournament = this.transformTournamentDoc(snapshot);
-      
+
       tournament.participants = await this.getTournamentParticipants(tournamentId);
-      
+
       if (userId) {
         tournament.isUserParticipant = tournament.participants.some(p => p.id === userId);
       }
@@ -192,11 +193,11 @@ class TournamentService {
 
   async getFeaturedTournaments(limitCount = 4, userId = null) {
     try {
-      const tournaments = await this.getAllTournaments({ 
+      const tournaments = await this.getAllTournaments({
         limit: limitCount * 2,
-        userId 
+        userId
       });
-      
+
       const featured = tournaments
         .filter(t => ['registration-open', 'upcoming'].includes(t.status))
         .slice(0, limitCount);
@@ -211,11 +212,11 @@ class TournamentService {
   async searchTournaments(searchTerm, userId = null) {
     try {
       const tournaments = await this.getAllTournaments({ userId });
-      
+
       if (!searchTerm) return tournaments;
 
       const lowerSearch = searchTerm.toLowerCase();
-      return tournaments.filter(t => 
+      return tournaments.filter(t =>
         t.title.toLowerCase().includes(lowerSearch) ||
         t.game.toLowerCase().includes(lowerSearch) ||
         t.organizer.toLowerCase().includes(lowerSearch)
@@ -233,7 +234,7 @@ class TournamentService {
     try {
       await runTransaction(db, async (transaction) => {
         const tournamentDoc = await transaction.get(tournamentRef);
-        
+
         if (!tournamentDoc.exists()) {
           throw new Error('Tournament not found');
         }
@@ -368,7 +369,7 @@ class TournamentService {
    */
   getRoundName(roundNumber, totalRounds) {
     const roundsFromEnd = totalRounds - roundNumber;
-    
+
     switch (roundsFromEnd) {
       case 0:
         return 'Final';
@@ -400,13 +401,13 @@ class TournamentService {
     try {
       const tournamentRef = doc(db, TOURNAMENTS_COLLECTION, tournamentId);
       const tournamentDoc = await getDoc(tournamentRef);
-      
+
       if (!tournamentDoc.exists()) {
         throw new Error('Tournament not found');
       }
 
       const tournamentData = tournamentDoc.data();
-      
+
       // Check if bracket already generated
       if (tournamentData.bracketGenerated) {
         throw new Error('Bracket already generated for this tournament');
@@ -414,25 +415,25 @@ class TournamentService {
 
       // Get active participants
       const participants = await this.getTournamentParticipants(tournamentId);
-      
+
       if (participants.length < 2) {
         throw new Error('Need at least 2 participants to generate bracket');
       }
 
       // Calculate rounds
       const totalRounds = this.calculateTotalRounds(participants.length);
-      
+
       // Shuffle participants for random matching
       const shuffledParticipants = this.shuffleArray(participants);
 
       // Generate first round matches
       const batch = writeBatch(db);
       const matches = [];
-      
+
       for (let i = 0; i < shuffledParticipants.length; i += 2) {
         const player1 = shuffledParticipants[i];
         const player2 = shuffledParticipants[i + 1] || null; // Bye if odd number
-        
+
         const matchRef = doc(collection(db, MATCHES_COLLECTION));
         const matchData = {
           tournamentId,
@@ -446,7 +447,7 @@ class TournamentService {
           status: player2 ? 'pending' : 'completed',
           createdAt: serverTimestamp()
         };
-        
+
         batch.set(matchRef, matchData);
         matches.push({ id: matchRef.id, ...matchData });
       }
@@ -493,7 +494,7 @@ class TournamentService {
         matches.map(async (match) => {
           const player1 = match.player1Id ? await this.getUserData(match.player1Id) : null;
           const player2 = match.player2Id ? await this.getUserData(match.player2Id) : null;
-          
+
           return {
             ...match,
             player1,
@@ -525,7 +526,7 @@ class TournamentService {
     try {
       const userDoc = await getDoc(doc(db, 'users', userId));
       if (!userDoc.exists()) return null;
-      
+
       const data = userDoc.data();
       return {
         id: userId,
@@ -545,13 +546,13 @@ class TournamentService {
     try {
       const matchRef = doc(db, MATCHES_COLLECTION, matchId);
       const matchDoc = await getDoc(matchRef);
-      
+
       if (!matchDoc.exists()) {
         throw new Error('Match not found');
       }
 
       const matchData = matchDoc.data();
-      
+
       if (matchData.status === 'completed') {
         throw new Error('Match already completed');
       }
@@ -609,7 +610,7 @@ class TournamentService {
 
       // Check if all matches are completed
       const allCompleted = matches.every(match => match.status === 'completed');
-      
+
       if (!allCompleted) {
         return { roundComplete: false };
       }
@@ -633,7 +634,7 @@ class TournamentService {
       for (let i = 0; i < shuffledWinners.length; i += 2) {
         const player1 = shuffledWinners[i];
         const player2 = shuffledWinners[i + 1] || null;
-        
+
         const matchRef = doc(collection(db, MATCHES_COLLECTION));
         batch.set(matchRef, {
           tournamentId,
@@ -672,7 +673,7 @@ class TournamentService {
   async completeTournament(tournamentId, winnerId) {
     try {
       const tournamentRef = doc(db, TOURNAMENTS_COLLECTION, tournamentId);
-      
+
       await updateDoc(tournamentRef, {
         status: 'completed',
         winnerId,

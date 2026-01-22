@@ -438,10 +438,10 @@ function TournamentPageContent({ resolvedParams }) {
               <div className="relative w-24 h-24">
                 <div
                   className={`absolute inset-0 rounded-full blur-xl opacity-40 ${placement === 'first'
-                      ? 'bg-yellow-500'
-                      : placement === 'second'
-                        ? 'bg-gray-400'
-                        : 'bg-orange-400'
+                    ? 'bg-yellow-500'
+                    : placement === 'second'
+                      ? 'bg-gray-400'
+                      : 'bg-orange-400'
                     }`}
                 ></div>
 
@@ -587,7 +587,25 @@ function TournamentPageContent({ resolvedParams }) {
               </div>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 leading-tight">{tournament.title}</h1>
               {tournament.description && (
-                <p className="text-gray-300 text-sm sm:text-base leading-relaxed">{tournament.description}</p>
+                <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4">{tournament.description}</p>
+              )}
+
+              {tournament.twitch_link && (
+                <a
+                  href={tournament.twitch_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2.5 px-5 py-2.5 bg-[#9146FF] hover:bg-[#772ce8] text-white rounded-xl font-bold text-sm transition-all shadow-lg hover:shadow-[#9146FF]/20 hover:-translate-y-0.5 group"
+                >
+                  <div className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                  </div>
+                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                    <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
+                  </svg>
+                  <span>Watch Livestream</span>
+                </a>
               )}
             </div>
 
@@ -793,8 +811,8 @@ function TournamentPageContent({ resolvedParams }) {
             <button
               onClick={() => setActiveTab('details')}
               className={`flex-1 py-2 sm:py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base ${activeTab === 'details'
-                  ? 'bg-orange-500 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white'
+                ? 'bg-orange-500 text-white shadow-lg'
+                : 'text-gray-400 hover:text-white'
                 }`}
             >
               <Award className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -803,8 +821,8 @@ function TournamentPageContent({ resolvedParams }) {
             <button
               onClick={() => setActiveTab('bracket')}
               className={`flex-1 py-2 sm:py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base ${activeTab === 'bracket'
-                  ? 'bg-orange-500 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white'
+                ? 'bg-orange-500 text-white shadow-lg'
+                : 'text-gray-400 hover:text-white'
                 }`}
             >
               <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
