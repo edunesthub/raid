@@ -168,7 +168,7 @@ const ContactPage = () => {
             <h2 className="text-xl font-semibold text-raid-gold mb-3">Business Inquiries</h2>
             <p className="text-sm text-gray-400 mb-2">Partnerships, media, and other opportunities:</p>
             <p className="text-sm font-medium text-raid-gold">
-              <a href="mailto:raidconductor@gmail.com" className="hover:underline">raidconductor@gmail.com</a>
+              <a href="mailto:raid00arena@gmail.com" className="hover:underline">raid00arena@gmail.com</a>
             </p>
           </div>
         </section>
