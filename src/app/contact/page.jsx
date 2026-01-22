@@ -11,7 +11,7 @@ function formatWhatsAppNumber(number) {
   return digits;
 }
 
-import { Instagram, Twitter, Facebook, MessageCircle } from 'lucide-react';
+import { Instagram, Twitter, Facebook, MessageCircle, ExternalLink } from 'lucide-react';
 
 const ContactPage = () => {
   const [name, setName] = useState("");
@@ -139,24 +139,25 @@ const ContactPage = () => {
         </section>
 
         <section className="mb-8">
-          <div className="bg-gray-900/70 border border-gray-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center gap-6">
-            <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 relative bg-green-500/10 rounded-2xl flex items-center justify-center p-4">
+          <div className="bg-green-600/10 border border-green-500/30 rounded-2xl p-4 md:p-6 shadow-xl flex items-center gap-4 md:gap-6">
+            <div className="flex-shrink-0 w-16 h-16 md:w-24 md:h-24 relative bg-green-500/10 rounded-2xl flex items-center justify-center p-3 md:p-4">
               <img
                 src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
                 alt="WhatsApp Logo"
                 className="w-full h-full object-contain"
               />
             </div>
-            <div className="flex-1 text-center md:text-left">
-              <h2 className="text-xl font-semibold text-raid-gold mb-3">Join our WhatsApp community</h2>
-              <p className="text-sm text-gray-400 mb-4">Connect, chat and stay updated with the community.</p>
+            <div className="flex-1 text-left">
+              <h2 className="text-lg md:text-xl font-semibold text-raid-gold mb-1 md:mb-3">Join our WhatsApp community</h2>
+              <p className="text-xs md:text-sm text-gray-400 mb-3 md:mb-4">Connect, chat and stay updated with the community.</p>
               <a
                 href={WHATSAPP_COMMUNITY_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block bg-orange-600 hover:bg-orange-500 text-white rounded-xl px-6 py-2.5 text-sm font-semibold transition-colors shadow-lg shadow-orange-600/20"
+                className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-semibold transition-colors shadow-lg shadow-orange-600/20"
               >
-                Join our WhatsApp Group
+                <span>Join our WhatsApp Group</span>
+                <ExternalLink className="w-3.5 h-3.5 md:w-4 md:h-4" />
               </a>
             </div>
           </div>
