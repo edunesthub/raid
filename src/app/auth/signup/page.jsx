@@ -27,12 +27,12 @@ export default function SignupPage() {
   });
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  
+
   const [emailChecking, setEmailChecking] = useState(false);
   const [emailAvailable, setEmailAvailable] = useState(null);
 
@@ -46,9 +46,9 @@ export default function SignupPage() {
   const handleEmailChange = (email) => {
     setFormData({ ...formData, email });
     setEmailAvailable(null);
-    
+
     if (window.emailCheckTimeout) clearTimeout(window.emailCheckTimeout);
-    
+
     window.emailCheckTimeout = setTimeout(() => {
       checkEmailAvailability(email);
     }, 800);
@@ -226,37 +226,37 @@ export default function SignupPage() {
   };
   const validateForm = () => {
     setError("");
-        // First & Last Name required
-        if (!formData.firstName.trim() || !formData.lastName.trim()) {
-          setError("Please enter your first and last name");
-          return false;
-        }
+    // First & Last Name required
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      setError("Please enter your first and last name");
+      return false;
+    }
 
-        if (!formData.country) {
-          setError("Please select your country");
-          return false;
-        }
+    if (!formData.country) {
+      setError("Please select your country");
+      return false;
+    }
 
-        // Phone required and must match selected country
-        const phone = formData.phone.trim();
-        const country = formData.country || "Ghana";
-        if (!isValidPhoneForCountry(country, phone)) {
-          const example = country === "Nigeria" ? "08012345678 or 2348012345678" : "0241234567 or 233241234567";
-          setError(`Please enter a valid ${country} phone number (e.g., ${example})`);
-          return false;
-        }
+    // Phone required and must match selected country
+    const phone = formData.phone.trim();
+    const country = formData.country || "Ghana";
+    if (!isValidPhoneForCountry(country, phone)) {
+      const example = country === "Nigeria" ? "08012345678 or 2348012345678" : "0241234567 or 233241234567";
+      setError(`Please enter a valid ${country} phone number (e.g., ${example})`);
+      return false;
+    }
 
-        // Bio required
-        if (!formData.bio.trim()) {
-          setError("Please add a short bio");
-          return false;
-        }
+    // Bio required
+    if (!formData.bio.trim()) {
+      setError("Please add a short bio");
+      return false;
+    }
 
-        // Avatar required
-        if (!avatarFile) {
-          setError("Please upload a profile picture");
-          return false;
-        }
+    // Avatar required
+    if (!avatarFile) {
+      setError("Please upload a profile picture");
+      return false;
+    }
     if (!formData.email || !authValidation.validateEmailFormat(formData.email)) {
       setError("Please enter a valid email address");
       return false;
@@ -366,170 +366,318 @@ export default function SignupPage() {
   // JSX
   // ======================
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black flex items-center justify-center px-4">
-      <div className="max-w-md w-full mt-16">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-orange-500 to-purple-500 text-transparent bg-clip-text">
-            Create Account
+    <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center px-4 py-20 relative overflow-hidden">
+      <div className="scanline"></div>
+
+      {/* Background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+
+      <div className="max-w-xl w-full relative z-10">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl sm:text-6xl font-black text-white mb-2 uppercase italic tracking-tighter">
+            ENLIST_<span className="text-pink-500">OPERATIVE</span>
           </h1>
-          <p className="text-gray-400">Join Ghana &amp; Nigeria's premier esports platform</p>
+          <p className="text-pink-500/40 font-black uppercase tracking-[0.4em] text-[10px]">
+            // ESTABLISHING_NEW_NODE_LINK
+          </p>
         </div>
 
-        <div className="bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-sm border border-white/10 rounded-2xl p-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex-1 h-1 bg-gray-700 rounded">
-              <div className="h-1 bg-orange-500 rounded transition-all" style={{ width: `${(currentStep / totalSteps) * 100}%` }} />
-            </div>
-            <span className="ml-3 text-xs text-gray-400">Step {currentStep} of {totalSteps}</span>
-          </div>
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <p className="text-red-400 text-sm">{error}</p>
-            </div>
-          )}
+        <div className="relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-blue-600 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+          <div className="relative bg-black border border-white/10 p-8 sm:p-12" style={{ clipPath: 'polygon(2% 0, 100% 0, 100% 95%, 98% 100%, 0 100%, 0 5%)' }}>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {currentStep === 1 && (
-              <>
-                <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">Email Address *</label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                    <input type="email" value={formData.email} onChange={(e) => handleEmailChange(e.target.value)} placeholder="your.email@example.com" className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-12 pr-12 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors" required disabled={isLoading} />
-                    {emailChecking && (<div className="absolute right-4 top-1/2 -translate-y-1/2"><div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" /></div>)}
-                    {!emailChecking && emailAvailable === true && (<CheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-400" />)}
-                    {!emailChecking && emailAvailable === false && (<AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400" />)}
-                  </div>
+            {/* Steps Progress */}
+            <div className="mb-12">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-pink-500/40 text-[10px] font-black uppercase tracking-[0.3em]">PROGRESS_TRACKER</span>
+                <span className="text-white font-black italic text-xs tracking-widest bg-pink-500/10 px-3 py-1 border border-pink-500/20">
+                  STEP_{currentStep} // 0{totalSteps}
+                </span>
+              </div>
+              <div className="relative w-full bg-pink-900/10 border border-pink-500/20 h-2 overflow-hidden" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 1% 100%, 0 70%)' }}>
+                <div
+                  className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-500 shadow-[0_0_15px_rgba(255,0,255,0.5)] transition-all duration-1000"
+                  style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+                >
+                  <div className="absolute inset-0 bg-white/20 animate-shimmer"></div>
                 </div>
-                <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">Username *</label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                    <input type="text" value={formData.username} onChange={(e) => handleUsernameChange(e.target.value)} placeholder="username" className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors" required disabled={isLoading} />
-                    {usernameChecking && (<div className="absolute right-4 top-1/2 -translate-y-1/2"><div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" /></div>)}
-                    {!usernameChecking && usernameAvailable === true && (<CheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-400" />)}
-                    {!usernameChecking && usernameAvailable === false && (<AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400" />)}
-                  </div>
-                  {usernameError && (<p className="text-red-400 text-xs mt-1">{usernameError}</p>)}
+              </div>
+            </div>
+
+            {error && (
+              <div className="bg-red-600/10 border border-red-600/30 p-4 mb-8 animate-shake" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 80%, 95% 100%, 0 100%)' }}>
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-4 h-4 text-red-400 mt-0.5" />
+                  <p className="text-red-400 text-[10px] font-black uppercase tracking-widest">// ERROR: {error}</p>
                 </div>
-                <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">Password *</label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                    <input type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder="••••••••" className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-12 pr-12 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors" required disabled={isLoading} />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">{showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}</button>
-                  </div>
-                  {formData.password && (
-                    <div className="mt-2">
-                      <div className="flex items-center justify-between mb-1"><span className="text-xs text-gray-400">Password Strength:</span><span className={`text-xs font-semibold ${passwordStrength.textColor}`}>{passwordStrength.label}</span></div>
-                      <div className="w-full bg-gray-700 rounded-full h-2"><div className={`h-2 rounded-full transition-all duration-300 ${passwordStrength.color}`} style={{ width: `${(passwordStrength.strength / 5) * 100}%` }} /></div>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {currentStep === 1 && (
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-blue-500/60 text-[10px] font-black uppercase tracking-[0.3em] mb-3">ACCESS_ID (EMAIL)</label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500/30" />
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleEmailChange(e.target.value)}
+                        placeholder="ENTER_UPLINK_COMM"
+                        className="w-full bg-blue-500/5 border border-blue-500/20 pl-12 pr-12 py-4 text-white placeholder-gray-700 focus:outline-none focus:border-blue-500 transition-all text-sm font-bold uppercase tracking-wider"
+                        style={{ clipPath: 'polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%)' }}
+                        required
+                        disabled={isLoading}
+                      />
+                      {emailChecking && (<div className="absolute right-4 top-1/2 -translate-y-1/2"><div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>)}
+                      {!emailChecking && emailAvailable === true && (<CheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-green-400" />)}
+                      {!emailChecking && emailAvailable === false && (<AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-red-400" />)}
                     </div>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">Confirm Password *</label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                    <input type={showConfirmPassword ? "text" : "password"} value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} placeholder="••••••••" className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-12 pr-12 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors" required disabled={isLoading} />
-                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">{showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}</button>
                   </div>
-                </div>
-                <div className="flex justify-end pt-2">
-                  <button type="button" onClick={() => { if (validateStep1()) setCurrentStep(2); }} disabled={isLoading || emailChecking || usernameChecking} className="px-5 py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white disabled:opacity-50">Next</button>
-                </div>
-              </>
-            )}
 
-            {currentStep === 2 && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">First Name *</label>
-                    <input type="text" value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} placeholder="John" className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors" disabled={isLoading} required />
+                    <label className="block text-blue-500/60 text-[10px] font-black uppercase tracking-[0.3em] mb-3">CODE_NAME (USERNAME)</label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500/30" />
+                      <input
+                        type="text"
+                        value={formData.username}
+                        onChange={(e) => handleUsernameChange(e.target.value)}
+                        placeholder="ASSIGN_IDENTIFIER"
+                        className="w-full bg-blue-500/5 border border-blue-500/20 pl-12 pr-12 py-4 text-white placeholder-gray-700 focus:outline-none focus:border-blue-500 transition-all text-sm font-bold uppercase tracking-wider"
+                        style={{ clipPath: 'polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%)' }}
+                        required
+                        disabled={isLoading}
+                      />
+                      {usernameChecking && (<div className="absolute right-4 top-1/2 -translate-y-1/2"><div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>)}
+                      {!usernameChecking && usernameAvailable === true && (<CheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-green-400" />)}
+                      {!usernameChecking && usernameAvailable === false && (<AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-red-400" />)}
+                    </div>
+                    {usernameError && (<p className="text-red-400 text-[8px] font-black uppercase tracking-widest mt-2 ml-2">// {usernameError}</p>)}
                   </div>
-                  <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">Last Name *</label>
-                    <input type="text" value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} placeholder="Doe" className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors" disabled={isLoading} required />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">Country *</label>
-                  <select
-                    value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-colors"
-                    disabled={isLoading}
-                    required
-                  >
-                    <option value="Ghana">Ghana</option>
-                    <option value="Nigeria">Nigeria</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">Phone Number (SMS-enabled) *</label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder={formData.country === "Nigeria" ? "e.g., 08012345678 or 2348012345678" : "e.g., 0241234567 or 233241234567"}
-                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
-                    disabled={isLoading}
-                    required
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Use a number that can receive SMS in {formData.country}.</p>
-                </div>
-                <div className="flex justify-between pt-2">
-                  <button type="button" onClick={() => setCurrentStep(1)} className="px-5 py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-white">Back</button>
-                  <button type="button" onClick={() => { if (validateStep2()) setCurrentStep(3); }} className="px-5 py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white">Next</button>
-                </div>
-              </>
-            )}
 
-            {currentStep === 3 && (
-              <>
-                <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">Short Bio *</label>
-                  <textarea rows={3} value={formData.bio} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} placeholder="Tell us about your gaming experience..." className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors" disabled={isLoading} required />
-                </div>
-                <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">Profile Picture *</label>
-                  {avatarPreview ? (
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-16 h-16 rounded-full overflow-hidden border border-orange-500/60 bg-gray-900 flex-shrink-0">
-                        <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-blue-500/60 text-[10px] font-black uppercase tracking-[0.3em] mb-3">CYPHER (PASSWORD)</label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          value={formData.password}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                          placeholder="••••••••"
+                          className="w-full bg-blue-500/5 border border-blue-500/20 px-5 py-4 text-white placeholder-gray-700 focus:outline-none focus:border-blue-500 transition-all text-sm font-bold uppercase tracking-wider"
+                          style={{ clipPath: 'polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%)' }}
+                          required
+                          disabled={isLoading}
+                        />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-700 hover:text-blue-500 transition-colors">{showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
                       </div>
-                      <p className="text-xs text-gray-400">Looking good! You can replace it by choosing another file.</p>
+                      {formData.password && (
+                        <div className="mt-4 px-2">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-600 italic">STRENGTH_ANALYSIS:</span>
+                            <span className={`text-[8px] font-black uppercase tracking-widest ${passwordStrength.textColor}`}>{passwordStrength.label}</span>
+                          </div>
+                          <div className="w-full bg-gray-900 h-1"><div className={`h-1 transition-all duration-300 ${passwordStrength.color}`} style={{ width: `${(passwordStrength.strength / 5) * 100}%` }} /></div>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <p className="text-xs text-gray-500 mb-3">Upload a clear image of yourself or your gaming avatar.</p>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
-                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-                <div className="flex justify-between items-center pt-2">
-                  <button type="button" onClick={() => setCurrentStep(2)} className="px-5 py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-white">Back</button>
-                  <button type="submit" disabled={isLoading || emailChecking || usernameChecking || emailAvailable === false || usernameAvailable === false || !formData.firstName.trim() || !formData.lastName.trim() || !formData.country || !formData.phone.trim() || !formData.bio.trim() || !avatarFile} className="px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                    {isLoading ? (<div className="flex items-center justify-center"><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Creating Account...</div>) : ("Create Account")}
-                  </button>
-                </div>
-              </>
-            )}
-          </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-gray-400 text-sm">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="text-orange-500 hover:text-orange-400 font-semibold">
-                Login
-              </Link>
-            </p>
+                    <div>
+                      <label className="block text-blue-500/60 text-[10px) font-black uppercase tracking-[0.3em] mb-3">VERIFY_CYPHER</label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={formData.confirmPassword}
+                          onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                          placeholder="••••••••"
+                          className="w-full bg-blue-500/5 border border-blue-500/20 px-5 py-4 text-white placeholder-gray-700 focus:outline-none focus:border-blue-500 transition-all text-sm font-bold uppercase tracking-wider"
+                          style={{ clipPath: 'polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%)' }}
+                          required
+                          disabled={isLoading}
+                        />
+                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-700 hover:text-blue-500 transition-colors">{showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-8">
+                    <button
+                      type="button"
+                      onClick={() => { if (validateStep1()) setCurrentStep(2); }}
+                      disabled={isLoading || emailChecking || usernameChecking}
+                      className="bg-blue-600 hover:bg-blue-500 text-white font-black italic uppercase tracking-[0.2em] px-10 py-4 transition-all shadow-[0_0_20px_rgba(0,243,255,0.2)] active:scale-95 disabled:opacity-50"
+                      style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%)' }}
+                    >
+                      NEXT_PHASE
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 2 && (
+                <div className="space-y-6">
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-blue-500/60 text-[10px] font-black uppercase tracking-[0.3em] mb-3">GIVEN_NAME</label>
+                      <input
+                        type="text"
+                        value={formData.firstName}
+                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                        placeholder="JOHN"
+                        className="w-full bg-blue-500/5 border border-blue-500/20 px-5 py-4 text-white placeholder-gray-700 focus:outline-none focus:border-blue-500 transition-all text-sm font-bold uppercase tracking-wider"
+                        style={{ clipPath: 'polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%)' }}
+                        disabled={isLoading}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-blue-500/60 text-[10px] font-black uppercase tracking-[0.3em] mb-3">SURNAME</label>
+                      <input
+                        type="text"
+                        value={formData.lastName}
+                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                        placeholder="DOE"
+                        className="w-full bg-blue-500/5 border border-blue-500/20 px-5 py-4 text-white placeholder-gray-700 focus:outline-none focus:border-blue-500 transition-all text-sm font-bold uppercase tracking-wider"
+                        style={{ clipPath: 'polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%)' }}
+                        disabled={isLoading}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-blue-500/60 text-[10px] font-black uppercase tracking-[0.3em] mb-3">REGION_SELECTOR</label>
+                    <select
+                      value={formData.country}
+                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                      className="w-full bg-blue-500/5 border border-blue-500/20 px-5 py-4 text-white focus:outline-none focus:border-blue-500 transition-all text-sm font-black uppercase tracking-[0.2em] appearance-none"
+                      style={{ clipPath: 'polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%)' }}
+                      disabled={isLoading}
+                      required
+                    >
+                      <option value="Ghana" className="bg-black text-white">GHANA_NODE</option>
+                      <option value="Nigeria" className="bg-black text-white">NIGERIA_NODE</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-blue-500/60 text-[10px] font-black uppercase tracking-[0.3em] mb-3">COMMLINK_SIGNAL (PHONE)</label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder={formData.country === "Nigeria" ? "ENTER_SIGNAL [080...]" : "ENTER_SIGNAL [024...]"}
+                      className="w-full bg-blue-500/5 border border-blue-500/20 px-5 py-4 text-white placeholder-gray-700 focus:outline-none focus:border-blue-500 transition-all text-sm font-bold uppercase tracking-wider"
+                      style={{ clipPath: 'polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%)' }}
+                      disabled={isLoading}
+                      required
+                    />
+                    <p className="text-[8px] font-black text-gray-700 uppercase tracking-widest mt-2 ml-2 italic">// REQUIRED_FOR_PRIZE_DISTRIBUTION_SYSTEM</p>
+                  </div>
+
+                  <div className="flex justify-between pt-8">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(1)}
+                      className="text-gray-700 hover:text-white font-black uppercase tracking-widest text-[10px] transition-colors"
+                    >
+                      ← REVERT_PHASE
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { if (validateStep2()) setCurrentStep(3); }}
+                      className="bg-blue-600 hover:bg-blue-500 text-white font-black italic uppercase tracking-[0.2em] px-10 py-4 transition-all shadow-[0_0_20px_rgba(0,243,255,0.2)] active:scale-95"
+                      style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%)' }}
+                    >
+                      NEXT_PHASE
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 3 && (
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-blue-500/60 text-[10px] font-black uppercase tracking-[0.3em] mb-3">OPERATIVE_BIO</label>
+                    <textarea
+                      rows={3}
+                      value={formData.bio}
+                      onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                      placeholder="DESCRIBE_COMBAT_EXPERIENCE"
+                      className="w-full bg-blue-500/5 border border-blue-500/20 px-5 py-4 text-white placeholder-gray-700 focus:outline-none focus:border-blue-500 transition-all text-sm font-bold uppercase tracking-wider"
+                      style={{ clipPath: 'polygon(0 0, 98% 0, 100% 10%, 100% 100%, 2% 100%, 0 90%)' }}
+                      disabled={isLoading}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-blue-500/60 text-[10px] font-black uppercase tracking-[0.3em] mb-3">AVATAR_UPLINK</label>
+                    <div className="bg-blue-500/5 border border-dashed border-blue-500/20 p-6 flex flex-col items-center justify-center relative group-hover:border-blue-500/40 transition-all" style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 90%, 95% 100%, 0 100%, 0 10%)' }}>
+                      {avatarPreview ? (
+                        <div className="flex flex-col items-center gap-4">
+                          <div className="relative w-24 h-24 border-2 border-blue-500 p-1" style={{ clipPath: 'polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)' }}>
+                            <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+                          </div>
+                          <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest italic">// VISUAL_SIG_ESTABLISHED</p>
+                        </div>
+                      ) : (
+                        <div className="text-center py-4">
+                          <div className="w-12 h-12 border-2 border-blue-500/20 flex items-center justify-center mx-auto mb-4" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%, 0 20%)' }}>
+                            <User className="w-6 h-6 text-blue-500/30" />
+                          </div>
+                          <p className="text-[8px] font-black text-gray-700 uppercase tracking-widest leading-relaxed">UPLOAD_OPERATIVE_IMAGE_FOR_CLEARANCE</p>
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        disabled={isLoading}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-8">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(2)}
+                      className="text-gray-700 hover:text-white font-black uppercase tracking-widest text-[10px] transition-colors"
+                    >
+                      ← REVERT_PHASE
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isLoading || emailChecking || usernameChecking || emailAvailable === false || usernameAvailable === false || !formData.firstName.trim() || !formData.lastName.trim() || !formData.country || !formData.phone.trim() || !formData.bio.trim() || !avatarFile}
+                      className="bg-pink-600 hover:bg-pink-500 text-white font-black italic uppercase tracking-[0.2em] px-12 py-5 transition-all shadow-[0_0_30px_rgba(255,0,255,0.4)] active:scale-95 disabled:opacity-40"
+                      style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%)' }}
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center justify-center gap-4">
+                          <div className="w-5 h-5 border-2 border-white/50 border-t-white animate-spin"></div>
+                          <span>ENCRYPTING...</span>
+                        </div>
+                      ) : (
+                        "FINALIZE_ENLISTMENT"
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </form>
+
+            <div className="mt-12 text-center pt-8 border-t border-white/5">
+              <p className="text-gray-600 text-[10px] font-black uppercase tracking-widest">
+                ALREADY_ENLISTED?{" "}
+                <Link href="/auth/login" className="text-pink-500 hover:text-pink-400 font-black transition-colors ml-2">
+                  RESUME_ACCESS
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>

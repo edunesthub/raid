@@ -55,129 +55,151 @@ const ContactPage = () => {
     setTimeout(() => setSending(false), 3000);
   };
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white">
-      <div className="container mx-auto px-4 py-10">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-extrabold tracking-tight mb-2">Contact Us</h1>
-          <p className="text-gray-400 text-sm">We usually respond within 24 hours.</p>
+    <div className="w-full h-full overflow-y-auto relative bg-[#050505]">
+      <div className="scanline"></div>
+      <div className="container-mobile py-12 relative z-10 max-w-4xl mx-auto">
+
+        {/* Header */}
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-black text-white uppercase italic tracking-tighter mb-4">
+            Contact <span className="text-blue-500">Uplink</span>
+          </h1>
+          <p className="text-blue-500/40 font-black uppercase tracking-[0.4em] text-[10px]">
+            // ESTABLISHING_SIGNAL_PARAMETERS
+          </p>
         </div>
 
-        <section className="mb-8">
-          <div className="bg-gray-900/70 border border-gray-800 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-xl font-semibold text-raid-gold mb-2">Get in Touch</h2>
-            <p className="text-sm text-gray-400">
-              We'd love to hear from you! Whether you have questions, feedback, or need support,
-              our team is here to help. Use the form or WhatsApp to reach out.
-            </p>
+        {/* Intro */}
+        <section className="mb-12">
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity blur"></div>
+            <div className="relative bg-black/40 border border-blue-500/20 p-8" style={{ clipPath: 'polygon(2% 0, 100% 0, 100% 80%, 98% 100%, 0 100%, 0 20%)' }}>
+              <h2 className="text-xl font-black text-blue-400 uppercase italic tracking-tighter mb-4">// GET_IN_TOUCH</h2>
+              <p className="text-gray-500 font-bold uppercase tracking-wide text-xs leading-relaxed">
+                Our operatives are monitoring the signal 24/7. Whether you have
+                tactical questions, server feedback, or need immediate support,
+                initialize a transmission below.
+              </p>
+            </div>
           </div>
         </section>
 
-        <section className="mb-8">
-          <div className="bg-gray-900/70 border border-gray-800 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-xl font-semibold text-raid-gold mb-4">Send Us a Message</h2>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Form */}
+        <section className="mb-12">
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-blue-500/5 blur-sm opacity-50"></div>
+            <div className="relative bg-black border border-blue-500/20 p-8 sm:p-10 space-y-8" style={{ clipPath: 'polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%)' }}>
+              <h2 className="text-[10px] font-black text-pink-500 uppercase tracking-[0.4em] mb-2 px-1">NEW_TRANSMISSION</h2>
+
+              <form className="space-y-8" onSubmit={handleSubmit}>
+                <div className="grid sm:grid-cols-2 gap-8">
+                  <div>
+                    <label className="block text-[10px] font-black text-blue-500/60 uppercase tracking-[0.3em] mb-2 px-1">SENDER_ID</label>
+                    <input
+                      type="text"
+                      className="w-full bg-black/40 border border-blue-500/20 px-5 py-4 focus:outline-none focus:border-blue-500/60 text-white font-black italic uppercase tracking-wider transition-all"
+                      style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 30%)' }}
+                      placeholder="OPERATIVE_NAME"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-blue-500/60 uppercase tracking-[0.3em] mb-2 px-1">UPLINK_MAIL (OPTIONAL)</label>
+                    <input
+                      type="email"
+                      className="w-full bg-black/40 border border-blue-500/20 px-5 py-4 focus:outline-none focus:border-blue-500/60 text-white font-black italic uppercase tracking-wider transition-all"
+                      style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 30%)' }}
+                      placeholder="MAIL_ADDRESS"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-400">Your Name</label>
+                  <label className="block text-[10px] font-black text-blue-500/60 uppercase tracking-[0.3em] mb-2 px-1">SUBJECT_HEADER</label>
                   <input
                     type="text"
-                    id="name"
-                    name="name"
-                    className="mt-1 block w-full px-4 py-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500"
-                    placeholder="John Doe"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    className="w-full bg-black/40 border border-blue-500/20 px-5 py-4 focus:outline-none focus:border-blue-500/60 text-white font-black italic uppercase tracking-wider transition-all"
+                    style={{ clipPath: 'polygon(2% 0, 100% 0, 100% 100%, 0 100%, 0 10%)' }}
+                    placeholder="ISSUE_PRIORITY_LOW"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
                   />
                 </div>
+
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-400">Your Email (optional)</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    className="mt-1 block w-full px-4 py-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500"
-                    placeholder="john.doe@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+                  <label className="block text-[10px] font-black text-blue-500/60 uppercase tracking-[0.3em] mb-2 px-1">DATA_BURST</label>
+                  <textarea
+                    rows={5}
+                    className="w-full bg-black/40 border border-blue-500/20 px-5 py-4 focus:outline-none focus:border-blue-500/60 text-white font-black italic uppercase tracking-wider transition-all resize-none"
+                    style={{ clipPath: 'polygon(2% 0, 100% 0, 100% 100%, 0 100%, 0 10%)' }}
+                    placeholder="ENTER_MESSAGE_BODY..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                  ></textarea>
                 </div>
-              </div>
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-400">Subject</label>
-                <input
-                  type="text"
-                  id="subject"
-                  name="subject"
-                  className="mt-1 block w-full px-4 py-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500"
-                  placeholder="Regarding a tournament issue"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
+
+                <button
+                  type="submit"
+                  disabled={sending}
+                  className="w-full flex items-center justify-center gap-4 bg-pink-600 hover:bg-pink-500 text-white font-black uppercase italic tracking-[0.2em] py-5 shadow-[0_0_20px_rgba(255,0,255,0.3)] transition-all active:scale-[0.98] disabled:opacity-50"
+                  style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 70%, 95% 100%, 0 100%, 0 30%)' }}
+                >
+                  {sending ? 'COMM_OPENING...' : 'INITIATE_WA_BURST'}
+                </button>
+                <p className="text-[8px] font-black text-gray-700 text-center uppercase tracking-[0.3em]">
+                  Direct_Comms: {WHATSAPP_NUMBER}
+                </p>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        {/* WhatsApp Card */}
+        <section className="mb-12">
+          <div className="relative group overflow-hidden" style={{ clipPath: 'polygon(2% 0, 100% 0, 100% 70%, 98% 100%, 0 100%, 0 30%)' }}>
+            <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 to-blue-500/20 blur group-hover:opacity-40 transition-opacity opacity-20"></div>
+            <div className="relative bg-black border border-green-500/20 p-8 flex items-center gap-8">
+              <div className="flex-shrink-0 w-24 h-24 bg-green-500/10 border border-green-500/20 p-5 flex items-center justify-center" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 80%, 80% 100%, 0 100%, 0 20%)' }}>
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                  alt="WhatsApp Logo"
+                  className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(37,211,102,0.4)]"
                 />
               </div>
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-400">Your Message</label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={5}
-                  className="mt-1 block w-full px-4 py-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500"
-                  placeholder="Type your message here..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                ></textarea>
+              <div className="flex-1">
+                <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-2">Connect to the <span className="text-green-500">Node</span></h2>
+                <p className="text-gray-500 font-bold uppercase tracking-widest text-[9px] mb-6">// SYNC_WITH_ACTIVE_FACTION_BASE</p>
+                <a
+                  href={WHATSAPP_COMMUNITY_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 bg-green-600 hover:bg-green-500 text-white font-black uppercase italic tracking-widest px-8 py-3 text-xs transition-all shadow-[0_0_15px_rgba(37,211,102,0.3)]"
+                  style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 100%, 0 100%, 0 30%)' }}
+                >
+                  JOIN_CENTRAL_COMM
+                  <ExternalLink className="w-4 h-4" />
+                </a>
               </div>
-              <button
-                type="submit"
-                disabled={sending}
-                className="w-full py-3 px-4 rounded-xl text-lg font-semibold text-white bg-orange-600 hover:bg-orange-500 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-              >
-                {sending ? 'Opening WhatsApp…' : 'Send via WhatsApp'}
-              </button>
-              <p className="text-xs text-gray-500 text-center">Messages are sent directly to our WhatsApp: {WHATSAPP_NUMBER}</p>
-            </form>
-          </div>
-        </section>
-
-        <section className="mb-8">
-          <div className="bg-green-600/10 border border-green-500/30 rounded-2xl p-4 md:p-6 shadow-xl flex items-center gap-4 md:gap-6">
-            <div className="flex-shrink-0 w-16 h-16 md:w-24 md:h-24 relative bg-green-500/10 rounded-2xl flex items-center justify-center p-3 md:p-4">
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-                alt="WhatsApp Logo"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div className="flex-1 text-left">
-              <h2 className="text-lg md:text-xl font-semibold text-raid-gold mb-1 md:mb-3">Join our WhatsApp community</h2>
-              <p className="text-xs md:text-sm text-gray-400 mb-3 md:mb-4">Connect, chat and stay updated with the community.</p>
-              <a
-                href={WHATSAPP_COMMUNITY_LINK}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-semibold transition-colors shadow-lg shadow-orange-600/20"
-              >
-                <span>Join our WhatsApp Group</span>
-                <ExternalLink className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              </a>
             </div>
           </div>
         </section>
 
-        <section className="mb-8">
-          <div className="bg-gray-900/70 border border-gray-800 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-xl font-semibold text-raid-gold mb-3">Business Inquiries</h2>
-            <p className="text-sm text-gray-400 mb-2">Partnerships, media, and other opportunities:</p>
-            <p className="text-sm font-medium text-raid-gold">
-              <a href="mailto:raid00arena@gmail.com" className="hover:underline">raid00arena@gmail.com</a>
-            </p>
+        {/* Business and Socials */}
+        <div className="grid md:grid-cols-2 gap-8 mb-12">
+          <div className="bg-black/40 border border-white/5 p-8" style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 15%)' }}>
+            <h2 className="text-xs font-black text-blue-500 uppercase tracking-[0.4em] mb-4">CORP_INQUIRY</h2>
+            <p className="text-gray-500 font-black uppercase text-[10px] tracking-widest mb-4">Partnerships + Media_Requests:</p>
+            <a href="mailto:raid00arena@gmail.com" className="text-white font-black italic tracking-tighter hover:text-blue-400 transition-colors uppercase">
+              raid00arena@gmail.com
+            </a>
           </div>
-        </section>
 
-        <section className="mb-8">
-          <div className="bg-gray-900/70 border border-gray-800 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-xl font-semibold text-raid-gold mb-3">Social Media</h2>
-            <p className="text-sm text-gray-400 mb-4">Follow us for updates on tournaments and events:</p>
-            <div className="flex flex-wrap gap-4">
+          <div className="bg-black/40 border border-white/5 p-8" style={{ clipPath: 'polygon(0 0, 95% 0, 100% 15%, 100% 100%, 0 100%)' }}>
+            <h2 className="text-xs font-black text-pink-500 uppercase tracking-[0.4em] mb-4">SIGNAL_NODES</h2>
+            <div className="flex gap-4">
               {[
                 { name: 'Twitter', icon: <Twitter className="w-5 h-5" />, href: "#", color: "#1DA1F2" },
                 { name: 'Facebook', icon: <Facebook className="w-5 h-5" />, href: "#", color: "#1877F2" },
@@ -189,27 +211,28 @@ const ContactPage = () => {
                   href={social.href}
                   target={social.name === 'WhatsApp' ? "_blank" : undefined}
                   rel={social.name === 'WhatsApp' ? "noopener noreferrer" : undefined}
-                  className="p-3 rounded-full bg-gray-800 border border-gray-700 hover:text-white transition-all duration-300 shadow-lg group"
-                  title={social.name}
+                  className="w-12 h-12 flex items-center justify-center bg-gray-900 border border-white/5 transition-all hover:scale-110 active:scale-95 group"
+                  style={{
+                    clipPath: 'polygon(20% 0, 100% 0, 100% 80%, 80% 100%, 0 100%, 0 20%)',
+                  }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = social.color;
                     e.currentTarget.style.borderColor = social.color;
+                    e.currentTarget.style.boxShadow = `0 0 10px ${social.color}44`;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '';
                     e.currentTarget.style.borderColor = '';
+                    e.currentTarget.style.boxShadow = '';
                   }}
                 >
-                  <div style={{ color: social.color }} className="group-hover:text-white transition-colors duration-300">
+                  <div style={{ color: social.color }} className="group-hover:scale-110 transition-transform">
                     {social.icon}
                   </div>
                 </a>
               ))}
             </div>
           </div>
-        </section>
+        </div>
       </div>
-
     </div>
   );
 };

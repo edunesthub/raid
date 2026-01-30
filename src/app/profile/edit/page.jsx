@@ -27,7 +27,7 @@ export default function EditProfilePage() {
   const [success, setSuccess] = useState(false);
 
   // Avatar states
-  const [avatarUrl, setAvatarUrl] = useState(''); 
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = React.useRef(null);
 
@@ -164,7 +164,7 @@ export default function EditProfilePage() {
       const currentUsername = (user.username || '').toLowerCase().trim();
       const incomingUsername = safeFormData.username.toLowerCase().trim();
       const usernameChanged = incomingUsername !== currentUsername;
-      
+
       if (usernameChanged) {
         // ✅ Validate username format only if it changed
         const formatValidation = usernameService.validateUsernameFormat(safeFormData.username);
@@ -175,13 +175,13 @@ export default function EditProfilePage() {
         }
 
         const isAvailable = await usernameService.isUsernameAvailable(
-          safeFormData.username, 
+          safeFormData.username,
           user.id
         );
-        
+
         if (!isAvailable) {
           setError("Username is already taken. Please choose another one.");
-          
+
           // Generate suggestions
           const suggestions = await usernameService.generateSuggestions(safeFormData.username);
           if (suggestions.length > 0) {
@@ -244,176 +244,196 @@ export default function EditProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-4 py-10 flex flex-col items-center">
-      {/* Header */}
-      <div className="w-full max-w-md flex items-center justify-between mb-10">
-        <Link href="/profile" className="text-orange-500 hover:text-orange-600">
-          <ArrowLeft size={28} />
-        </Link>
-        <h1 className="text-3xl font-extrabold tracking-wide text-orange-400">
-          Edit Profile
-        </h1>
-        <div className="w-6" />
-      </div>
+    <div className="w-full h-full overflow-y-auto relative bg-[#050505]">
+      <div className="scanline"></div>
 
-      {/* Success Message */}
-      {success && (
-        <div className="w-full max-w-md mb-6 bg-green-600/10 border border-green-600/30 rounded-lg p-4">
-          <p className="text-green-400 text-center">✓ Profile updated successfully!</p>
-        </div>
-      )}
+      <div className="container-mobile py-12 relative z-10">
+        <div className="max-w-xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-12">
+            <Link href="/profile" className="p-3 bg-black border border-white/10 hover:border-blue-500/50 transition-all" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%, 0 20%)' }}>
+              <ArrowLeft className="w-6 h-6 text-blue-500" />
+            </Link>
+            <div className="text-right">
+              <h1 className="text-3xl font-black text-white uppercase italic tracking-tighter">
+                Operative <span className="text-blue-500">Log</span>
+              </h1>
+              <p className="text-blue-500/40 font-black uppercase tracking-[0.3em] text-[9px]">
+                // UPDATE_PERSONAL_PARAMETERS
+              </p>
+            </div>
+          </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="w-full max-w-md mb-6 bg-red-600/10 border border-red-600/30 rounded-lg p-4">
-          <p className="text-red-400 text-center">{error}</p>
-        </div>
-      )}
-
-      {/* Avatar */}
-      <div className="mb-6 relative">
-        <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-orange-500 mx-auto mb-4">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="Avatar" className="object-cover w-full h-full" />
-          ) : (
-            <div className="w-full h-full bg-gray-700 flex items-center justify-center text-white text-4xl font-bold">
-              {formData.firstName?.charAt(0) || 'U'}
+          {/* Messages */}
+          {success && (
+            <div className="bg-blue-600/10 border border-blue-600/30 p-4 mb-8 flex items-center justify-between" style={{ clipPath: 'polygon(2% 0, 100% 0, 100% 70%, 98% 100%, 0 100%, 0 30%)' }}>
+              <p className="text-blue-400 text-xs font-black uppercase tracking-widest italic animate-pulse">
+                ✓ CORE_DATA_SYNCHRONIZED
+              </p>
+              <div className="w-2 h-2 bg-blue-500 animate-ping"></div>
             </div>
           )}
-        </div>
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center hover:bg-orange-600 transition"
-        >
-          {uploadingAvatar ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-          ) : (
-            '📷'
+
+          {error && (
+            <div className="bg-pink-600/10 border border-pink-600/30 p-4 mb-8" style={{ clipPath: 'polygon(2% 0, 100% 0, 100% 70%, 98% 100%, 0 100%, 0 30%)' }}>
+              <p className="text-pink-500 text-xs font-black uppercase tracking-widest">⚠️ SYSTEM_ERROR: {error}</p>
+            </div>
           )}
-        </button>
-        <input
-          type="file"
-          ref={fileInputRef}
-          accept="image/*"
-          onChange={handleAvatarUpload}
-          className="hidden"
-        />
-      </div>
 
-      {/* Form Card */}
-      <form
-        onSubmit={handleSave}
-        className="w-full max-w-md bg-gray-800 border border-orange-500 rounded-3xl p-8 shadow-2xl space-y-6 backdrop-blur-md"
-      >
-        <div className="space-y-5">
-          {/* Username */}
-          <div>
-            <label className="block text-sm text-gray-300 mb-2">Username</label>
+          {/* Avatar Upload */}
+          <div className="flex flex-col items-center mb-12">
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-pink-500 opacity-30 blur group-hover:opacity-60 transition duration-500"></div>
+              <div className="relative w-32 h-32 bg-black border-2 border-blue-500/30 overflow-hidden shadow-2xl" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 80%, 80% 100%, 0 100%, 0 20%)' }}>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500" />
+                ) : (
+                  <div className="w-full h-full bg-blue-900/20 flex items-center justify-center text-blue-500 text-5xl font-black italic">
+                    {formData.firstName?.charAt(0) || 'U'}
+                  </div>
+                )}
+                {uploadingAvatar && (
+                  <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent animate-spin"></div>
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-2 -right-2 bg-blue-600 border border-blue-400 p-2.5 shadow-[0_0_15px_rgba(0,243,255,0.5)] hover:bg-blue-500 transition-all z-10"
+                style={{ clipPath: 'polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%)' }}
+              >
+                <Pencil className="w-4 h-4 text-white" />
+              </button>
+            </div>
             <input
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              placeholder="Your username"
-              className="w-full bg-gray-900 border border-orange-500 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-white placeholder-gray-400 transition"
-              required
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              onChange={handleAvatarUpload}
+              className="hidden"
             />
+            <p className="mt-4 text-blue-500/40 font-black uppercase tracking-[0.2em] text-[10px]">REHOST_BIOMETRIC_VISUAL</p>
           </div>
 
-          {/* First Name */}
-          <div>
-            <label className="block text-sm text-gray-300 mb-2">First Name</label>
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              placeholder="John"
-              className="w-full bg-gray-900 border border-orange-500 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-white placeholder-gray-400 transition"
-            />
-          </div>
+          {/* Form */}
+          <form onSubmit={handleSave} className="relative group">
+            <div className="absolute -inset-1 bg-blue-500/5 blur opacity-50"></div>
+            <div className="relative bg-black border border-blue-500/20 p-8 sm:p-10 space-y-8" style={{ clipPath: 'polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%)' }}>
 
-          {/* Last Name */}
-          <div>
-            <label className="block text-sm text-gray-300 mb-2">Last Name</label>
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              placeholder="Doe"
-              className="w-full bg-gray-900 border border-orange-500 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-white placeholder-gray-400 transition"
-            />
-          </div>
+              <div className="grid sm:grid-cols-2 gap-8">
+                {/* Username */}
+                <div className="sm:col-span-2">
+                  <label className="block text-[10px] font-black text-blue-500/60 uppercase tracking-[0.3em] mb-2 px-1">IDENTITY_LABEL</label>
+                  <input
+                    type="text"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    className="w-full bg-black/40 border border-blue-500/20 px-5 py-4 focus:outline-none focus:border-blue-500/60 text-white font-black italic uppercase tracking-wider transition-all"
+                    style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 30%)' }}
+                    required
+                  />
+                </div>
 
-          {/* Phone */}
-          <div>
-            <label className="block text-sm text-gray-300 mb-2">Phone Number</label>
-            <input
-              type="tel"
-              name="contact"
-              value={formData.contact}
-              onChange={handleChange}
-              placeholder="+233 123 456 789"
-              className="w-full bg-gray-900 border border-orange-500 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-white placeholder-gray-400 transition"
-            />
-          </div>
+                {/* First Name */}
+                <div>
+                  <label className="block text-[10px] font-black text-blue-500/60 uppercase tracking-[0.3em] mb-2 px-1">PREFIX_IDENTIFIER</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    className="w-full bg-black/40 border border-blue-500/20 px-5 py-4 focus:outline-none focus:border-blue-500/60 text-white font-black italic uppercase tracking-wider transition-all"
+                    style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 30%)' }}
+                  />
+                </div>
 
-          {/* Country */}
-          <div>
-            <label className="block text-sm text-gray-300 mb-2">Country</label>
-            <select
-              name="country"
-              value={formData.country}
-              onChange={handleChange}
-              className="w-full bg-gray-900 border border-orange-500 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-white placeholder-gray-400 transition"
-            >
-              <option value="Ghana">Ghana</option>
-              <option value="Nigeria">Nigeria</option>
-            </select>
-          </div>
+                {/* Last Name */}
+                <div>
+                  <label className="block text-[10px] font-black text-blue-500/60 uppercase tracking-[0.3em] mb-2 px-1">SUFFIX_IDENTIFIER</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    className="w-full bg-black/40 border border-blue-500/20 px-5 py-4 focus:outline-none focus:border-blue-500/60 text-white font-black italic uppercase tracking-wider transition-all"
+                    style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 30%)' }}
+                  />
+                </div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm text-gray-300 mb-2">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-              className="w-full bg-gray-900 border border-orange-500 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-white placeholder-gray-400 transition"
-              required
-            />
-          </div>
+                {/* Phone */}
+                <div>
+                  <label className="block text-[10px] font-black text-blue-500/60 uppercase tracking-[0.3em] mb-2 px-1">UPLINK_SECURE_ID</label>
+                  <input
+                    type="tel"
+                    name="contact"
+                    value={formData.contact}
+                    onChange={handleChange}
+                    className="w-full bg-black/40 border border-blue-500/20 px-5 py-4 focus:outline-none focus:border-blue-500/60 text-white font-black italic uppercase tracking-wider transition-all"
+                    style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 30%)' }}
+                  />
+                </div>
 
-          {/* Bio */}
-          <div>
-            <label className="block text-sm text-gray-300 mb-2">Bio</label>
-            <textarea
-              name="bio"
-              value={formData.bio}
-              onChange={handleChange}
-              rows="4"
-              placeholder="Write a short bio..."
-              className="w-full bg-gray-900 border border-orange-500 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-white placeholder-gray-400 transition resize-none"
-            ></textarea>
-          </div>
+                {/* Country */}
+                <div>
+                  <label className="block text-[10px] font-black text-blue-500/60 uppercase tracking-[0.3em] mb-2 px-1">ZONE_COORDINATES</label>
+                  <select
+                    name="country"
+                    value={formData.country}
+                    onChange={handleChange}
+                    className="w-full bg-black/40 border border-blue-500/20 px-5 py-4 focus:outline-none focus:border-blue-500/60 text-white font-black italic uppercase tracking-wider transition-all appearance-none"
+                    style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 30%)' }}
+                  >
+                    <option value="Ghana">Ghana [ZONE_AF-W]</option>
+                    <option value="Nigeria">Nigeria [ZONE_AF-E]</option>
+                  </select>
+                </div>
+
+                {/* Email */}
+                <div className="sm:col-span-2">
+                  <label className="block text-[10px] font-black text-blue-500/60 uppercase tracking-[0.3em] mb-2 px-1">TRANSMISSION_UPLINK</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full bg-black/40 border border-blue-500/20 px-5 py-4 focus:outline-none focus:border-blue-500/60 text-white font-black italic uppercase tracking-wider transition-all"
+                    style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 30%)' }}
+                    required
+                  />
+                </div>
+
+                {/* Bio */}
+                <div className="sm:col-span-2">
+                  <label className="block text-[10px] font-black text-blue-500/60 uppercase tracking-[0.3em] mb-2 px-1">TACTICAL_SYNOPSIS</label>
+                  <textarea
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleChange}
+                    rows="4"
+                    className="w-full bg-black/40 border border-blue-500/20 px-5 py-4 focus:outline-none focus:border-blue-500/60 text-white font-black italic uppercase tracking-wider transition-all resize-none"
+                    style={{ clipPath: 'polygon(2% 0, 100% 0, 100% 100%, 0 100%, 0 10%)' }}
+                  ></textarea>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <button
+                type="submit"
+                disabled={saving}
+                className={`w-full flex items-center justify-center gap-4 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase italic tracking-[0.2em] py-5 shadow-[0_0_20px_rgba(0,243,255,0.3)] transition-all active:scale-[0.98] ${saving ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 70%, 95% 100%, 0 100%, 0 30%)' }}
+              >
+                <Save className="w-5 h-5 shadow-[0_0_10px_white]" />
+                {saving ? 'SYNCHRONIZING...' : 'COMMIT_CHANGES'}
+              </button>
+            </div>
+          </form>
         </div>
-
-        {/* Save Button */}
-        <button
-          type="submit"
-          disabled={saving}
-          className={`w-full flex items-center justify-center gap-3 bg-orange-500 hover:bg-orange-600 font-bold py-3 rounded-2xl text-white text-lg transition-all active:scale-95 ${
-            saving ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          <Save size={18} />
-          {saving ? 'Saving...' : 'Save Changes'}
-        </button>
-      </form>
+      </div>
     </div>
   );
 }

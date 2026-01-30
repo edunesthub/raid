@@ -39,15 +39,16 @@ const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/auth/onboardin
       </head>
 
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-gray-100 h-full overflow-x-hidden`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-blue-100 h-full overflow-x-hidden`}
         style={{
           minHeight: "100vh",
           minHeight: "100dvh",
           height: "100%",
         }}
       >
+        <div className="scanline"></div>
         <AppProviders>
-          <div className="flex flex-col h-full min-h-screen">
+          <div className="flex flex-col h-full min-h-screen relative z-10">
             {/* Navigation - only show on regular pages */}
             {!hideLayout && <Navigation />}
             
@@ -79,7 +80,9 @@ const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/auth/onboardin
         </AppProviders>
 
         <Analytics />
+        <SpeedInsights />
       </body>
+
     </html>
   );
 }

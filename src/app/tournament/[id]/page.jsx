@@ -330,30 +330,30 @@ function TournamentPageContent({ resolvedParams }) {
       case 'registration-open':
         return {
           color: 'bg-blue-600',
-          text: 'REGISTRATION OPEN',
-          icon: '🔥',
+          text: 'UPLINK_OPEN',
+          icon: '💠',
           gradient: 'from-blue-500/20 to-blue-600/5'
         };
       case 'upcoming':
         return {
-          color: 'bg-yellow-600',
-          text: 'UPCOMING',
-          icon: '⏰',
-          gradient: 'from-yellow-500/20 to-yellow-600/5'
+          color: 'bg-purple-600',
+          text: 'SCHEDULED',
+          icon: '⏳',
+          gradient: 'from-purple-500/20 to-purple-600/5'
         };
       case 'live':
         return {
-          color: 'bg-green-600',
-          text: 'LIVE NOW',
-          icon: '🔴',
-          gradient: 'from-green-500/20 to-green-600/5'
+          color: 'bg-pink-600',
+          text: 'NODE_LIVE',
+          icon: '📡',
+          gradient: 'from-pink-500/20 to-pink-600/5'
         };
       case 'completed':
         return {
-          color: 'bg-gray-600',
-          text: 'COMPLETED',
-          icon: '✅',
-          gradient: 'from-gray-500/20 to-gray-600/5'
+          color: 'bg-gray-800',
+          text: 'ARCHIVED',
+          icon: '📁',
+          gradient: 'from-gray-500/10 to-gray-600/5'
         };
       default:
         return {
@@ -415,91 +415,61 @@ function TournamentPageContent({ resolvedParams }) {
       return (
         <Link href={`/users/${player.id}`}>
           <div
-            className={`bg-gradient-to-br ${config.bg} rounded-2xl p-4 pb-8 border ${config.border} hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-xl`}
+            className={`bg-black/60 backdrop-blur-md rounded-none p-5 pb-8 border ${config.border} hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-xl relative overflow-hidden group`}
+            style={{ clipPath: 'polygon(0 0, 90% 0, 100% 10%, 100% 100%, 10% 100%, 0 90%)' }}
           >
+            <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 rotate-45 translate-x-10 -translate-y-10 group-hover:bg-white/10 transition-colors"></div>
+
             {/* Title Row */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <Icon className={`w-6 h-6 ${config.color}`} />
-                <span className={`${config.color} font-bold`}>{config.title}</span>
+                <Icon className={`w-5 h-5 ${config.color} shadow-[0_0_10px_currentColor]`} />
+                <span className={`${config.color} font-black text-[10px] uppercase tracking-widest`}>{config.title}</span>
               </div>
-              <span className="text-2xl">{config.emoji}</span>
+              <span className="text-xl grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all">{config.emoji}</span>
             </div>
 
-            {/* Avatar + Crown (Champion Only) */}
-            <div className="flex justify-center mb-4 relative">
-              {placement === 'first' && (
-                <div className="absolute -top-8 right-24 animate-bounce transform rotate-25">
-                  <Crown className="w-10 h-10 text-yellow-400 drop-shadow-lg" />
-                </div>
-              )}
-
-
+            {/* Avatar */}
+            <div className="flex justify-center mb-6 relative">
               <div className="relative w-24 h-24">
-                <div
-                  className={`absolute inset-0 rounded-full blur-xl opacity-40 ${placement === 'first'
-                    ? 'bg-yellow-500'
-                    : placement === 'second'
-                      ? 'bg-gray-400'
-                      : 'bg-orange-400'
-                    }`}
-                ></div>
-
-                <div
-                  className={`relative w-full h-full rounded-full overflow-hidden border-4 ${config.border} ring-4 ${config.ring}`}
-                >
+                <div className={`absolute inset-0 rounded-none blur-xl opacity-20 ${config.color.replace('text-', 'bg-')}`}></div>
+                <div className={`relative w-full h-full rounded-none overflow-hidden border-2 ${config.border}`} style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 80%, 80% 100%, 0 100%, 0 20%)' }}>
                   {player.avatarUrl ? (
-                    <img
-                      src={player.avatarUrl}
-                      alt={player.username}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={player.avatarUrl} alt={player.username} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                      <span className="text-white text-xl font-bold">
-                        {player.username?.charAt(0).toUpperCase()}
-                      </span>
+                    <div className="w-full h-full bg-gray-900 flex items-center justify-center font-black text-2xl text-gray-500">
+                      {player.username?.charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-
             {/* Username */}
-            <h3 className="text-center font-bold text-lg text-white truncate">
+            <h3 className="text-center font-black text-white italic truncate uppercase tracking-tighter text-lg mb-1 group-hover:text-blue-400 transition-colors">
               {player.username}
             </h3>
-            <p className="text-center text-gray-400 text-xs mb-5">
-              {player.firstName} {player.lastName}
+            <p className="text-center text-gray-600 font-bold uppercase tracking-[0.2em] text-[10px] mb-6">
+              TERMINAL_ID: {player.id?.slice(0, 8)}
             </p>
 
             {/* Stats Section */}
             {stats && (
-              <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/10">
+              <div className="grid grid-cols-3 gap-2 pt-6 border-t border-white/5">
                 <div className="text-center">
-                  <Trophy className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
-                  <p className="text-white font-bold text-sm">{stats.tournamentsWon || 0}</p>
-                  <p className="text-gray-400 text-xs">Wins</p>
+                  <p className="text-white font-black italic text-base">{stats.tournamentsWon || 0}</p>
+                  <p className="text-gray-500 text-[8px] font-black uppercase tracking-widest">WINS</p>
                 </div>
                 <div className="text-center">
-                  <Target className="w-5 h-5 text-blue-500 mx-auto mb-1" />
-                  <p className="text-white font-bold text-sm">{stats.tournamentsPlayed || 0}</p>
-                  <p className="text-gray-400 text-xs">Played</p>
+                  <p className="text-white font-black italic text-base">{stats.tournamentsPlayed || 0}</p>
+                  <p className="text-gray-500 text-[8px] font-black uppercase tracking-widest">TRIALS</p>
                 </div>
                 <div className="text-center">
-                  <TrendingUp className="w-5 h-5 text-green-500 mx-auto mb-1" />
-                  <p className="text-white font-bold text-sm">{stats.winRate?.toFixed(0) || 0}%</p>
-                  <p className="text-gray-400 text-xs">Rate</p>
+                  <p className="text-white font-black italic text-base">{stats.winRate?.toFixed(0) || 0}%</p>
+                  <p className="text-gray-500 text-[8px] font-black uppercase tracking-widest">RATIO</p>
                 </div>
               </div>
             )}
-
-            {/* CTA */}
-            <div className="mt-5 flex items-center justify-center gap-2 text-gray-300 hover:text-white transition-colors">
-              <span className="text-xs font-medium">View Profile</span>
-              <ChevronRight className="w-4 h-4" />
-            </div>
           </div>
         </Link>
       );
@@ -575,19 +545,23 @@ function TournamentPageContent({ resolvedParams }) {
       )}
 
       {/* Tournament Hero Section */}
-      <div className={`card-raid p-4 sm:p-6 mb-6 bg-gradient-to-br ${statusConfig.gradient} relative overflow-hidden`}>
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/5 to-orange-500/0 animate-shimmer"></div>
+      <div className={`card-raid p-6 sm:p-8 mb-8 bg-black/40 border-blue-500/30 relative overflow-hidden`}>
+        <div className="absolute top-0 left-0 w-2 h-20 bg-blue-500 shadow-[0_0_15px_#00f3ff]"></div>
 
         <div className="relative z-10">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-8">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-3">
-                <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
-                <span className="text-orange-400 text-xs sm:text-sm font-semibold">{tournament.game}</span>
+              <div className="flex items-center gap-3 mb-4">
+                <Trophy className="w-5 h-5 text-blue-400" />
+                <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em]">// {tournament.game}</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 leading-tight">{tournament.title}</h1>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4 uppercase italic tracking-tighter leading-none">
+                {tournament.title}
+              </h1>
               {tournament.description && (
-                <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4">{tournament.description}</p>
+                <p className="text-blue-300/60 text-xs sm:text-sm font-bold uppercase tracking-wide mb-6 max-w-2xl leading-relaxed">
+                  [REMARK]: {tournament.description}
+                </p>
               )}
 
               {tournament.twitch_link && (
@@ -595,129 +569,120 @@ function TournamentPageContent({ resolvedParams }) {
                   href={tournament.twitch_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2.5 px-5 py-2.5 bg-[#9146FF] hover:bg-[#772ce8] text-white rounded-xl font-bold text-sm transition-all shadow-lg hover:shadow-[#9146FF]/20 hover:-translate-y-0.5 group"
+                  className="inline-flex items-center gap-3 px-6 py-3 bg-[#9146FF] hover:bg-[#772ce8] text-white font-black text-xs uppercase tracking-widest transition-all shadow-[0_0_15px_#9146FF] group"
+                  style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%)' }}
                 >
-                  <div className="relative flex h-3 w-3">
+                  <div className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                   </div>
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
-                  </svg>
-                  <span>Watch Livestream</span>
+                  <span>LIVE_FEED</span>
                 </a>
               )}
             </div>
 
-            <div className={`${statusConfig.color} px-4 sm:px-6 py-2 sm:py-3 rounded-full text-xs sm:text-sm font-bold text-white flex items-center gap-2 animate-pulse shadow-lg`}>
-              <span className="text-base sm:text-xl">{statusConfig.icon}</span>
-              <span className="whitespace-nowrap">{statusConfig.text}</span>
+            <div className={`${statusConfig.color} px-6 py-3 text-[10px] font-black text-white italic tracking-tighter flex items-center gap-3 shadow-lg`} style={{ clipPath: 'polygon(0 0, 90% 0, 100% 30%, 100% 100%, 10% 100%, 0 70%)' }}>
+              <span className="text-lg">{statusConfig.icon}</span>
+              <span className="whitespace-nowrap tracking-[0.2em]">{statusConfig.text}</span>
             </div>
           </div>
 
           {/* Tournament Stats Grid - Responsive */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-gray-700/50 hover:border-orange-500/50 transition-all hover:scale-105 transform">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-black/40 border border-blue-500/20 p-5 group hover:border-blue-500/50 transition-all shadow-[0_0_15px_rgba(0,243,255,0.05)]" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%)' }}>
               <div className="flex items-center justify-between mb-2">
-                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
-                <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400 opacity-50" />
+                <Users className="w-4 h-4 text-blue-400 opacity-50" />
+                <div className="w-1 h-3 bg-blue-500"></div>
               </div>
-              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-white">{tournament.currentPlayers}</p>
-              <p className="text-gray-400 text-xs mt-1">Players</p>
+              <p className="text-2xl sm:text-3xl font-black italic text-white tracking-tighter group-hover:text-blue-400 transition-colors">{tournament.currentPlayers}</p>
+              <p className="text-gray-600 text-[9px] font-black uppercase tracking-[0.2em] mt-1">OPERATIVES_CON</p>
             </div>
 
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-gray-700/50 hover:border-yellow-500/50 transition-all hover:scale-105 transform">
+            <div className="bg-black/40 border border-pink-500/20 p-5 group hover:border-pink-500/50 transition-all shadow-[0_0_15px_rgba(255,0,255,0.05)]" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%)' }}>
               <div className="flex items-center justify-between mb-2">
-                <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />
-                <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 opacity-50" />
+                <Trophy className="w-4 h-4 text-pink-400 opacity-50" />
+                <div className="w-1 h-3 bg-pink-500"></div>
               </div>
-              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-white">{formatCurrency(tournament.prizePool)}</p>
-              <p className="text-gray-400 text-xs mt-1">Prize Pool</p>
+              <p className="text-2xl sm:text-3xl font-black italic text-white tracking-tighter group-hover:text-pink-400 transition-colors">{formatCurrency(tournament.prizePool)}</p>
+              <p className="text-gray-600 text-[9px] font-black uppercase tracking-[0.2em] mt-1">CREDIT_REWARD</p>
             </div>
 
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-gray-700/50 hover:border-green-500/50 transition-all hover:scale-105 transform">
+            <div className="bg-black/40 border border-cyan-500/20 p-5 group hover:border-cyan-500/50 transition-all shadow-[0_0_15px_rgba(0,243,255,0.05)]" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%)' }}>
               <div className="flex items-center justify-between mb-2">
-                <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
-                <Target className="w-3 h-3 sm:w-4 sm:h-4 text-green-400 opacity-50" />
+                <DollarSign className="w-4 h-4 text-cyan-400 opacity-50" />
+                <div className="w-1 h-3 bg-cyan-500"></div>
               </div>
-              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-white">{formatCurrency(tournament.entryFee)}</p>
-              <p className="text-gray-400 text-xs mt-1">Entry Fee</p>
+              <p className="text-2xl sm:text-3xl font-black italic text-white tracking-tighter group-hover:text-cyan-400 transition-colors">{formatCurrency(tournament.entryFee)}</p>
+              <p className="text-gray-600 text-[9px] font-black uppercase tracking-[0.2em] mt-1">UPLINK_COST</p>
             </div>
 
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-gray-700/50 hover:border-purple-500/50 transition-all hover:scale-105 transform">
+            <div className="bg-black/40 border border-purple-500/20 p-5 group hover:border-purple-500/50 transition-all shadow-[0_0_15px_rgba(157,0,255,0.05)]" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%)' }}>
               <div className="flex items-center justify-between mb-2">
-                <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
-                <Star className="w-3 h-3 sm:w-4 sm:h-4 text-purple-400 opacity-50" />
+                <Zap className="w-4 h-4 text-purple-400 opacity-50" />
+                <div className="w-1 h-3 bg-purple-500"></div>
               </div>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-white">{tournament.maxPlayers}</p>
-              <p className="text-gray-400 text-xs mt-1">Max Players</p>
+              <p className="text-2xl sm:text-3xl font-black italic text-white tracking-tighter group-hover:text-purple-400 transition-colors">{tournament.maxPlayers}</p>
+              <p className="text-gray-600 text-[9px] font-black uppercase tracking-[0.2em] mt-1">CAPACITY_LIMIT</p>
             </div>
           </div>
 
           {/* Progress Bar */}
           {tournament.status !== 'completed' && (
-            <div className="mt-6">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-400 text-xs sm:text-sm flex items-center gap-2">
-                  <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Registration Progress
+            <div className="mt-8">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-blue-500/60 text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2">
+                  <div className="w-1 h-3 bg-blue-500"></div>
+                  REGISTRATION_FLOW
                 </span>
-                <span className="text-white font-semibold text-xs sm:text-sm">
-                  {tournament.currentPlayers} / {tournament.maxPlayers}
+                <span className="text-white font-black italic text-xs tracking-widest bg-blue-500/10 px-3 py-1 border border-blue-500/20">
+                  {tournament.currentPlayers} / {tournament.maxPlayers} UNIT_SYNC
                 </span>
               </div>
-              <div className="relative w-full bg-gray-800 rounded-full h-3 sm:h-4 overflow-hidden border border-gray-700">
+              <div className="relative w-full bg-blue-900/10 border border-blue-500/20 h-4 overflow-hidden" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 1% 100%, 0 70%)' }}>
                 <div
-                  className="absolute inset-0 bg-gradient-to-r from-orange-600 via-orange-500 to-orange-400 rounded-full transition-all duration-500 shadow-lg"
+                  className="absolute inset-0 bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-400 shadow-[0_0_15px_rgba(0,243,255,0.5)] transition-all duration-1000"
                   style={{ width: `${progressPercentage}%` }}
                 >
                   <div className="absolute inset-0 bg-white/20 animate-shimmer-fast"></div>
                 </div>
               </div>
-              <p className="text-gray-400 text-xs sm:text-sm mt-2 flex items-center gap-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-3">
                 {spotsLeft > 0 ? (
-                  <>
-                    <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-orange-500" />
-                    <span className="text-orange-400 font-semibold">{spotsLeft} spots remaining!</span>
-                  </>
+                  <span className="text-cyan-400 animate-pulse">// {spotsLeft} NODES_AVAILABLE_FOR_LINK</span>
                 ) : (
-                  <>
-                    <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
-                    <span className="text-red-400 font-semibold">Tournament is full!</span>
-                  </>
+                  <span className="text-pink-500">// ALL_NODES_OCCUPIED</span>
                 )}
               </p>
             </div>
           )}
 
           {/* Action Buttons - Mobile Optimized */}
-          <div className="mt-6">
+          <div className="mt-10">
             {tournament.status === 'completed' ? (
-              <div className="bg-gray-700/50 rounded-xl p-4 sm:p-6 text-center border border-gray-600">
-                <Trophy className="w-10 h-10 sm:w-12 sm:h-12 text-yellow-400 mx-auto mb-3" />
-                <p className="text-gray-300 font-semibold text-base sm:text-lg mb-1">Tournament Ended</p>
-                <p className="text-gray-500 text-xs sm:text-sm">Thanks to all participants!</p>
+              <div className="bg-blue-600/5 border border-white/10 p-8 text-center" style={{ clipPath: 'polygon(0 0, 95% 0, 100% 15%, 100% 100%, 5% 100%, 0 85%)' }}>
+                <Trophy className="w-12 h-12 text-blue-500 mx-auto mb-4 opacity-40 shadow-[0_0_15px_rgba(0,243,255,0.4)]" />
+                <p className="text-white font-black italic uppercase tracking-widest text-lg mb-2">Tournament Terminated</p>
+                <p className="text-blue-500/40 text-[10px] font-black uppercase tracking-[0.4em]">// SESSION_RECORDS_STORED</p>
               </div>
             ) : tournament.status === 'live' ? (
-              <div className="space-y-3">
-                <div className="bg-green-600/20 border border-green-600/50 rounded-xl p-4 sm:p-6">
-                  <p className="text-green-400 font-semibold mb-2 flex items-center justify-center gap-2 text-base sm:text-lg">
+              <div className="space-y-6">
+                <div className="bg-pink-600/10 border border-pink-500/30 p-8" style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 90%, 95% 100%, 0 100%, 0 10%)' }}>
+                  <p className="text-pink-500 font-black flex items-center justify-center gap-3 text-xl italic uppercase tracking-tighter mb-4 animate-pulse">
                     <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
                     </span>
-                    Tournament is Live!
+                    ARENA_STATUS: ACTIVE
                   </p>
                   {isParticipant && (
                     <>
-                      <p className="text-gray-300 text-xs sm:text-sm mb-4 text-center">Check your matches and submit results below</p>
-
+                      <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.3em] mb-8 text-center">// TRANSMIT_COMBAT_LOGS_BELOW</p>
                       <button
                         onClick={() => setShowResultsModal(true)}
-                        className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 transform hover:scale-105 text-sm sm:text-base"
+                        className="w-full bg-pink-600 hover:bg-pink-500 text-white font-black italic uppercase tracking-[0.2em] py-5 transition-all shadow-[0_0_20px_rgba(255,0,255,0.3)] active:scale-95"
+                        style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 70%, 95% 100%, 0 100%, 0 30%)' }}
                       >
-                        <Target className="w-4 h-4 sm:w-5 sm:h-5" />
-                        Submit Match Results
+                        SUBMIT_TACTICAL_RESULT
                       </button>
                     </>
                   )}
@@ -725,11 +690,11 @@ function TournamentPageContent({ resolvedParams }) {
               </div>
             ) : canJoin ? (
               isParticipant ? (
-                <div className="space-y-3">
-                  <div className="bg-green-600/20 border border-green-600/50 rounded-xl p-4 text-center">
-                    <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-green-400 mx-auto mb-2" />
-                    <p className="text-green-400 font-semibold text-base sm:text-lg">You're Registered!</p>
-                    <p className="text-gray-300 text-xs sm:text-sm mt-1">Get ready for the tournament</p>
+                <div className="space-y-6">
+                  <div className="bg-blue-600/10 border border-blue-500/30 p-8 text-center" style={{ clipPath: 'polygon(2% 0, 100% 0, 100% 80%, 98% 100%, 0 100%, 0 20%)' }}>
+                    <Shield className="w-10 h-10 text-blue-400 mx-auto mb-4 animate-pulse opacity-50" />
+                    <p className="text-white font-black italic uppercase tracking-tighter text-2xl mb-2">ACCESS_GRANTED</p>
+                    <p className="text-blue-500/40 text-[10px] font-black uppercase tracking-[0.4em]">// PREPARING_FOR_UPLINK</p>
                   </div>
 
                   {/* Chat Button */}
@@ -740,19 +705,16 @@ function TournamentPageContent({ resolvedParams }) {
                       router.push(`/tournament/${resolvedParams.id}/chat`);
                     }}
                     disabled={actionLoading}
-                    className="relative w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl transition-all transform hover:scale-105 flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="relative w-full bg-blue-600 hover:bg-blue-500 text-white font-black italic uppercase tracking-[0.2em] py-5 transition-all shadow-[0_0_20px_rgba(0,243,255,0.3)] active:scale-95 disabled:opacity-50"
+                    style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 70%, 95% 100%, 0 100%, 0 30%)' }}
                   >
                     {actionLoading ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/80 border-t-transparent rounded-full animate-spin" />
-                        <span>Opening Chat...</span>
-                      </>
+                      <span>INITIALIZING_COMM...</span>
                     ) : (
                       <>
-                        <MessageCircle className="w-5 h-5" />
-                        <span>Tournament Chat</span>
+                        <span>ENTER_COMM_NODE</span>
                         {chatUnreadCount > 0 && (
-                          <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center font-bold">
+                          <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-[10px] font-black h-6 min-w-[24px] px-1 blur-none shadow-[0_0_10px_#ff00ff] flex items-center justify-center">
                             {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
                           </span>
                         )}
@@ -763,35 +725,37 @@ function TournamentPageContent({ resolvedParams }) {
                   <button
                     onClick={handleLeaveTournament}
                     disabled={actionLoading}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 text-sm sm:text-base"
+                    className="w-full bg-transparent border-2 border-red-500/40 text-red-500/40 hover:text-red-500 hover:border-red-500 font-black italic uppercase tracking-[0.2em] py-4 transition-all active:scale-95 disabled:opacity-50"
+                    style={{ clipPath: 'polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%)' }}
                   >
-                    {actionLoading ? 'Processing...' : 'Leave Tournament'}
+                    {actionLoading ? 'SHUTTING_DOWN...' : 'ABORT_UPLINK'}
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={handleJoinTournament}
                   disabled={actionLoading || spotsLeft === 0}
-                  className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-4 sm:py-5 px-4 sm:px-6 rounded-xl transition-all shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 flex items-center justify-center gap-2 sm:gap-3 text-base sm:text-lg"
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black italic uppercase tracking-[0.2em] py-6 transition-all shadow-[0_0_30px_rgba(0,243,255,0.4)] active:scale-95 disabled:opacity-40"
+                  style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 70%, 95% 100%, 0 100%, 0 30%)' }}
                 >
                   {actionLoading ? (
-                    <>
-                      <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Joining...</span>
-                    </>
+                    <div className="flex items-center justify-center gap-4">
+                      <div className="w-5 h-5 border-2 border-white/50 border-t-white animate-spin"></div>
+                      <span>SYNCING_DATA...</span>
+                    </div>
                   ) : (
-                    <>
-                      <Trophy className="w-5 h-5 sm:w-6 sm:h-6" />
-                      <span>Join Tournament - {formatCurrency(tournament.entryFee)}</span>
-                    </>
+                    <div className="flex items-center justify-center gap-4">
+                      <Trophy className="w-6 h-6" />
+                      <span>INITIALIZE_UPLINK - {formatCurrency(tournament.entryFee)}</span>
+                    </div>
                   )}
                 </button>
               )
             ) : (
-              <div className="bg-gray-700/50 rounded-xl p-4 sm:p-6 text-center border border-gray-600">
-                <Shield className="w-10 h-10 sm:w-12 sm:h-12 text-gray-500 mx-auto mb-3" />
-                <p className="text-gray-400 font-semibold text-sm sm:text-base">
-                  {spotsLeft === 0 ? '❌ Tournament is Full' : '🔒 Registration Closed'}
+              <div className="bg-white/5 border border-white/10 p-10 text-center" style={{ clipPath: 'polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%)' }}>
+                <Shield className="w-12 h-12 text-gray-700 mx-auto mb-4" />
+                <p className="text-gray-500 font-black italic uppercase tracking-[0.3em] text-lg">
+                  {spotsLeft === 0 ? 'CAPACITY_REACHED' : 'SIGNAL_CLOSED'}
                 </p>
               </div>
             )}
@@ -806,27 +770,29 @@ function TournamentPageContent({ resolvedParams }) {
 
       {/* Tabs for Details and Bracket */}
       {showBracket && (
-        <div className="mb-6">
-          <div className="flex gap-2 bg-gray-800 border border-gray-700 rounded-xl p-1">
+        <div className="mb-8">
+          <div className="flex gap-2 bg-black/40 border border-blue-500/20 p-1.5" style={{ clipPath: 'polygon(2% 0, 100% 0, 100% 80%, 98% 100%, 0 100%, 0 20%)' }}>
             <button
               onClick={() => setActiveTab('details')}
-              className={`flex-1 py-2 sm:py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base ${activeTab === 'details'
-                ? 'bg-orange-500 text-white shadow-lg'
-                : 'text-gray-400 hover:text-white'
+              className={`flex-1 py-3 px-6 font-black uppercase italic tracking-tighter transition-all flex items-center justify-center gap-3 text-sm ${activeTab === 'details'
+                ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(0,243,255,0.4)]'
+                : 'text-gray-500 hover:text-blue-400'
                 }`}
+              style={activeTab === 'details' ? { clipPath: 'polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%)' } : {}}
             >
-              <Award className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>Details</span>
+              <Award className="w-4 h-4" />
+              <span>Module_Data</span>
             </button>
             <button
               onClick={() => setActiveTab('bracket')}
-              className={`flex-1 py-2 sm:py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base ${activeTab === 'bracket'
-                ? 'bg-orange-500 text-white shadow-lg'
-                : 'text-gray-400 hover:text-white'
+              className={`flex-1 py-3 px-6 font-black uppercase italic tracking-tighter transition-all flex items-center justify-center gap-3 text-sm ${activeTab === 'bracket'
+                ? 'bg-pink-600 text-white shadow-[0_0_15px_rgba(255,0,255,0.4)]'
+                : 'text-gray-500 hover:text-pink-400'
                 }`}
+              style={activeTab === 'bracket' ? { clipPath: 'polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%)' } : {}}
             >
-              <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>Bracket</span>
+              <Trophy className="w-4 h-4" />
+              <span>Tactical_Grid</span>
             </button>
           </div>
         </div>
@@ -839,34 +805,34 @@ function TournamentPageContent({ resolvedParams }) {
         <>
           {/* Tournament Schedule */}
           {(tournament.startDate || tournament.endDate) && (
-            <div className="card-raid p-4 sm:p-6 mb-6">
-              <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
-                Tournament Schedule
-              </h2>
-              <div className="space-y-4">
+            <div className="card-raid p-6 mb-8 relative">
+              <div className="flex items-center gap-3 mb-8">
+                <Calendar className="w-5 h-5 text-blue-400" />
+                <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">CHRONOS_SCHEDULE</h2>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-6">
                 {tournament.startDate && (
-                  <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Clock className="w-5 h-5 text-green-400" />
+                  <div className="bg-black/40 border border-blue-500/20 p-5 group hover:border-blue-500/40 transition-all" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 80%, 80% 100%, 0 100%)' }}>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/20 flex items-center justify-center" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%, 0 20%)' }}>
+                        <Clock className="w-6 h-6 text-blue-400" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-gray-400 text-xs sm:text-sm">Start Date</h3>
-                        <p className="text-white font-semibold text-sm sm:text-base truncate">{new Date(tournament.startDate).toLocaleString()}</p>
+                        <h3 className="text-blue-500/50 text-[9px] font-black uppercase tracking-[0.3em] mb-1">INITIAL_BOOT_TIME</h3>
+                        <p className="text-white font-black italic text-base uppercase tracking-tight">{new Date(tournament.startDate).toLocaleString()}</p>
                       </div>
                     </div>
                   </div>
                 )}
                 {tournament.endDate && (
-                  <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Clock className="w-5 h-5 text-red-400" />
+                  <div className="bg-black/40 border border-pink-500/20 p-5 group hover:border-pink-500/40 transition-all" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 80%, 80% 100%, 0 100%)' }}>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-pink-500/10 border border-pink-500/20 flex items-center justify-center" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%, 0 20%)' }}>
+                        <Clock className="w-6 h-6 text-pink-400" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-gray-400 text-xs sm:text-sm">End Date</h3>
-                        <p className="text-white font-semibold text-sm sm:text-base truncate">{new Date(tournament.endDate).toLocaleString()}</p>
+                        <h3 className="text-pink-500/50 text-[9px] font-black uppercase tracking-[0.3em] mb-1">FINAL_SHUTDOWN</h3>
+                        <p className="text-white font-black italic text-base uppercase tracking-tight">{new Date(tournament.endDate).toLocaleString()}</p>
                       </div>
                     </div>
                   </div>
@@ -875,94 +841,94 @@ function TournamentPageContent({ resolvedParams }) {
             </div>
           )}
 
-          {/* Rest of the existing content - Rules, Prize Distribution, etc. */}
+          {/* Rules & Guidelines */}
           {tournament.rules && tournament.rules.length > 0 && (
-            <div className="card-raid p-4 sm:p-6 mb-6">
-              <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
-                Rules & Guidelines
-              </h2>
-              <div className="space-y-3">
+            <div className="card-raid p-6 mb-8 relative">
+              <div className="flex items-center gap-3 mb-8">
+                <Shield className="w-5 h-5 text-pink-500" />
+                <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">ENGAGEMENT_PROTOCOLS</h2>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
                 {tournament.rules.map((rule, index) => (
-                  <div key={index} className="flex items-start gap-3 bg-gray-800/50 rounded-xl p-3 sm:p-4 border border-gray-700 hover:border-orange-500/50 transition-all">
-                    <div className="w-5 h-5 sm:w-6 sm:h-6 bg-orange-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-orange-400 font-bold text-xs sm:text-sm">{index + 1}</span>
+                  <div key={index} className="flex items-start gap-4 bg-black/40 border border-white/5 p-4 hover:border-pink-500/30 transition-all group">
+                    <div className="w-6 h-6 bg-pink-500/10 border border-pink-500/20 flex items-center justify-center flex-shrink-0 font-black text-[10px] text-pink-500 group-hover:bg-pink-500 group-hover:text-black transition-all">
+                      {index + 1}
                     </div>
-                    <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">{rule}</p>
+                    <p className="text-gray-500 font-bold text-xs leading-relaxed group-hover:text-gray-300 transition-colors">{rule}</p>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
+          {/* Prize Distribution */}
           {tournament.entryFee > 0 && tournament.prizeDistribution && tournament.prizeDistribution.length > 0 && (
-            <div className="card-raid p-4 sm:p-6 mb-6">
-              <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
-                Prize Distribution
-              </h2>
-              <div className="space-y-3">
+            <div className="card-raid p-6 mb-8 relative">
+              <div className="flex items-center gap-3 mb-8">
+                <Trophy className="w-5 h-5 text-cyan-400" />
+                <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">BOUNTY_REQUISITION</h2>
+              </div>
+              <div className="grid gap-4 mb-8">
                 {tournament.prizeDistribution.map((prize, index) => {
-                  const icons = [
-                    { icon: Crown, color: 'text-yellow-400', bg: 'bg-yellow-500/20', border: 'border-yellow-500/40' },
-                    { icon: Medal, color: 'text-gray-400', bg: 'bg-gray-500/20', border: 'border-gray-500/40' },
-                    { icon: Medal, color: 'text-orange-400', bg: 'bg-orange-500/20', border: 'border-orange-500/40' }
+                  const configs = [
+                    { color: 'text-yellow-400', border: 'border-yellow-500/30', bg: 'bg-yellow-500/5' },
+                    { color: 'text-gray-300', border: 'border-gray-500/30', bg: 'bg-gray-500/5' },
+                    { color: 'text-orange-400', border: 'border-orange-500/30', bg: 'bg-orange-500/5' }
                   ];
-                  const config = icons[index] || icons[2];
-                  const Icon = config.icon;
-
+                  const cfg = configs[index] || configs[2];
                   return (
-                    <div key={index} className={`flex items-center justify-between ${config.bg} p-3 sm:p-4 rounded-xl border ${config.border} hover:scale-102 transition-transform`}>
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${config.color}`} />
-                        <span className="text-white font-bold text-sm sm:text-base">{prize.rank}</span>
+                    <div key={index} className={`flex items-center justify-between p-5 border ${cfg.border} ${cfg.bg} relative overflow-hidden group hover:scale-[1.01] transition-transform`} style={{ clipPath: 'polygon(2% 0, 100% 0, 100% 80%, 98% 100%, 0 100%, 0 20%)' }}>
+                      <div className="flex items-center gap-4">
+                        <div className={`w-1 h-8 ${cfg.color.replace('text', 'bg')} shadow-[0_0_10px_currentColor]`}></div>
+                        <span className="text-white font-black italic uppercase tracking-tight">{prize.rank}</span>
                       </div>
                       <div className="text-right">
-                        <p className={`${config.color} font-bold text-lg sm:text-xl`}>{prize.percentage}%</p>
-                        <p className="text-gray-400 text-xs">of prize pool</p>
+                        <p className={`${cfg.color} font-black text-2xl tracking-tighter italic`}>{prize.percentage}%</p>
+                        <p className="text-gray-600 text-[8px] font-black uppercase tracking-widest">STATION_TOTAL</p>
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              <div className="mt-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />
+              <div className="bg-cyan-500/5 border border-cyan-500/20 p-6 flex items-center justify-between relative overflow-hidden" style={{ clipPath: 'polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%)' }}>
+                <div className="absolute top-0 right-0 w-24 h-full bg-cyan-500/5 skew-x-[-20deg] translate-x-12"></div>
+                <div className="flex items-center gap-6">
+                  <DollarSign className="w-10 h-10 text-cyan-500 opacity-50" />
                   <div>
-                    <p className="text-gray-400 text-xs sm:text-sm">Total Prize Pool</p>
-                    <p className="text-green-400 font-bold text-xl sm:text-2xl">{formatCurrency(tournament.prizePool)}</p>
+                    <h3 className="text-cyan-500/50 text-[10px] font-black uppercase tracking-[0.4em] mb-1">TOTAL_CREDIT_POOL</h3>
+                    <p className="text-white font-black italic text-3xl tracking-tighter">{formatCurrency(tournament.prizePool)}</p>
                   </div>
                 </div>
-                <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-green-400 animate-pulse" />
+                <Sparkles className="w-8 h-8 text-cyan-400 animate-pulse" />
               </div>
             </div>
           )}
 
           {/* Tournament Info Card */}
-          <div className="card-raid p-4 sm:p-6">
-            <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <Star className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
-              Tournament Information
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div className="bg-gray-800/50 rounded-xl p-3 sm:p-4 border border-gray-700">
-                <p className="text-gray-400 text-xs sm:text-sm mb-1">Game</p>
-                <p className="text-white font-semibold text-base sm:text-lg">{tournament.game}</p>
+          <div className="card-raid p-6 border-blue-500/30 bg-black/40 relative overflow-hidden" style={{ clipPath: 'polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%)' }}>
+            <div className="flex items-center gap-3 mb-8">
+              <Star className="w-5 h-5 text-blue-500 shadow-[0_0_10px_#00f3ff]" />
+              <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">NODE_SPECIFICATIONS</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-black/40 border border-blue-500/10 p-4 transition-all hover:border-blue-500/30">
+                <p className="text-blue-500/50 text-[10px] font-black uppercase tracking-[0.2em] mb-1">MODULE_IDENTIFIER</p>
+                <p className="text-white font-black italic text-lg uppercase tracking-tight">{tournament.game}</p>
               </div>
-              <div className="bg-gray-800/50 rounded-xl p-3 sm:p-4 border border-gray-700">
-                <p className="text-gray-400 text-xs sm:text-sm mb-1">Region</p>
-                <p className="text-white font-semibold text-base sm:text-lg">{tournament.region}</p>
+              <div className="bg-black/40 border border-blue-500/10 p-4 transition-all hover:border-blue-500/30">
+                <p className="text-blue-500/50 text-[10px] font-black uppercase tracking-[0.2em] mb-1">NETWORK_ZONE</p>
+                <p className="text-white font-black italic text-lg uppercase tracking-tight">{tournament.region}</p>
               </div>
-              <div className="bg-gray-800/50 rounded-xl p-3 sm:p-4 border border-gray-700">
-                <p className="text-gray-400 text-xs sm:text-sm mb-1">Organizer</p>
-                <p className="text-white font-semibold text-base sm:text-lg">{tournament.organizer}</p>
+              <div className="bg-black/40 border border-blue-500/10 p-4 transition-all hover:border-blue-500/30">
+                <p className="text-blue-500/50 text-[10px] font-black uppercase tracking-[0.2em] mb-1">SYSTEM_ADMIN</p>
+                <p className="text-white font-black italic text-lg uppercase tracking-tight">{tournament.organizer}</p>
               </div>
-              <div className="bg-gray-800/50 rounded-xl p-3 sm:p-4 border border-gray-700">
-                <p className="text-gray-400 text-xs sm:text-sm mb-1">Status</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${statusConfig.color} animate-pulse`}></div>
-                  <p className="text-white font-semibold text-sm sm:text-base">{statusConfig.text}</p>
+              <div className="bg-black/40 border border-blue-500/10 p-4 transition-all hover:border-blue-500/30">
+                <p className="text-blue-500/50 text-[10px] font-black uppercase tracking-[0.2em] mb-1">OPERATIONAL_STATE</p>
+                <div className="flex items-center gap-3 mt-1">
+                  <div className={`w-2 h-2 ${statusConfig.color} shadow-[0_0_8px_currentColor] animate-pulse`}></div>
+                  <p className="text-white font-black italic text-lg uppercase tracking-tight">{statusConfig.text}</p>
                 </div>
               </div>
             </div>

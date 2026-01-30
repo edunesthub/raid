@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { doc, getDoc, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { ArrowLeft, Trophy, Award, Calendar, Mail, Phone, Star, TrendingUp, Target, Crown, Medal, Zap, Shield } from 'lucide-react';
+import { ArrowLeft, Trophy, Award, Calendar, Mail, Phone, Star, TrendingUp, Target, Crown, Medal, Zap, Shield, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function UserProfilePage() {
@@ -63,24 +63,24 @@ export default function UserProfilePage() {
       );
 
       const achievementsSnapshot = await getDocs(achievementsQuery);
-const achievementsList = await Promise.all(
-  achievementsSnapshot.docs.map(async (snap) => {
-    const data = snap.data();
-    const tournamentDoc = await getDoc(doc(db, 'tournaments', data.tournamentId));
+      const achievementsList = await Promise.all(
+        achievementsSnapshot.docs.map(async (snap) => {
+          const data = snap.data();
+          const tournamentDoc = await getDoc(doc(db, 'tournaments', data.tournamentId));
 
-    return {
-      placement: data.placement,
-      placementAt: data.placementAt,
-      tournament: tournamentDoc.exists()
-        ? {
-            id: tournamentDoc.id,
-            name: tournamentDoc.data().tournament_name,
-            game: tournamentDoc.data().game
-          }
-        : null
-    };
-  })
-);
+          return {
+            placement: data.placement,
+            placementAt: data.placementAt,
+            tournament: tournamentDoc.exists()
+              ? {
+                id: tournamentDoc.id,
+                name: tournamentDoc.data().tournament_name,
+                game: tournamentDoc.data().game
+              }
+              : null
+          };
+        })
+      );
 
 
       setAchievements(achievementsList.filter(a => a.tournament));
@@ -94,24 +94,24 @@ const achievementsList = await Promise.all(
       );
 
       const tournamentsSnapshot = await getDocs(tournamentsQuery);
-const tournamentsList = await Promise.all(
-  tournamentsSnapshot.docs.map(async (snap) => {
-    const data = snap.data();
-    const tournamentDoc = await getDoc(doc(db, 'tournaments', data.tournamentId));
+      const tournamentsList = await Promise.all(
+        tournamentsSnapshot.docs.map(async (snap) => {
+          const data = snap.data();
+          const tournamentDoc = await getDoc(doc(db, 'tournaments', data.tournamentId));
 
-    if (!tournamentDoc.exists()) return null;
+          if (!tournamentDoc.exists()) return null;
 
-    const tournamentData = tournamentDoc.data();
+          const tournamentData = tournamentDoc.data();
 
-    return {
-      id: tournamentDoc.id,
-      name: tournamentData.tournament_name,
-      game: tournamentData.game,
-      status: tournamentData.status,
-      placement: data.placement || null
-    };
-  })
-);
+          return {
+            id: tournamentDoc.id,
+            name: tournamentData.tournament_name,
+            game: tournamentData.game,
+            status: tournamentData.status,
+            placement: data.placement || null
+          };
+        })
+      );
 
 
       setRecentTournaments(tournamentsList.filter(t => t));
@@ -164,227 +164,206 @@ const tournamentsList = await Promise.all(
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white py-6 px-4">
-      {/* Animated background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
-      </div>
+    <div className="w-full h-full overflow-y-auto relative bg-[#050505] text-white">
+      <div className="scanline"></div>
 
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="container-mobile py-8 relative z-10 max-w-6xl mx-auto px-4">
         <Link
           href="/"
-          className="inline-flex items-center text-gray-400 hover:text-white transition-colors mb-6"
+          className="inline-flex items-center text-gray-400 hover:text-white transition-colors mb-8 group"
         >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Home
+          <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-[10px] font-black uppercase tracking-[0.3em]">REVERT_OFFLINE</span>
         </Link>
 
         {/* Profile Header Card */}
-        <div className="card-raid p-6 sm:p-8 mb-6 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/5 to-orange-500/0"></div>
-          
-          <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            {/* Avatar */}
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-purple-500 rounded-full blur-2xl opacity-30 animate-pulse"></div>
-              <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden border-4 border-orange-500 ring-4 ring-orange-500/30 flex-shrink-0 shadow-2xl">
-                {user.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.username}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-r from-black to-orange-500 flex items-center justify-center">
-                    <span className="text-white text-4xl sm:text-5xl font-bold">
-                      {user.username?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
-                    </span>
+        <div className="relative group mb-12">
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-pink-600 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+          <div className="relative bg-black border border-blue-500/20 p-8 sm:p-10" style={{ clipPath: 'polygon(2% 0, 100% 0, 100% 80%, 98% 100%, 0 100%, 0 20%)' }}>
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-10">
+              {/* Avatar section */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500/20 blur-2xl animate-pulse"></div>
+                <div className="relative w-32 h-32 sm:w-44 sm:h-44 border-2 border-blue-500 p-1 bg-black" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 80%, 80% 100%, 0 100%, 0 20%)' }}>
+                  <div className="w-full h-full bg-gray-900 overflow-hidden" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 80%, 80% 100%, 0 100%, 0 20%)' }}>
+                    {user.avatarUrl ? (
+                      <img src={user.avatarUrl} alt={user.username} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center font-black text-4xl text-blue-500/30 italic">
+                        {user.username?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* User Info */}
-            <div className="flex-1 text-center sm:text-left">
-              <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
-                <h1 className="text-3xl sm:text-4xl font-bold text-white">
-                  {user.username || 'Unknown User'}
-                </h1>
-                {stats.tournamentsWon > 0 && (
-                  <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" />
-                )}
-              </div>
-              
-              {(user.firstName || user.lastName) && (
-                <p className="text-xl text-gray-300 mb-4">
-                  {user.firstName} {user.lastName}
-                </p>
-              )}
-
-              {user.bio && (
-                <p className="text-gray-400 mb-4 max-w-2xl">
-                  {user.bio}
-                </p>
-              )}
-
-              {user.createdAt && (
-                <div className="flex items-center justify-center sm:justify-start text-gray-500 text-sm mt-2">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Joined {new Date(user.createdAt.toDate?.() || user.createdAt).toLocaleDateString()}
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
+                <div className="absolute -bottom-2 -right-2 bg-blue-600 px-3 py-1 text-[8px] font-black uppercase tracking-widest italic border border-black shadow-[0_0_10px_#00f3ff]">
+                  LEVEL_AUTHORIZED
+                </div>
+              </div>
 
-        {/* Stats Cards Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="card-raid p-4 sm:p-6 text-center bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/30 hover:scale-105 transition-transform">
-            <Trophy className="w-8 h-8 sm:w-10 sm:h-10 text-purple-500 mx-auto mb-2" />
-            <p className="text-3xl sm:text-4xl font-bold text-white mb-1">
-              {stats.tournamentsPlayed || 0}
-            </p>
-            <p className="text-gray-400 text-xs sm:text-sm">Tournaments Played</p>
-          </div>
+              {/* User Identity */}
+              <div className="flex-1 text-center sm:text-left pt-2">
+                <div className="flex items-center justify-center sm:justify-start gap-4 mb-4">
+                  <h1 className="text-4xl sm:text-5xl font-black text-white uppercase italic tracking-tighter">
+                    {user.username}
+                  </h1>
+                  {stats.tournamentsWon > 0 && <Trophy className="w-8 h-8 text-yellow-500 shadow-[0_0_15px_rgba(255,255,0,0.3)]" />}
+                </div>
 
-          <div className="card-raid p-4 sm:p-6 text-center bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border border-yellow-500/30 hover:scale-105 transition-transform">
-            <Crown className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-500 mx-auto mb-2" />
-            <p className="text-3xl sm:text-4xl font-bold text-white mb-1">
-              {stats.tournamentsWon || 0}
-            </p>
-            <p className="text-gray-400 text-xs sm:text-sm">Tournaments Won</p>
-          </div>
+                <div className="space-y-4">
+                  <p className="text-blue-500/60 font-black uppercase tracking-[0.4em] text-[10px]">
+                    // OPERATIVE_SIG: {user.firstName || 'REDACTED'} {user.lastName || 'REDACTED'}
+                  </p>
 
-          <div className="card-raid p-4 sm:p-6 text-center bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/30 hover:scale-105 transition-transform">
-            <div className="text-3xl sm:text-4xl mb-2">💰</div>
-            <p className="text-3xl sm:text-4xl font-bold text-white mb-1">
-              {currentUser?.country === 'Nigeria' ? '₦' : '₵'}{(stats.totalEarnings || 0).toLocaleString()}
-            </p>
-            <p className="text-gray-400 text-xs sm:text-sm">Total Earnings</p>
-          </div>
-
-          <div className="card-raid p-4 sm:p-6 text-center bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/30 hover:scale-105 transition-transform">
-            <TrendingUp className="w-8 h-8 sm:w-10 sm:h-10 text-blue-500 mx-auto mb-2" />
-            <p className="text-3xl sm:text-4xl font-bold text-white mb-1">
-              {stats.winRate?.toFixed(1) || 0}%
-            </p>
-            <p className="text-gray-400 text-xs sm:text-sm">Win Rate</p>
-          </div>
-        </div>
-
-        {/* Achievements Section */}
-        {achievements.length > 0 && (
-          <div className="card-raid p-4 sm:p-6 mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-6 flex items-center gap-2">
-              <Star className="w-6 h-6 text-yellow-500" />
-              Achievements
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {achievements.map((achievement, index) => {
-                const badge = getPlacementBadge(achievement.placement);
-                const Icon = badge.icon;
-
-                return (
-                  <div
-                    key={index}
-                    className={`${badge.bg} border ${badge.border} rounded-xl p-4 hover:scale-105 transition-all cursor-pointer`}
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`w-12 h-12 ${badge.bg} border ${badge.border} rounded-full flex items-center justify-center`}>
-                        <Icon className={`w-6 h-6 ${badge.color}`} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`${badge.color} font-bold text-sm`}>{badge.text}</p>
-                        <p className="text-white font-semibold text-xs truncate">{achievement.tournament.name}</p>
-                      </div>
+                  {user.bio && (
+                    <div className="bg-blue-500/5 border-l-2 border-blue-500/40 p-4 max-w-2xl">
+                      <p className="text-gray-500 font-bold text-xs uppercase tracking-wide leading-relaxed italic">
+                        "{user.bio}"
+                      </p>
                     </div>
-                    
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-400">{achievement.tournament.game}</span>
-                      <span className="text-gray-500">
-                        {achievement.placementAt && new Date(achievement.placementAt.toDate()).toLocaleDateString()}
-                      </span>
+                  )}
+
+                  <div className="flex items-center justify-center sm:justify-start gap-6 text-gray-700">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-3 h-3" />
+                      <span className="text-[9px] font-black uppercase tracking-widest">ENLISTED_{new Date(user.createdAt.toDate?.() || user.createdAt).getFullYear()}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-3 h-3" />
+                      <span className="text-[9px] font-black uppercase tracking-widest">STATUS_ACTIVE</span>
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              </div>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Recent Tournaments */}
-        {recentTournaments.length > 0 && (
-          <div className="card-raid p-4 sm:p-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-6 flex items-center gap-2">
-              <Target className="w-6 h-6 text-orange-500" />
-              Recent Tournaments
-            </h2>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {[
+            { label: 'TRIALS_JOINED', value: stats.tournamentsPlayed, color: 'blue', icon: Zap },
+            { label: 'VICTORIES_SECURED', value: stats.tournamentsWon, color: 'yellow', icon: Trophy },
+            { label: 'BOUNTY_REQUISITIONED', value: `${currentUser?.country === 'Nigeria' ? '₦' : '₵'}${(stats.totalEarnings || 0).toLocaleString()}`, color: 'cyan', icon: Target },
+            { label: 'WIN_PROBABILITY', value: `${stats.winRate?.toFixed(1) || 0}%`, color: 'pink', icon: TrendingUp },
+          ].map((stat, i) => {
+            const Icon = stat.icon;
+            return (
+              <div key={i} className="group relative overflow-hidden" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%)' }}>
+                <div className={`absolute -inset-px bg-${stat.color}-500/20 opacity-0 group-hover:opacity-100 transition-opacity`}></div>
+                <div className="relative bg-black border border-white/5 p-8 text-center group-hover:border-blue-500/30 transition-all">
+                  <Icon className={`w-10 h-10 text-${stat.color}-500/30 mx-auto mb-6 group-hover:scale-110 transition-transform`} />
+                  <p className="text-4xl font-black italic text-white tracking-tighter mb-1 uppercase group-hover:text-blue-400 transition-colors">
+                    {stat.value}
+                  </p>
+                  <p className="text-gray-700 text-[8px] font-black uppercase tracking-[0.3em]">{stat.label}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
-            <div className="space-y-3">
-              {recentTournaments.map((tournament, index) => (
-                <Link
-                  key={index}
-                  href={`/tournament/${tournament.id}`}
-                  className="block bg-gray-800/50 border border-gray-700 rounded-xl p-4 hover:border-orange-500/50 transition-all hover:scale-102"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-white font-semibold truncate mb-1">{tournament.name}</h3>
-                      <p className="text-gray-400 text-sm">{tournament.game}</p>
-                    </div>
-                    
-                    <div className="flex items-center gap-3 ml-4">
-                      {tournament.placement && (
-                        <div className={`${getPlacementBadge(tournament.placement).bg} px-3 py-1 rounded-full border ${getPlacementBadge(tournament.placement).border}`}>
-                          <span className={`${getPlacementBadge(tournament.placement).color} text-sm font-bold`}>
-                            {getPlacementBadge(tournament.placement).emoji} {tournament.placement}
-                          </span>
+        <div className="grid lg:grid-cols-2 gap-12 text-blue-100">
+          {/* Achievements */}
+          {achievements.length > 0 && (
+            <section>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="h-6 w-1 bg-yellow-500 shadow-[0_0_10px_#facc15]"></div>
+                <h2 className="text-2xl font-black italic uppercase tracking-tighter">HONOR_AWARDS</h2>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                {achievements.map((achievement, index) => {
+                  const badge = getPlacementBadge(achievement.placement);
+                  const Icon = badge.icon;
+                  return (
+                    <div key={index} className="bg-black border border-white/5 p-5 relative group hover:border-yellow-500/20 transition-all" style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 100%, 0 100%, 0 30%)' }}>
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className={`w-10 h-10 ${badge.bg} flex items-center justify-center`} style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 80%, 80% 100%, 0 100%, 0 20%)' }}>
+                          <Icon className={`w-5 h-5 ${badge.color}`} />
                         </div>
-                      )}
-                      
-                      <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        tournament.status === 'completed' ? 'bg-gray-700 text-gray-300' :
-                        tournament.status === 'live' ? 'bg-green-500/20 text-green-400 animate-pulse' :
-                        'bg-yellow-500/20 text-yellow-400'
-                      }`}>
-                        {tournament.status === 'completed' ? '✓ Done' :
-                         tournament.status === 'live' ? '🔴 Live' : '⏰ Soon'}
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${badge.color}`}>{badge.text}</p>
+                          <p className="text-white font-black italic uppercase tracking-tighter text-sm truncate">{achievement.tournament.name}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
+                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">{achievement.tournament.game}</span>
+                        <span className="text-blue-500/40 text-[8px] font-black">{achievement.placementAt && new Date(achievement.placementAt.toDate()).toLocaleDateString()}</span>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
-        {/* Empty State for No Tournaments */}
+          {/* Activity Log */}
+          {recentTournaments.length > 0 && (
+            <section>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="h-6 w-1 bg-blue-500 shadow-[0_0_10px_#00f3ff]"></div>
+                <h2 className="text-2xl font-black italic uppercase tracking-tighter">BATTLE_HISTORY</h2>
+              </div>
+
+              <div className="space-y-4">
+                {recentTournaments.map((tournament, index) => (
+                  <Link key={index} href={`/tournament/${tournament.id}`}>
+                    <div className="bg-black/40 border border-white/5 p-6 flex items-center justify-between group hover:border-blue-500/30 transition-all mb-4" style={{ clipPath: 'polygon(0 0, 98% 0, 100% 20%, 100% 100%, 2% 100%, 0 80%)' }}>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-3 mb-1">
+                          <h3 className="text-white font-black italic uppercase tracking-tighter text-lg group-hover:text-blue-400 transition-colors truncate">{tournament.name}</h3>
+                          <div className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-tighter ${tournament.status === 'completed' ? 'bg-gray-800 text-gray-500' :
+                            tournament.status === 'live' ? 'bg-pink-600/20 text-pink-500 animate-pulse' :
+                              'bg-blue-600/20 text-blue-500'
+                            }`}>
+                            {tournament.status}
+                          </div>
+                        </div>
+                        <p className="text-gray-600 text-[10px] font-black uppercase tracking-widest">{tournament.game}</p>
+                      </div>
+
+                      <div className="flex items-center gap-6 ml-6">
+                        {tournament.placement ? (
+                          <div className="text-right">
+                            <p className="text-white font-black italic text-xl tracking-tighter">{tournament.placement === 1 ? '🥇' : tournament.placement === 2 ? '🥈' : '🥉'}</p>
+                            <p className="text-gray-600 text-[8px] font-black uppercase tracking-widest mt-1">RANK</p>
+                          </div>
+                        ) : (
+                          <div className="text-right">
+                            <p className="text-gray-600 font-black italic text-sm">--</p>
+                            <p className="text-gray-800 text-[8px] font-black uppercase tracking-widest mt-1">N/A</p>
+                          </div>
+                        )}
+                        <ChevronRight className="w-5 h-5 text-gray-800 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* Empty State */}
         {achievements.length === 0 && recentTournaments.length === 0 && (
-          <div className="card-raid p-12 text-center">
-            <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">No Tournament History</h3>
-            <p className="text-gray-400 mb-6">This player hasn't participated in any tournaments yet.</p>
-            <Link href="/tournament" className="btn-raid inline-block">
-              Browse Tournaments
+          <div className="bg-black border border-white/5 p-20 text-center" style={{ clipPath: 'polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%)' }}>
+            <Trophy className="w-20 h-20 text-gray-800 mx-auto mb-8 opacity-40 shrink-0" />
+            <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white mb-4">NO_RECORDS_STORED</h3>
+            <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-10 max-w-xs mx-auto">This operative has not yet initialized combat data in the arena nodes.</p>
+            <Link href="/tournament" className="btn-raid px-10 py-4">
+              SCAN_NODES
             </Link>
           </div>
         )}
       </div>
 
       <style jsx>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
         }
-        
-        .delay-1000 {
-          animation-delay: 1000ms;
-        }
-
-        .hover\:scale-102:hover {
-          transform: scale(1.02);
+        .animate-shimmer {
+          animation: shimmer 2s infinite linear;
         }
       `}</style>
     </div>
