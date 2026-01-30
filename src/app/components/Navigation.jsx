@@ -51,7 +51,7 @@ export default function Navigation() {
     <>
       {/* Desktop Navigation */}
       <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4">
+         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center">
@@ -70,18 +70,14 @@ export default function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center space-x-2 px-3 py-2 transition-all duration-300 relative group ${pathname === item.href
-                      ? "text-blue-400"
-                      : "text-gray-400 hover:text-blue-300"
-                    }`}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                    pathname === item.href
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-300 hover:text-white hover:bg-gray-800"
+                  }`}
                 >
-                  <div className={`transition-transform duration-300 ${pathname === item.href ? "scale-110" : "group-hover:scale-110"}`}>
-                    {item.icon}
-                  </div>
-                  <span className="font-bold tracking-widest text-xs uppercase">{item.label}</span>
-                  {pathname === item.href && (
-                    <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-blue-500 shadow-[0_0_10px_#00f3ff]"></div>
-                  )}
+                  {item.icon}
+                  <span>{item.label}</span>
                 </Link>
               ))}
 
@@ -96,7 +92,7 @@ export default function Navigation() {
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                       className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
                     >
-                      <div className="w-8 h-8 overflow-hidden flex items-center justify-center bg-blue-500 shadow-[0_0_10px_rgba(0,243,255,0.5)] border border-blue-300/50" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%, 0 20%)' }}>
+                      <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-r from-black to-orange-500">
                         {user?.avatarUrl ? (
                           <Image
                             src={user.avatarUrl}
@@ -106,7 +102,7 @@ export default function Navigation() {
                             className="w-8 h-8 object-cover"
                           />
                         ) : (
-                          <span className="text-black text-sm font-bold">
+                          <span className="text-white text-sm font-bold">
                             {user?.firstName?.charAt(0) ||
                               user?.email?.charAt(0) ||
                               "U"}
@@ -117,27 +113,29 @@ export default function Navigation() {
                     </button>
                   </div>
 
-                  <div className="absolute right-0 mt-2 w-48 bg-[#0a0a0f] border border-blue-500/30 shadow-[0_0_20px_rgba(0,0,0,0.8)] backdrop-blur-xl" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 90%, 90% 100%, 0 100%)' }}>
-                    <div className="px-4 py-2 border-b border-blue-500/20">
-                      <p className="text-blue-400 text-sm font-bold uppercase tracking-tighter">
-                        {user?.firstName || user?.username || "User"}
-                      </p>
-                      <p className="text-gray-500 text-[10px] break-all">{user?.email}</p>
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-gray-900 rounded-lg border border-gray-700 shadow-lg">
+                      <div className="px-4 py-2 border-b border-gray-700">
+                        <p className="text-white text-sm font-semibold">
+                          {user?.firstName || user?.username || "User"}
+                        </p>
+                        <p className="text-gray-400 text-xs">{user?.email}</p>
+                      </div>
+                      <Link
+                        href="/profile"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
+                      >
+                        Profile
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
+                      >
+                        Logout
+                      </button>
                     </div>
-                    <Link
-                      href="/profile"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="block px-4 py-2 text-gray-300 hover:text-blue-400 hover:bg-blue-500/10 transition-colors text-xs font-bold uppercase tracking-widest"
-                    >
-                      Profile
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-gray-300 hover:text-pink-500 hover:bg-pink-500/10 transition-colors text-xs font-bold uppercase tracking-widest"
-                    >
-                      Logout
-                    </button>
-                  </div>
+                  )}
                 </div>
               ) : (
                 <Link
@@ -151,11 +149,11 @@ export default function Navigation() {
           </div>
         </div>
       </nav>
-
+  
 
       {/* MOBILE HEADER */}
       <nav className="md:hidden fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
-        <div className="px-4 flex items-center justify-between h-16">
+         <div className="px-4 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center">
             <Image
               src="/assets/raid1.svg"
@@ -172,8 +170,7 @@ export default function Navigation() {
             )}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 bg-blue-500/10 border border-blue-500/30 text-blue-400"
-              style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%, 0 20%)' }}
+              className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -199,8 +196,9 @@ export default function Navigation() {
       )}
 
       <div
-        className={`fixed top-0 left-0 h-full w-80 bg-black/70 backdrop-blur-xl border-r border-white/10 shadow-xl transform transition-transform duration-300 z-[100] flex flex-col ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed top-0 left-0 h-full w-80 bg-black/70 backdrop-blur-xl border-r border-white/10 shadow-xl transform transition-transform duration-300 z-[100] flex flex-col ${
+          isMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <div className="px-5 py-6 flex flex-col space-y-5 flex-grow overflow-y-auto">
           {/* Header */}
@@ -211,7 +209,7 @@ export default function Navigation() {
             </Link>
             <button
               onClick={() => setIsMenuOpen(false)}
-              className="text-pink-500 text-xl font-bold hover:text-pink-400 glitch-hover"
+              className="text-orange-400 text-xl font-semibold hover:text-orange-500"
             >
               ✕
             </button>
@@ -226,21 +224,20 @@ export default function Navigation() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center justify-between px-4 py-3 border transition-all ${isActive
-                      ? "bg-blue-500/10 border-blue-500 text-blue-400 shadow-[inset_0_0_10px_rgba(0,243,255,0.1)]"
-                      : "bg-white/5 border-transparent text-gray-400 hover:bg-white/10 hover:text-blue-300"
-                    }`}
-                  style={{ clipPath: 'polygon(0 0, 95% 0, 100% 20%, 100% 100%, 5% 100%, 0 80%)' }}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                    isActive
+                      ? "bg-orange-500/20 border-orange-500 text-orange-400"
+                      : "bg-white/5 border-transparent text-gray-300 hover:bg-white/10 hover:text-orange-400"
+                  }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className={isActive ? "text-blue-400" : "text-gray-500"}>
-                      {item.icon}
-                    </div>
-                    <span className="font-bold text-xs uppercase tracking-widest">{item.label}</span>
+                    {item.icon}
+                    <span className="font-medium text-sm">{item.label}</span>
                   </div>
                   <ChevronRight
-                    className={`h-4 w-4 ${isActive ? "text-blue-400" : "text-gray-600"
-                      }`}
+                    className={`h-4 w-4 ${
+                      isActive ? "text-orange-400" : "text-gray-500"
+                    }`}
                   />
                 </Link>
               );
@@ -251,18 +248,20 @@ export default function Navigation() {
               <Link
                 href="/notifications"
                 onClick={() => setIsMenuOpen(false)}
-                className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${pathname === "/notifications"
+                className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                  pathname === "/notifications"
                     ? "bg-orange-500/20 border-orange-500 text-orange-400"
                     : "bg-white/5 border-transparent text-gray-300 hover:bg-white/10 hover:text-orange-400"
-                  }`}
+                }`}
               >
                 <div className="flex items-center space-x-3">
                   <Bell className="w-5 h-5" />
                   <span className="font-medium text-sm">Notifications</span>
                 </div>
                 <ChevronRight
-                  className={`h-4 w-4 ${pathname === "/notifications" ? "text-orange-400" : "text-gray-500"
-                    }`}
+                  className={`h-4 w-4 ${
+                    pathname === "/notifications" ? "text-orange-400" : "text-gray-500"
+                  }`}
                 />
               </Link>
             )}
@@ -274,10 +273,11 @@ export default function Navigation() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`px-4 py-2 rounded-lg text-sm transition-all ${pathname === item.href
+                  className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                    pathname === item.href
                       ? "bg-orange-500/20 text-orange-400"
                       : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
-                    }`}
+                  }`}
                 >
                   {item.label}
                 </Link>

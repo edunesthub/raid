@@ -6,120 +6,132 @@ const TournamentCard = ({ tournament }) => {
   const [isNavigating, setIsNavigating] = useState(false);
 
   return (
-    <div className="relative group bg-[#0a0a0f]/90 backdrop-blur-xl border border-blue-500/30 overflow-hidden transition-all duration-300 hover:border-blue-400 hover:shadow-[0_0_20px_rgba(0,243,255,0.2)]" style={{ clipPath: 'polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%)' }}>
-      {/* scanline overlay for card */}
-      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] z-10 opacity-20"></div>
+    <div className="relative group bg-[#0f0f10]/90 backdrop-blur-md border border-orange-500/40 rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_25px_-5px_rgba(255,120,0,0.6)]">
+      {/* glowing accent edge */}
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-orange-500/15 via-transparent to-transparent opacity-80"></div>
 
       {/* IMAGE */}
-      <div className="relative w-full h-40 sm:h-48 overflow-hidden border-b border-blue-500/20">
+      <div className="relative w-full h-40 sm:h-48 overflow-hidden border-b border-orange-500/30">
         <img
           src={tournament.image}
           alt={tournament.title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale-[0.3] group-hover:grayscale-0"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] to-transparent opacity-60"></div>
-
-        <span className="absolute top-3 left-3 px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest bg-black/80 border border-blue-500/50 text-blue-400 shadow-[0_0_10px_rgba(0,243,255,0.3)]" style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 100%, 0 100%, 0 30%)' }}>
+        <span className="absolute top-3 left-3 px-2.5 py-1 text-[10px] sm:text-xs font-semibold rounded-full bg-black/70 border border-white/10 text-white shadow-md">
           {tournament.country || tournament.region || 'Ghana'}
         </span>
-
         <span
-          className={`absolute top-3 right-3 px-3 py-1 text-[10px] sm:text-xs font-black uppercase tracking-tighter text-white shadow-lg ${tournament.status === "live"
-            ? "bg-pink-600 animate-pulse"
-            : tournament.status === "registration-open"
-              ? "bg-blue-600"
-              : tournament.status === "upcoming"
-                ? "bg-purple-600"
-                : "bg-gray-700"
+          className={`absolute top-3 right-3 px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-full text-white shadow-md ${tournament.status === "live"
+              ? "bg-green-500/90 animate-pulse"
+              : tournament.status === "registration-open"
+                ? "bg-blue-500/90"
+                : tournament.status === "upcoming"
+                  ? "bg-yellow-500/90"
+                  : "bg-gray-500/90"
             }`}
-          style={{ clipPath: 'polygon(0 0, 90% 0, 100% 30%, 100% 100%, 10% 100%, 0 70%)' }}
         >
           {tournament.status === "registration-open"
-            ? "OPEN"
+            ? "🔥 OPEN"
             : tournament.status === "live"
-              ? "LIVE"
+              ? "🔴 LIVE"
               : tournament.status === "upcoming"
-                ? "SOON"
-                : "ENDED"}
+                ? "⏰ SOON"
+                : "✅ ENDED"}
         </span>
       </div>
 
       {/* CONTENT */}
-      <div className="p-4 flex flex-col gap-3 relative z-20">
+      <div className="p-4 flex flex-col gap-3">
         {/* Title + Game */}
         <div>
-          <h3 className="text-lg font-black text-white line-clamp-1 tracking-tighter uppercase italic group-hover:text-blue-400 transition-colors">
+          <h3 className="text-lg font-bold text-white line-clamp-1 tracking-wide">
             {tournament.title}
           </h3>
-          <p className="text-blue-500 text-[10px] uppercase tracking-[0.2em] font-bold">
-            // {tournament.game}
+          <p className="text-orange-400 text-xs uppercase tracking-wider font-semibold">
+            {tournament.game}
           </p>
         </div>
 
         {/* Prize & Entry */}
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="border border-blue-500/20 p-2 bg-blue-500/5 hover:bg-blue-500/10 transition-colors" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 80%, 80% 100%, 0 100%)' }}>
-            <p className="text-gray-500 text-[10px] uppercase tracking-widest">Prize Pool</p>
-            <p className="text-cyan-400 font-black tracking-tighter">
+          <div className="border border-orange-500/40 rounded-lg p-2 bg-[#1a1a1d]/90 hover:bg-[#1e1e22]/90 transition-colors">
+            <p className="text-gray-400 text-xs">Prize Pool</p>
+            <p className="text-green-400 font-bold">
               {tournament.currency || '₵'}{tournament.prizePool.toLocaleString()}
             </p>
           </div>
-          <div className="border border-purple-500/20 p-2 bg-purple-500/5 hover:bg-purple-500/10 transition-colors" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 80%, 80% 100%, 0 100%)' }}>
-            <p className="text-gray-500 text-[10px] uppercase tracking-widest">Entry Fee</p>
-            <p className="text-purple-400 font-black tracking-tighter">
+          <div className="border border-orange-500/40 rounded-lg p-2 bg-[#1a1a1d]/90 hover:bg-[#1e1e22]/90 transition-colors">
+            <p className="text-gray-400 text-xs">Entry Fee</p>
+            <p className="text-white font-semibold">
               {tournament.currency || '₵'}{tournament.entryFee.toLocaleString()}
             </p>
           </div>
         </div>
 
         {/* Players Progress */}
-        <div className="mt-1">
-          <div className="flex justify-between items-center text-[10px] uppercase tracking-widest text-gray-500 mb-1">
-            <span>Slots Occupied</span>
-            <span className="text-blue-400 font-bold">
-              {tournament.currentPlayers} / {tournament.maxPlayers}
+        <div>
+          <div className="flex justify-between items-center text-xs text-gray-400 mb-1">
+            <span>Players</span>
+            <span className="text-white">
+              {tournament.currentPlayers}/{tournament.maxPlayers}
             </span>
           </div>
-          <div className="w-full bg-gray-900/50 border border-blue-500/20 h-1.5 overflow-hidden">
+          <div className="w-full bg-[#1b1b1f] border border-orange-500/30 rounded-full h-2 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-blue-600 to-purple-600 h-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(0,243,255,0.5)]"
+              className="bg-gradient-to-r from-orange-500 to-orange-400 h-full rounded-full transition-all duration-300"
               style={{
-                width: `${(tournament.currentPlayers / tournament.maxPlayers) * 100}%`,
+                width: `${(tournament.currentPlayers / tournament.maxPlayers) * 100
+                  }%`,
               }}
             />
           </div>
         </div>
 
+        {/* Prize Distribution */}
+        {tournament.prizeDistribution?.length > 0 && (
+          <div className="bg-[#1a1a1d]/90 border border-orange-500/30 rounded-lg p-2 text-xs text-white space-y-1 max-h-20 overflow-y-auto hover:bg-[#1f1f23]/90 transition-colors">
+            {tournament.prizeDistribution.map((prize, index) => (
+              <div
+                key={index}
+                className="flex justify-between text-[11px] sm:text-sm"
+              >
+                <span>{prize.rank}</span>
+                <span>{prize.percentage}%</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* CTA */}
         <Link
           href={`/tournament/${tournament.id}/`}
           onClick={() => setIsNavigating(true)}
-          className="block w-full text-center bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase tracking-[0.3em] py-3 transition-all duration-300 shadow-[0_0_15px_rgba(0,243,255,0.3)] hover:shadow-[0_0_25px_rgba(0,243,255,0.5)] active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
-          style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%)' }}
+          className="block w-full text-center bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-sm font-bold py-2 rounded-xl transition-all duration-300 shadow-[0_0_12px_rgba(255,120,0,0.4)] hover:shadow-[0_0_20px_rgba(255,140,0,0.6)] active:scale-[0.97] disabled:opacity-60 flex items-center justify-center gap-2"
         >
           {isNavigating ? (
             <>
               <Loader className="w-4 h-4 animate-spin" />
-              <span>Initializing...</span>
+              <span>Loading...</span>
             </>
           ) : (
-            'Access Data'
+            'View Details'
           )}
         </Link>
-
         {tournament.status === "live" && tournament.twitch_link && (
           <a
             href={tournament.twitch_link}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full text-center bg-pink-600 hover:bg-pink-500 text-white text-xs font-black uppercase tracking-[0.3em] py-3 transition-all duration-300 shadow-[0_0_15px_rgba(255,0,255,0.3)] hover:shadow-[0_0_25px_rgba(255,0,255,0.5)] active:scale-[0.98] flex items-center justify-center gap-2"
-            style={{ clipPath: 'polygon(0 0, 90% 0, 100% 30%, 100% 100%, 10% 100%, 0 70%)' }}
+            className="block w-full text-center bg-[#9146FF] hover:bg-[#772ce8] text-white text-sm font-bold py-2 rounded-xl transition-all duration-300 shadow-[0_0_12px_rgba(145,70,255,0.4)] hover:shadow-[0_0_20px_rgba(145,70,255,0.6)] active:scale-[0.97] flex items-center justify-center gap-2 border border-white/10"
           >
             <div className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
             </div>
-            <span>Stream Live</span>
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
+            </svg>
+            <span>Watch Livestream</span>
           </a>
         )}
       </div>

@@ -1,161 +1,174 @@
 import React from 'react';
-import Link from 'next/link';
 
 const PrivacyPolicyPage = () => {
   return (
-    <div className="w-full h-full overflow-y-auto relative bg-[#050505]">
-      <div className="scanline"></div>
-      <div className="container-mobile py-12 relative z-10 max-w-4xl mx-auto px-4">
+    <div className="container mx-auto px-4 py-8 bg-gray-900 text-white">
+      <h1 className="text-3xl font-bold text-white mb-6">Privacy Policy</h1>
 
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-black text-white uppercase italic tracking-tighter mb-4">
-            Privacy <span className="text-blue-500">Security</span>
-          </h1>
-          <p className="text-blue-500/40 font-black uppercase tracking-[0.4em] text-[10px]">
-            // DATA_PROTECTION_ENCRYPTION v4.0.2
-          </p>
-          <p className="mt-4 text-[8px] text-gray-600 font-black uppercase tracking-widest leading-relaxed">
-            [SYS_LOG]: LAST_SYNCED: OCTOBER 13, 2025
-          </p>
-        </div>
+      <p className="text-md text-gray-400 mb-4">
+        Last Updated: October 13, 2025
+      </p>
 
-        <div className="space-y-12">
-          {/* Intro Section */}
-          <section className="relative group">
-            <div className="absolute -inset-0.5 bg-blue-500/10 opacity-50 blur-sm"></div>
-            <div className="relative bg-black border border-blue-500/20 p-8" style={{ clipPath: 'polygon(2% 0, 100% 0, 100% 90%, 98% 100%, 0 100%, 0 10%)' }}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-2 h-6 bg-blue-500 shadow-[0_0_10px_#00f3ff]"></div>
-                <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">1. Introduction</h2>
-              </div>
-              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
-                Welcome to RAID Arena ("we," "our," or "us").
-                Your privacy protocol is paramount. This manual explains how we harvest,
-                utilize, and shield your data within the Service network.
-              </p>
-            </div>
-          </section>
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold text-raid-gold mb-3">1. Introduction</h2>
+        <p className="text-md text-gray-400 mb-2">
+          Welcome to RAID Arena ("we," "our," or "us").
+        </p>
+        <p className="text-md text-gray-400 mb-2">
+          Your privacy is very important to us. This Privacy Policy explains how we collect, use, disclose, and protect your information when you use our mobile application, website, and related services (collectively, the “Service”).
+        </p>
+        <p className="text-md text-gray-400 mb-2">
+          By accessing or using the Service, you agree to the terms of this Privacy Policy. If you do not agree, please discontinue use immediately.
+        </p>
+      </section>
 
-          {/* Collection Section */}
-          <section className="relative group">
-            <div className="absolute -inset-0.5 bg-pink-500/5 opacity-50 blur-sm"></div>
-            <div className="relative bg-black border border-pink-500/20 p-8" style={{ clipPath: 'polygon(0 0, 98% 0, 100% 10%, 100% 100%, 2% 100%, 0 90%)' }}>
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-2 h-6 bg-pink-500 shadow-[0_0_10px_#ff00ff]"></div>
-                <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">2. Data Harvest</h2>
-              </div>
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold text-raid-gold mb-3">2. Information We Collect</h2>
+        <p className="text-md text-gray-400 mb-2">
+          We collect information from you in several ways to provide, improve, and personalize your experience on RAID Arena.
+        </p>
+        <h3 className="text-xl font-semibold text-raid-gold mb-2">a. Personal Data</h3>
+        <ul className="list-disc list-inside text-md text-gray-400 ml-4 mb-2">
+          <li>Name, username, and contact details (email address, phone number)</li>
+          <li>Shipping or billing address (if applicable)</li>
+          <li>Demographic details such as age, gender, or location</li>
+          <li>Information provided when you register, participate in tournaments, communicate with us, or interact in chat rooms or message boards</li>
+        </ul>
+        <h3 className="text-xl font-semibold text-raid-gold mb-2">b. Derivative and Technical Data</h3>
+        <ul className="list-disc list-inside text-md text-gray-400 ml-4 mb-2">
+          <li>Your IP address, browser type, operating system, and access times</li>
+          <li>Pages viewed, referring websites, and activity logs</li>
+          <li>Device information and app usage analytics</li>
+        </ul>
+        <h3 className="text-xl font-semibold text-raid-gold mb-2">c. Cookies and Tracking Technologies</h3>
+        <p className="text-md text-gray-400 mb-2">
+          We may use cookies, local storage, or similar tracking technologies to enhance your experience, analyze usage, and improve our services. You can manage or disable cookies in your browser settings.
+        </p>
+      </section>
 
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <h3 className="text-xs font-black text-blue-500 uppercase tracking-widest italic">// PERSONAL_BIOMETRICS</h3>
-                  <ul className="space-y-2">
-                    {[
-                      "IDENTITY_LABELS",
-                      "UPLINK_COORDINATES",
-                      "ZONE_LOCATIONS",
-                      "SOCIAL_INTERACTION_LOGS"
-                    ].map((item, i) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <div className="w-1 h-1 bg-blue-500"></div>
-                        <span className="text-[9px] font-black text-blue-500/60 tracking-widest">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold text-raid-gold mb-3">3. How We Use Your Information</h2>
+        <p className="text-md text-gray-400 mb-2">
+          We use your information to:
+        </p>
+        <ul className="list-disc list-inside text-md text-gray-400 ml-4 mb-2">
+          <li>Create, manage, and secure your account</li>
+          <li>Facilitate participation in tournaments and platform activities</li>
+          <li>Track engagement and improve Service performance</li>
+          <li>Generate personalized recommendations and profiles</li>
+          <li>Monitor for suspicious, fraudulent, or illegal activity</li>
+          <li>Communicate updates, offers, or new features</li>
+          <li>Analyze usage trends and support internal business operations</li>
+          <li>Develop algorithms to enhance competitiveness and fair play</li>
+        </ul>
+        <p className="text-md text-gray-400 mb-2">
+          We only use your information for legitimate business purposes and in compliance with applicable data protection laws.
+        </p>
+      </section>
 
-                <div className="space-y-4">
-                  <h3 className="text-xs font-black text-pink-500 uppercase tracking-widest italic">// MACHINE_TELEMETRY</h3>
-                  <ul className="space-y-2">
-                    {[
-                      "IP_NETWORK_TAGS",
-                      "OS_KERNEL_LOGS",
-                      "DEVICE_SIGNATURES",
-                      "USACE_ANALYTICS"
-                    ].map((item, i) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <div className="w-1 h-1 bg-pink-500"></div>
-                        <span className="text-[9px] font-black text-pink-500/60 tracking-widest">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </section>
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold text-raid-gold mb-3">4. Use of Game Footage and Media</h2>
+        <p className="text-md text-gray-400 mb-2">
+          By participating in tournaments or using RAID Arena services, you grant us permission to record and use your game footage, gameplay videos, screenshots, or live streams for marketing, promotional, or archival purposes across our official social media platforms (including YouTube, Twitch, X/Twitter, Facebook, and Instagram).
+        </p>
+        <p className="text-md text-gray-400 mb-2">
+          This may include visible usernames, gameplay actions, or audio such as voice chat. You will not receive compensation for such use.
+        </p>
+        <p className="text-md text-gray-400 mb-2">
+          If you wish to opt-out, please contact us at raid00arena@gmail.com.
+        </p>
+      </section>
 
-          {/* Use Cases Section */}
-          <section className="relative group">
-            <div className="absolute -inset-0.5 bg-blue-500/5 opacity-50 blur-sm"></div>
-            <div className="relative bg-black border border-blue-500/20 p-8" style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 20%)' }}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-2 h-6 bg-blue-600 shadow-[0_0_10px_rgba(0,243,255,1)]"></div>
-                <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">3. Operational Utility</h2>
-              </div>
-              <p className="text-xs text-gray-500 font-black uppercase tracking-widest leading-relaxed mb-6">
-                Data is strictly utilized for network enhancement and security integrity:
-              </p>
-              <div className="flex flex-wrap gap-4">
-                {[
-                  "CORE_MANAGEMENT",
-                  "THREAT_MONITORING",
-                  "PERSONALIZATION_ALGORITHMS",
-                  "SYSTEM_UPDATES",
-                  "FAIR_PLAY_PROTOCOL"
-                ].map((tag, i) => (
-                  <div key={i} className="bg-blue-900/10 border border-blue-500/30 px-3 py-1 text-[8px] font-black text-blue-400 tracking-[0.2em]" style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 100%, 0 100%, 0 30%)' }}>
-                    {tag}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold text-raid-gold mb-3">5. Disclosure of Your Information</h2>
+        <p className="text-md text-gray-400 mb-2">
+          We may share your information in the following circumstances:
+        </p>
+        <h3 className="text-xl font-semibold text-raid-gold mb-2">a. Legal Obligations</h3>
+        <p className="text-md text-gray-400 mb-2">
+          We may disclose your data if required by law or to protect our rights, comply with a legal obligation, or assist in investigations.
+        </p>
+        <h3 className="text-xl font-semibold text-raid-gold mb-2">b. Service Providers and Partners</h3>
+        <p className="text-md text-gray-400 mb-2">
+          We may share information with trusted third-party vendors that provide services on our behalf, such as:
+        </p>
+        <ul className="list-disc list-inside text-md text-gray-400 ml-4 mb-2">
+          <li>Hosting and data storage</li>
+          <li>Analytics and performance monitoring</li>
+          <li>Customer support and communication tools</li>
+          <li>Marketing and promotional support</li>
+        </ul>
+        <p className="text-md text-gray-400 mb-2">
+          All such partners are required to handle your data securely and in compliance with this Policy.
+        </p>
+      </section>
 
-          {/* Media Usage */}
-          <section className="bg-black/40 border border-pink-500/20 p-8" style={{ clipPath: 'polygon(0 0, 95% 0, 100% 20%, 100% 100%, 0 100%)' }}>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-2 h-6 bg-pink-500 shadow-[0_0_10px_#ff00ff]"></div>
-              <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">4. Media Broadcast Rights</h2>
-            </div>
-            <p className="text-xs text-pink-500/60 font-black uppercase tracking-widest leading-relaxed">
-              By initializing tournament nodes, you grant the arena permission to rebroadcast gameplay visuals,
-              screenshots, and audio signatures for promotional deployment. NO_COMPENSATION_PROTOCOL = TRUE.
-            </p>
-          </section>
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold text-raid-gold mb-3">6. Data Retention</h2>
+        <p className="text-md text-gray-400 mb-2">
+          We retain your personal information only for as long as necessary to fulfill the purposes outlined in this Policy, comply with legal obligations, resolve disputes, and enforce agreements.
+        </p>
+        <p className="text-md text-gray-400 mb-2">
+          When your information is no longer needed, we securely delete or anonymize it.
+        </p>
+      </section>
 
-          {/* Security & Contact */}
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-black border border-blue-500/20 p-8" style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 100%, 0 100%, 0 15%)' }}>
-              <h2 className="text-xs font-black text-blue-500 uppercase tracking-[0.4em] mb-4">7. SECURITY_KINETICS</h2>
-              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">
-                Kinetics include SSL_ENCRYPTION, FIREWALL_SHIELDS, and ACCESS_STRICTURES.
-                System security is high, but absolute immunity is statistically impossible.
-              </p>
-            </div>
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold text-raid-gold mb-3">7. Security of Your Information</h2>
+        <p className="text-md text-gray-400 mb-2">
+          We employ industry-standard security measures — including encryption (SSL), firewalls, and access control — to protect your personal information.
+        </p>
+        <p className="text-md text-gray-400 mb-2">
+          However, no system is completely secure. While we strive to safeguard your data, we cannot guarantee absolute security against unauthorized access or breaches.
+        </p>
+      </section>
 
-            <div className="bg-black border border-blue-500/20 p-8" style={{ clipPath: 'polygon(0 0, 90% 0, 100% 15%, 100% 100%, 0 100%)' }}>
-              <h2 className="text-xs font-black text-pink-500 uppercase tracking-[0.4em] mb-4">11. UPLINK_CONTACT</h2>
-              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-4 leading-relaxed">
-                Direct all privacy inquiries to the central terminal:
-              </p>
-              <a href="mailto:raid00arena@gmail.com" className="text-white font-black italic tracking-tighter hover:text-blue-400 transition-colors uppercase block">
-                raid00arena@gmail.com
-              </a>
-              <span className="text-[8px] font-black text-gray-700 mt-4 block uppercase tracking-widest">RAID_ARENA_SECURITY_DIV</span>
-            </div>
-          </div>
-        </div>
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold text-raid-gold mb-3">8. Children’s Privacy</h2>
+        <p className="text-md text-gray-400 mb-2">
+          RAID Arena does not knowingly collect personal information from children under the age of 13.
+        </p>
+        <p className="text-md text-gray-400 mb-2">
+          If you believe we may have collected data from a child without parental consent, please contact us immediately at raid00arena@gmail.com, and we will take prompt steps to delete the data.
+        </p>
+      </section>
 
-        <div className="mt-20 text-center">
-          <Link href="/" className="inline-block group">
-            <div className="bg-blue-600/10 border border-blue-600/30 px-12 py-5 text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] group-hover:bg-blue-600/20 transition-all active:scale-95 shadow-[0_0_20px_rgba(0,243,255,0.1)]" style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 100%, 0 100%, 0 30%)' }}>
-              REVERT_TO_BASE
-            </div>
-          </Link>
-        </div>
-      </div>
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold text-raid-gold mb-3">9. Your Privacy Rights</h2>
+        <p className="text-md text-gray-400 mb-2">
+          Depending on your location, you may have rights to:
+        </p>
+        <ul className="list-disc list-inside text-md text-gray-400 ml-4 mb-2">
+          <li>Access, correct, or delete your personal information</li>
+          <li>Withdraw consent for certain data uses</li>
+          <li>Request restriction or portability of your data</li>
+        </ul>
+        <p className="text-md text-gray-400 mb-2">
+          To exercise these rights, contact us at raid00arena@gmail.com. We may verify your identity before processing such requests.
+        </p>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold text-raid-gold mb-3">10. Changes to This Policy</h2>
+        <p className="text-md text-gray-400 mb-2">
+          We may update this Privacy Policy periodically to reflect changes in technology, legal requirements, or our practices. Updates will be posted on this page with a revised “Last Updated” date. Continued use of the Service after such changes constitutes your acceptance.
+        </p>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold text-raid-gold mb-3">11. Contact Us</h2>
+        <p className="text-md text-gray-400 mb-2">
+          If you have any questions, concerns, or requests about this Privacy Policy or our data practices, please contact us at:
+        </p>
+        <p className="text-md font-medium text-raid-gold mb-4">
+          📧 Email: <a href="mailto:raid00arena@gmail.com" className="hover:underline">raid00arena@gmail.com</a>
+        </p>
+        <p className="text-md font-medium text-raid-gold mb-4">
+          🏢 RAID Arena Team
+        </p>
+      </section>
     </div>
   );
-};;
+};
 
 export default PrivacyPolicyPage;
