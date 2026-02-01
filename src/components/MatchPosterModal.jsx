@@ -11,6 +11,16 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     const [extraData, setExtraData] = useState({ p1: null, p2: null });
     const [isFetchingInfo, setIsFetchingInfo] = useState(false);
 
+    // PREVENT BODY SCROLL
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
+
     // FETCH MISSING PLAYER DATA
     useEffect(() => {
         if (!isOpen || !match) return;
@@ -161,32 +171,17 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         setIsDownloading(true);
         try {
             if (posterRef.current) {
-                const poster = posterRef.current;
+                // Wait for all assets to be ready
+                await new Promise(r => setTimeout(r, 1000));
 
-                // 1. Force "Ideal" dimensions for high-res capture
-                const originalStyle = {
-                    width: poster.style.width,
-                    height: poster.style.height
-                };
-                poster.style.width = '1080px';
-                poster.style.height = '1350px';
-
-                // 2. Wait for all assets and reflow
-                await new Promise(r => setTimeout(r, 1200));
-
-                const blob = await toBlob(poster, {
+                const blob = await toBlob(posterRef.current, {
                     cacheBust: true,
-                    pixelRatio: 1, // 1080px is native 1x for this frame
+                    pixelRatio: 3, // High quality (1080p+ logic)
                     backgroundColor: '#050505',
                     useCORS: true,
                     allowTaint: true,
-                    width: 1080,
-                    height: 1350,
+                    skipFonts: false,
                 });
-
-                // 3. Restore layout
-                poster.style.width = originalStyle.width;
-                poster.style.height = originalStyle.height;
 
                 if (blob) {
                     const fileName = `raid-match-${p1.username.toLowerCase()}-vs-${p2.username.toLowerCase()}.png`;
@@ -232,32 +227,18 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         try {
             let file = null;
             if (posterRef.current) {
-                const poster = posterRef.current;
-
-                // Force "Ideal" dimensions for high-res share capture
-                const originalStyle = {
-                    width: poster.style.width,
-                    height: poster.style.height
-                };
-                poster.style.width = '1080px';
-                poster.style.height = '1350px';
-
-                await new Promise(r => setTimeout(r, 1200));
+                // Give the browser a moment to ensure all high-res assets are painted
+                await new Promise(r => setTimeout(r, 1000));
 
                 try {
-                    const blob = await toBlob(poster, {
+                    const blob = await toBlob(posterRef.current, {
                         cacheBust: true,
-                        pixelRatio: 1,
-                        width: 1080,
-                        height: 1350,
+                        pixelRatio: 3,
                         backgroundColor: '#050505',
                         useCORS: true,
                         allowTaint: true,
+                        skipFonts: false,
                     });
-
-                    poster.style.width = originalStyle.width;
-                    poster.style.height = originalStyle.height;
-
                     if (blob) {
                         file = new File([blob], 'raid-match-card.png', { type: 'image/png' });
                     }
