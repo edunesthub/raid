@@ -28,6 +28,22 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         return teamData.name || teamData.username || teamData.title || null;
     };
 
+    const formatTeamName = (name) => {
+        if (!name) return null;
+        const lowerName = name.trim().toLowerCase();
+        if (lowerName.startsWith('team ')) {
+            const teamWord = name.slice(0, 4);
+            const rest = name.slice(5);
+            return (
+                <div className="flex flex-col items-center leading-none">
+                    <span className="opacity-80">{teamWord}</span>
+                    <span className="text-[12px] sm:text-[14px] text-white mt-1 font-black">{rest}</span>
+                </div>
+            );
+        }
+        return <span>{name}</span>;
+    };
+
     const p1 = getPlayerData(match.player1, 'PLAYER 1');
     const p2 = getPlayerData(match.player2, 'PLAYER 2');
     const isBye = !match.player2Id && !match.player2;
@@ -203,9 +219,9 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                         {p1.username}
                                     </h2>
                                     {p1TeamName && (
-                                        <div className="flex items-center justify-center gap-1 text-orange-400 font-bold text-[10px] tracking-widest uppercase opacity-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
-                                            <Shield size={9} className="flex-shrink-0" />
-                                            <span>{p1TeamName}</span>
+                                        <div className="flex items-center justify-center gap-2 text-orange-400 font-bold text-[10px] tracking-widest uppercase opacity-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mt-1">
+                                            <Shield size={10} className="flex-shrink-0" />
+                                            {formatTeamName(p1TeamName)}
                                         </div>
                                     )}
                                 </div>
@@ -242,9 +258,9 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                         {isBye ? 'AUTO-WIN' : p2.username}
                                     </h2>
                                     {p2TeamName && !isBye && (
-                                        <div className="flex items-center justify-center gap-1 text-blue-400 font-bold text-[10px] tracking-widest uppercase opacity-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
-                                            <Shield size={9} className="flex-shrink-0" />
-                                            <span>{p2TeamName}</span>
+                                        <div className="flex items-center justify-center gap-2 text-blue-400 font-bold text-[10px] tracking-widest uppercase opacity-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mt-1">
+                                            <Shield size={10} className="flex-shrink-0" />
+                                            {formatTeamName(p2TeamName)}
                                         </div>
                                     )}
                                 </div>
