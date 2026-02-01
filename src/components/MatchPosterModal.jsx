@@ -204,113 +204,89 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     }
 
     const handleDownload = async () => {
-        if (isDownloading || isFetchingInfo || !captureReady) return;
-
+        if (isDownloading || !captureReady) return;
         setIsDownloading(true);
+
         try {
-            if (posterRef.current) {
-                // Wait for all assets to be ready and painted
-                await new Promise(r => setTimeout(r, 1500));
+            // Wait for any final paints
+            await new Promise(r => setTimeout(r, 500));
 
-                const options = {
-                    cacheBust: true,
-                    pixelRatio: 3, // High quality as requested
-                    backgroundColor: '#050505',
-                    useCORS: true,
-                    allowTaint: false,
-                    skipFonts: false,
-                };
+            const { toPng } = await import('html-to-image');
+            const dataUrl = await toPng(posterRef.current, {
+                pixelRatio: 2,
+                backgroundColor: '#050505',
+                cacheBust: true,
+                style: {
+                    transform: 'scale(1)',
+                    filter: 'none', // Remove blurs/filters that break mobile canvas
+                }
+            });
 
-                const blob = await toBlob(posterRef.current, options);
+            if (dataUrl) {
+                const res = await fetch(dataUrl);
+                const blob = await res.blob();
+                const fileName = `raid-match-${p1.username.toLowerCase()}.png`;
+                const file = new File([blob], fileName, { type: 'image/png' });
 
-                if (blob) {
-                    const fileName = `raid-match-${p1.username.toLowerCase()}-vs-${(p2.username || 'unknown').toLowerCase()}.png`;
-                    const file = new File([blob], fileName, { type: 'image/png' });
-                    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-                    if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
-                        try {
-                            await navigator.share({
-                                files: [file],
-                                title: 'RAID Match Poster',
-                            });
-                        } catch (sErr) {
-                            if (sErr.name !== 'AbortError') triggerDirectDownload(blob, fileName);
-                        }
-                    } else {
-                        triggerDirectDownload(blob, fileName);
-                    }
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'RAID Match Card',
+                    });
+                } else {
+                    const link = document.createElement('a');
+                    link.download = fileName;
+                    link.href = dataUrl;
+                    link.click();
                 }
             }
         } catch (err) {
             console.error("Download failed:", err);
-            alert("Capture failed. Please wait for images to load and try again.");
+            alert("Export failed. Please refresh or try another browser.");
         } finally {
             setIsDownloading(false);
         }
     };
 
-    const triggerDirectDownload = (blob, fileName) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(() => window.URL.revokeObjectURL(url), 100);
-    };
 
     const handleShare = async () => {
-        if (isSharing || isFetchingInfo || !captureReady) return;
+        if (isSharing || !captureReady) return;
         setIsSharing(true);
 
-        const text = getShareText();
         try {
-            if (posterRef.current) {
-                await new Promise(r => setTimeout(r, 1500));
+            await new Promise(r => setTimeout(r, 500));
+            const { toPng } = await import('html-to-image');
+            const dataUrl = await toPng(posterRef.current, {
+                pixelRatio: 2,
+                backgroundColor: '#050505',
+                style: { transform: 'scale(1)', filter: 'none' }
+            });
 
-                const options = {
-                    cacheBust: true,
-                    pixelRatio: 3,
-                    backgroundColor: '#050505',
-                    useCORS: true,
-                    allowTaint: false,
-                    skipFonts: false,
-                };
+            if (dataUrl) {
+                const res = await fetch(dataUrl);
+                const blob = await res.blob();
+                const file = new File([blob], 'raid-match-card.png', { type: 'image/png' });
 
-                const blob = await toBlob(posterRef.current, options);
-
-                if (blob) {
-                    const file = new File([blob], 'raid-match-card.png', { type: 'image/png' });
-                    const shareData = {
-                        title: 'RAID Match Card',
-                        text: text,
-                    };
-
+                if (navigator.share) {
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        shareData.files = [file];
-                        await navigator.share(shareData);
-                        return;
+                        await navigator.share({
+                            files: [file],
+                            title: 'RAID Match Card',
+                            text: getShareText(),
+                        });
+                    } else {
+                        await navigator.share({
+                            title: 'RAID Match Card',
+                            text: getShareText(),
+                            url: getShareUrl()
+                        });
                     }
                 }
             }
-
-            // Fallback for browsers that don't support file sharing
-            if (navigator.share) {
-                await navigator.share({
-                    title: 'RAID Match Card',
-                    text: text,
-                    url: getShareUrl()
-                });
-            } else {
-                throw new Error("No native share");
-            }
         } catch (err) {
-            if (err.name !== 'AbortError') {
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-                window.open(whatsappUrl, '_blank');
-            }
+            console.error("Share failed:", err);
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(getShareText())}`;
+            window.open(whatsappUrl, '_blank');
         } finally {
             setIsSharing(false);
         }
@@ -466,7 +442,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                         {/* CENTRAL VS OVERLAY (SHARPER) */}
                         <div className="absolute top-[45%] left-[49%] -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
                             <div className="relative">
-                                <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-50" />
+                                <div className="absolute inset-0 bg-white/20 rounded-full scale-50" />
                                 <span className="relative block px-8 text-5xl sm:text-6xl font-[1000] italic bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-100 to-gray-400 drop-shadow-[0_0_40px_rgba(255,255,255,0.4)] transform -skew-x-12">
                                     VS
                                 </span>
