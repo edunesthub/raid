@@ -129,6 +129,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
             if (!url) return null;
             try {
                 const response = await fetch(url, { mode: 'cors' });
+                if (!response.ok) throw new Error('Network response was not ok');
                 const blob = await response.blob();
                 return new Promise((resolve) => {
                     const reader = new FileReader();
@@ -137,7 +138,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                 });
             } catch (e) {
                 console.error("Base64 conversion failed", e);
-                return url; // Fallback to original
+                return null; // Return null so img src fallback can work
             }
         };
 
@@ -206,10 +207,10 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
 
                 const blob = await toBlob(posterRef.current, {
                     cacheBust: true,
-                    pixelRatio: 3, // High quality (1080p+ logic)
+                    pixelRatio: 2, // 2 is safer for mobile memory limits
                     backgroundColor: '#050505',
                     useCORS: true,
-                    allowTaint: true,
+                    allowTaint: false, // Don't allow tainting as it breaks blob creation
                     skipFonts: false,
                 });
 
@@ -263,10 +264,10 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                 try {
                     const blob = await toBlob(posterRef.current, {
                         cacheBust: true,
-                        pixelRatio: 3,
+                        pixelRatio: 2,
                         backgroundColor: '#050505',
                         useCORS: true,
-                        allowTaint: true,
+                        allowTaint: false,
                         skipFonts: false,
                     });
                     if (blob) {
@@ -381,7 +382,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                         ) : (
                                             <img
                                                 src={base64Avatars.p1 || p1.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p1.username || 'P1'}`}
-                                                className="w-full h-full object-cover scale-110"
+                                                className="w-full h-full object-cover"
                                                 alt={p1.username}
                                                 crossOrigin="anonymous"
                                             />
@@ -422,7 +423,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                         ) : (
                                             <img
                                                 src={base64Avatars.p2 || p2.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p2.username || 'P2'}`}
-                                                className="w-full h-full object-cover scale-110"
+                                                className="w-full h-full object-cover"
                                                 alt={p2.username}
                                                 crossOrigin="anonymous"
                                             />
@@ -464,10 +465,10 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                         <div className="flex flex-col items-center">
                             <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent mb-4" />
 
-                            <div className="flex flex-wrap justify-center mb-3">
-                                <div className="flex items-center gap-1.5 px-4 py-1.5 bg-zinc-900/90 border border-white/20 rounded-full">
-                                    <Trophy size={14} className="text-orange-500" />
-                                    <span className="text-[11px] font-[1000] tracking-[0.2em] uppercase text-white drop-shadow-sm">
+                            <div className="flex flex-wrap justify-center mb-3 w-full">
+                                <div className="flex items-center gap-1.5 px-4 py-1.5 bg-zinc-900/90 border border-white/20 rounded-full max-w-[90%] sm:max-w-full">
+                                    <Trophy size={14} className="text-orange-500 flex-shrink-0" />
+                                    <span className="text-[10px] sm:text-[11px] font-[1000] tracking-[0.2em] uppercase text-white drop-shadow-sm truncate min-w-0">
                                         {tournament?.title || 'CHAMPIONS LEAGUE'}
                                     </span>
                                 </div>
