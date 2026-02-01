@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Camera, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { db } from "../../../lib/firebase";
@@ -27,7 +27,7 @@ export default function EditProfilePage() {
   const [success, setSuccess] = useState(false);
 
   // Avatar states
-  const [avatarUrl, setAvatarUrl] = useState(''); 
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = React.useRef(null);
 
@@ -164,7 +164,7 @@ export default function EditProfilePage() {
       const currentUsername = (user.username || '').toLowerCase().trim();
       const incomingUsername = safeFormData.username.toLowerCase().trim();
       const usernameChanged = incomingUsername !== currentUsername;
-      
+
       if (usernameChanged) {
         // ✅ Validate username format only if it changed
         const formatValidation = usernameService.validateUsernameFormat(safeFormData.username);
@@ -175,13 +175,13 @@ export default function EditProfilePage() {
         }
 
         const isAvailable = await usernameService.isUsernameAvailable(
-          safeFormData.username, 
+          safeFormData.username,
           user.id
         );
-        
+
         if (!isAvailable) {
           setError("Username is already taken. Please choose another one.");
-          
+
           // Generate suggestions
           const suggestions = await usernameService.generateSuggestions(safeFormData.username);
           if (suggestions.length > 0) {
@@ -284,12 +284,12 @@ export default function EditProfilePage() {
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center hover:bg-orange-600 transition"
+          className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center hover:bg-orange-600 transition shadow-lg border-2 border-gray-900"
         >
           {uploadingAvatar ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <Loader2 size={18} className="animate-spin text-white" />
           ) : (
-            '📷'
+            <Camera size={18} className="text-white" />
           )}
         </button>
         <input
@@ -406,9 +406,8 @@ export default function EditProfilePage() {
         <button
           type="submit"
           disabled={saving}
-          className={`w-full flex items-center justify-center gap-3 bg-orange-500 hover:bg-orange-600 font-bold py-3 rounded-2xl text-white text-lg transition-all active:scale-95 ${
-            saving ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
+          className={`w-full flex items-center justify-center gap-3 bg-orange-500 hover:bg-orange-600 font-bold py-3 rounded-2xl text-white text-lg transition-all active:scale-95 ${saving ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
         >
           <Save size={18} />
           {saving ? 'Saving...' : 'Save Changes'}

@@ -12,9 +12,10 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Plus, Search, Edit, Trash2, X, Calendar, Users as UsersIcon, Zap, Target, Filter, MessageSquare } from "lucide-react";
+import { Plus, Search, Edit, Trash2, X, Calendar, Users as UsersIcon, Zap, Target, Filter, MessageSquare, Shield } from "lucide-react";
 import TournamentForm from "./TournamentForm";
 import TournamentParticipants from "./TournamentParticipants";
+import TournamentTeams from "./TournamentTeams";
 import SendSMSModal from "./SendSMSModal";
 import { useAuth } from '@/hooks/useAuth';
 import { logAdminAction } from '@/services/adminAuditService';
@@ -28,8 +29,10 @@ export default function TournamentManagement() {
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showParticipantsModal, setShowParticipantsModal] = useState(false);
+  const [showTeamsModal, setShowTeamsModal] = useState(false);
   const [showSMSModal, setShowSMSModal] = useState(false);
   const [selectedTournamentId, setSelectedTournamentId] = useState(null);
+  const [selectedTournamentType, setSelectedTournamentType] = useState("Individual");
   const [activeTab, setActiveTab] = useState("bracket"); // bracket or battle-royale
   const [statusUpdate, setStatusUpdate] = useState({
     tournamentId: null,
@@ -99,9 +102,14 @@ export default function TournamentManagement() {
     setShowStatusModal(true);
   };
 
-  const openParticipantsModal = (tournamentId) => {
-    setSelectedTournamentId(tournamentId);
-    setShowParticipantsModal(true);
+  const openParticipantsModal = (tournament) => {
+    setSelectedTournamentId(tournament.id);
+    setSelectedTournamentType(tournament.participant_type || "Individual");
+    if (tournament.participant_type === "Team") {
+      setShowTeamsModal(true);
+    } else {
+      setShowParticipantsModal(true);
+    }
   };
 
   const openSMSModal = (tournament) => {
@@ -120,11 +128,39 @@ export default function TournamentManagement() {
         updatedBy: user?.id || null,
       });
 
-      setTournaments(tournaments.map(t => 
-        t.id === statusUpdate.tournamentId 
+      setTournaments(tournaments.map(t =>
+        t.id === statusUpdate.tournamentId
           ? { ...t, status: statusUpdate.newStatus }
           : t
       ));
+
+      // NEW: Automation on 'Live' status
+      if (statusUpdate.newStatus === 'live') {
+        const tournament = tournaments.find(t => t.id === statusUpdate.tournamentId);
+
+        // 1. Auto-pair members for Team tournaments if not already done
+        if (tournament?.participant_type === 'Team') {
+          try {
+            const { tournamentService } = await import('@/services/tournamentService');
+            const pairings = await tournamentService.generateMemberPairings(statusUpdate.tournamentId);
+            if (!pairings || pairings.length === 0) {
+              console.warn("No pairings generated - likely no squad members have selected lineups yet.");
+            } else {
+              console.log("Automatic member pairings generated on live status.");
+            }
+          } catch (e) {
+            console.error("Auto-pairing failed on status change:", e);
+            alert("Status changed to Live, but member pairings could not be auto-generated: " + e.message + "\n\nMake sure at least 2 squads have selected their lineups.");
+          }
+        }
+
+        // 2. Prompt for Bracket generation if it's a Bracket tournament
+        if (tournament?.format === 'Bracket' && !tournament?.bracketGenerated) {
+          if (confirm("Tournament is now LIVE. Would you like to generate the Bracket matches now?")) {
+            await handleGenerateBracket(statusUpdate.tournamentId);
+          }
+        }
+      }
 
       if (user?.id) {
         logAdminAction({
@@ -174,7 +210,7 @@ export default function TournamentManagement() {
   const getStatusBadge = (status) => {
     const statusOption = statusOptions.find(s => s.value === status);
     if (!statusOption) return <span className="text-gray-400">Unknown</span>;
-    
+
     return (
       <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${statusOption.color}`}>
         {statusOption.label}
@@ -208,16 +244,16 @@ export default function TournamentManagement() {
   };
 
   // Filter tournaments by format and search
-  const bracketTournaments = tournaments.filter(t => 
+  const bracketTournaments = tournaments.filter(t =>
     t.format === "Bracket" &&
     (t.tournament_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     t.game?.toLowerCase().includes(searchTerm.toLowerCase()))
+      t.game?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const battleRoyaleTournaments = tournaments.filter(t => 
+  const battleRoyaleTournaments = tournaments.filter(t =>
     t.format !== "Bracket" &&
     (t.tournament_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     t.game?.toLowerCase().includes(searchTerm.toLowerCase()))
+      t.game?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const displayTournaments = activeTab === "bracket" ? bracketTournaments : battleRoyaleTournaments;
@@ -269,11 +305,10 @@ export default function TournamentManagement() {
       <div className="flex gap-2 bg-gray-800 border border-gray-700 rounded-xl p-1">
         <button
           onClick={() => setActiveTab("bracket")}
-          className={`flex-1 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
-            activeTab === "bracket"
-              ? "bg-purple-600 text-white shadow-lg"
-              : "text-gray-400 hover:text-white hover:bg-gray-700"
-          }`}
+          className={`flex-1 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${activeTab === "bracket"
+            ? "bg-purple-600 text-white shadow-lg"
+            : "text-gray-400 hover:text-white hover:bg-gray-700"
+            }`}
         >
           <Target className="w-5 h-5" />
           Bracket Tournaments
@@ -283,11 +318,10 @@ export default function TournamentManagement() {
         </button>
         <button
           onClick={() => setActiveTab("battle-royale")}
-          className={`flex-1 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
-            activeTab === "battle-royale"
-              ? "bg-orange-600 text-white shadow-lg"
-              : "text-gray-400 hover:text-white hover:bg-gray-700"
-          }`}
+          className={`flex-1 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${activeTab === "battle-royale"
+            ? "bg-orange-600 text-white shadow-lg"
+            : "text-gray-400 hover:text-white hover:bg-gray-700"
+            }`}
         >
           <Zap className="w-5 h-5" />
           Battle Royale / FFA
@@ -298,16 +332,14 @@ export default function TournamentManagement() {
       </div>
 
       {/* Info Banner */}
-      <div className={`rounded-xl p-4 border ${
-        activeTab === "bracket" 
-          ? "bg-purple-500/10 border-purple-500/30" 
-          : "bg-orange-500/10 border-orange-500/30"
-      }`}>
-        <p className={`text-sm flex items-center gap-2 ${
-          activeTab === "bracket" ? "text-purple-400" : "text-orange-400"
+      <div className={`rounded-xl p-4 border ${activeTab === "bracket"
+        ? "bg-purple-500/10 border-purple-500/30"
+        : "bg-orange-500/10 border-orange-500/30"
         }`}>
+        <p className={`text-sm flex items-center gap-2 ${activeTab === "bracket" ? "text-purple-400" : "text-orange-400"
+          }`}>
           <Filter className="w-4 h-4" />
-          {activeTab === "bracket" 
+          {activeTab === "bracket"
             ? "Bracket tournaments use auto-generated elimination brackets. Click 'Generate Bracket' when ready to start."
             : "Battle Royale tournaments require manual winner selection. Use 'Battle Royale Results' tab to set winners."}
         </p>
@@ -321,6 +353,7 @@ export default function TournamentManagement() {
               <th className="text-left p-4">Tournament</th>
               <th className="text-left p-4">Game</th>
               <th className="text-left p-4">Country</th>
+              <th className="text-left p-4">Type</th>
               <th className="text-left p-4">Format</th>
               <th className="text-left p-4">Status</th>
               <th className="text-left p-4">Participants</th>
@@ -384,6 +417,14 @@ export default function TournamentManagement() {
                       {t.country || t.region || 'Ghana'}
                     </span>
                   </td>
+                  <td className="p-4">
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black uppercase border ${t.participant_type === 'Team'
+                      ? 'bg-blue-500/10 border-blue-500/30 text-blue-400'
+                      : 'bg-gray-800 border-gray-700 text-gray-400'
+                      }`}>
+                      {t.participant_type || 'Individual'}
+                    </span>
+                  </td>
                   <td className="p-4">{getFormatBadge(t.format)}</td>
                   <td className="p-4">
                     <button
@@ -395,11 +436,11 @@ export default function TournamentManagement() {
                   </td>
                   <td className="p-4 text-gray-400">
                     <button
-                      onClick={() => openParticipantsModal(t.id)}
+                      onClick={() => openParticipantsModal(t)}
                       className="flex items-center gap-2 hover:text-orange-400 transition-colors"
                     >
-                      <UsersIcon size={16} />
-                      {t.current_participants}/{t.max_participant}
+                      {t.participant_type === 'Team' ? <Shield size={16} /> : <UsersIcon size={16} />}
+                      {t.participant_type === 'Team' ? (t.teams || []).length : t.current_participants}/{t.max_participant}
                     </button>
                   </td>
                   <td className="p-4 text-gray-400">{t.country === 'Nigeria' ? '₦' : '₵'}{t.entry_fee}</td>
@@ -437,11 +478,14 @@ export default function TournamentManagement() {
                         <Calendar size={14} />
                       </button>
                       <button
-                        onClick={() => openParticipantsModal(t.id)}
-                        className="p-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg transition"
-                        title="View Participants"
+                        onClick={() => openParticipantsModal(t)}
+                        className={`p-2 rounded-lg transition ${t.participant_type === 'Team'
+                          ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-400'
+                          : 'bg-green-500/20 hover:bg-green-500/30 text-green-400'
+                          }`}
+                        title={t.participant_type === 'Team' ? "Deploy Teams / Manage Member Pairings" : "View Participants"}
                       >
-                        <UsersIcon size={14} />
+                        {t.participant_type === 'Team' ? <Shield size={14} /> : <UsersIcon size={14} />}
                       </button>
                       <button
                         onClick={() => openSMSModal(t)}
@@ -492,7 +536,7 @@ export default function TournamentManagement() {
                   {getStatusBadge(t.status || "completed")}
                 </button>
               </div>
-              
+
               <div className="space-y-2 text-sm mb-4">
                 <div className="text-gray-300">
                   Game: <span className="text-white">{t.game}</span>
@@ -523,11 +567,13 @@ export default function TournamentManagement() {
                   </div>
                 )}
                 <button
-                  onClick={() => openParticipantsModal(t.id)}
+                  onClick={() => openParticipantsModal(t)}
                   className="flex items-center gap-2 text-gray-300 hover:text-orange-400 transition-colors"
                 >
                   <UsersIcon size={16} />
-                  Participants: <span className="text-white">{t.current_participants}/{t.max_participant}</span>
+                  Participants: <span className="text-white">
+                    {t.participant_type === 'Team' ? (t.teams || []).length : t.current_participants}/{t.max_participant}
+                  </span>
                 </button>
                 <div className="text-gray-300">
                   Entry Fee: <span className="text-white">{t.country === 'Nigeria' ? '₦' : '₵'}{t.entry_fee}</span>
@@ -559,10 +605,11 @@ export default function TournamentManagement() {
                   <Calendar size={16} /> Status
                 </button>
                 <button
-                  onClick={() => openParticipantsModal(t.id)}
+                  onClick={() => openParticipantsModal(t)}
                   className="p-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg transition flex items-center justify-center gap-1"
                 >
-                  <UsersIcon size={16} /> Users
+                  {t.participant_type === 'Team' ? <Shield size={16} /> : <UsersIcon size={16} />}
+                  {t.participant_type === 'Team' ? 'Squads' : 'Users'}
                 </button>
                 <button
                   onClick={() => openSMSModal(t)}
@@ -589,63 +636,65 @@ export default function TournamentManagement() {
       </div>
 
       {/* Status Change Modal */}
-      {showStatusModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-gray-900 rounded-3xl p-6 w-full max-w-md relative shadow-2xl border border-gray-700">
-            <button
-              onClick={() => setShowStatusModal(false)}
-              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white"
-            >
-              <X size={24} />
-            </button>
+      {
+        showStatusModal && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+            <div className="bg-gray-900 rounded-3xl p-6 w-full max-w-md relative shadow-2xl border border-gray-700">
+              <button
+                onClick={() => setShowStatusModal(false)}
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white"
+              >
+                <X size={24} />
+              </button>
 
-            <h3 className="text-2xl font-bold text-white mb-6">Change Tournament Status</h3>
+              <h3 className="text-2xl font-bold text-white mb-6">Change Tournament Status</h3>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">
-                  Current Status
-                </label>
-                <div className="p-3 bg-gray-800 rounded-lg">
-                  {getStatusBadge(statusUpdate.currentStatus)}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Current Status
+                  </label>
+                  <div className="p-3 bg-gray-800 rounded-lg">
+                    {getStatusBadge(statusUpdate.currentStatus)}
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">
-                  New Status
-                </label>
-                <select
-                  value={statusUpdate.newStatus}
-                  onChange={(e) => setStatusUpdate({ ...statusUpdate, newStatus: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
-                >
-                  {statusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    New Status
+                  </label>
+                  <select
+                    value={statusUpdate.newStatus}
+                    onChange={(e) => setStatusUpdate({ ...statusUpdate, newStatus: e.target.value })}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
+                  >
+                    {statusOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => setShowStatusModal(false)}
-                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 rounded-xl transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleStatusChange}
-                  className="flex-1 bg-orange-600 hover:bg-orange-500 text-white font-semibold py-3 rounded-xl transition"
-                >
-                  Update Status
-                </button>
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={() => setShowStatusModal(false)}
+                    className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 rounded-xl transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleStatusChange}
+                    className="flex-1 bg-orange-600 hover:bg-orange-500 text-white font-semibold py-3 rounded-xl transition"
+                  >
+                    Update Status
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Participants Modal */}
       {showParticipantsModal && selectedTournamentId && (
@@ -658,36 +707,51 @@ export default function TournamentManagement() {
         />
       )}
 
-      {/* Tournament Form Modal */}
-      {showForm && (
-        <TournamentForm
-          tournament={selectedTournament}
+      {/* Teams Deployment Modal */}
+      {showTeamsModal && selectedTournamentId && (
+        <TournamentTeams
+          tournamentId={selectedTournamentId}
           onClose={() => {
-            setShowForm(false);
-            setSelectedTournament(null);
-          }}
-          onCreated={() => {
-            loadTournaments();
-            setShowForm(false);
-            setSelectedTournament(null);
+            setShowTeamsModal(false);
+            setSelectedTournamentId(null);
           }}
         />
       )}
 
+      {/* Tournament Form Modal */}
+      {
+        showForm && (
+          <TournamentForm
+            tournament={selectedTournament}
+            onClose={() => {
+              setShowForm(false);
+              setSelectedTournament(null);
+            }}
+            onCreated={() => {
+              loadTournaments();
+              setShowForm(false);
+              setSelectedTournament(null);
+            }}
+          />
+        )
+      }
+
       {/* Send SMS Modal */}
-      {showSMSModal && selectedTournament && (
-        <SendSMSModal
-          tournament={selectedTournament}
-          participantCount={selectedTournament.current_participants || 0}
-          onClose={() => {
-            setShowSMSModal(false);
-            setSelectedTournament(null);
-          }}
-          onSuccess={(result) => {
-            console.log('SMS sent successfully:', result);
-          }}
-        />
-      )}
-    </div>
+      {
+        showSMSModal && selectedTournament && (
+          <SendSMSModal
+            tournament={selectedTournament}
+            participantCount={selectedTournament.current_participants || 0}
+            onClose={() => {
+              setShowSMSModal(false);
+              setSelectedTournament(null);
+            }}
+            onSuccess={(result) => {
+              console.log('SMS sent successfully:', result);
+            }}
+          />
+        )
+      }
+    </div >
   );
 }

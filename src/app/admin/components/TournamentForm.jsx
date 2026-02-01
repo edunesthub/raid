@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect } from "react";
 import { addDoc, collection, serverTimestamp, doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { X, Upload, Image as ImageIcon, Save, Plus } from "lucide-react";
+import { X, Upload, Image as ImageIcon, Save, Plus, Shield, Users } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { logAdminAction } from '@/services/adminAuditService';
 
@@ -37,6 +37,8 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
     description: "",
     format: "Battle Royale",
     country: "Ghana",
+    participant_type: "Individual", // "Individual" or "Team"
+    squad_size: "5", // Default to 5 for teams
     rules: [],
     twitch_link: "",
   });
@@ -66,6 +68,8 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
         description: tournament.description || "",
         format: tournament.format || "Battle Royale",
         country: tournament.country || tournament.region || "Ghana",
+        participant_type: tournament.participant_type || "Individual",
+        squad_size: tournament.squad_size?.toString() || "5",
         rules: Array.isArray(tournament.rules) ? tournament.rules : [],
         twitch_link: tournament.twitch_link || "",
       });
@@ -182,6 +186,8 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
         tournament_flyer: flyerUrl,
         format: form.format,
         country: form.country || "Ghana",
+        participant_type: form.participant_type,
+        squad_size: form.participant_type === "Team" ? (Number(form.squad_size) || 5) : null,
         rules: form.rules.filter(rule => rule.trim() !== ""),
         twitch_link: form.twitch_link || "",
         updated_at: serverTimestamp(),
@@ -275,7 +281,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 pb-28 sm:pb-8">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 pb-30 sm:pb-8">
           {/* Image Upload Section */}
           <div className="space-y-2">
             <label className="block text-sm text-gray-300 font-medium">
@@ -399,6 +405,66 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
                   : "📋 Winners will be selected manually by admin after completion"}
               </p>
             </div>
+          </div>
+
+          {/* Participant Type */}
+          <div className="bg-gray-800/20 p-4 rounded-xl border border-gray-700/50">
+            <label className="block text-sm text-gray-300 font-medium mb-3">
+              Participant Type *
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, participant_type: "Individual" })}
+                className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${form.participant_type === "Individual"
+                  ? "bg-orange-600/20 border-orange-500 text-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.15)]"
+                  : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600"
+                  }`}
+              >
+                <Users size={20} className={form.participant_type === "Individual" ? "text-orange-500" : "text-gray-500"} />
+                <span className="font-bold text-xs uppercase tracking-wider">Individual</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, participant_type: "Team" })}
+                className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${form.participant_type === "Team"
+                  ? "bg-blue-600/20 border-blue-500 text-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
+                  : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600"
+                  }`}
+              >
+                <Shield size={20} className={form.participant_type === "Team" ? "text-blue-500" : "text-gray-500"} />
+                <span className="font-bold text-xs uppercase tracking-wider">Squad / Team</span>
+              </button>
+            </div>
+            {form.participant_type === "Team" && (
+              <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <label className="block text-xs text-gray-400 font-bold uppercase tracking-widest mb-2">
+                  Required Players Per Squad
+                </label>
+                <div className="relative">
+                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500/50" size={16} />
+                  <input
+                    type="number"
+                    name="squad_size"
+                    value={form.squad_size}
+                    onChange={handleChange}
+                    min="1"
+                    max="20"
+                    placeholder="e.g. 5"
+                    className="w-full bg-gray-900 border border-gray-700 focus:border-blue-500 rounded-lg py-3 pl-10 pr-4 outline-none text-white text-sm"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-600 mt-2 italic">
+                  Managers must select exactly this many members to mobilize their squad.
+                </p>
+              </div>
+            )}
+            <p className="text-gray-500 text-[10px] mt-2 italic px-1">
+              {form.participant_type === "Individual"
+                ? "Players join this tournament individually."
+                : "Managers will register their entire squad for this event."}
+            </p>
           </div>
 
           {/* Country */}
@@ -534,6 +600,9 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition"
             />
           </div>
+
+          {/* Buffer space for fixed mobile footer */}
+          <div className="h-6 sm:hidden"></div>
 
           {/* Action Buttons - Fixed at bottom on mobile */}
           <div className="fixed sm:relative bottom-0 left-0 right-0 bg-gray-900 sm:bg-transparent border-t sm:border-t-0 border-gray-700 p-4 sm:p-0 flex flex-col sm:flex-row gap-3 sm:pt-4 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.5)] sm:shadow-none">

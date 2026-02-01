@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
-import { Loader } from "lucide-react";
+import { Loader, Shield } from "lucide-react";
 
 const TournamentCard = ({ tournament }) => {
   const [isNavigating, setIsNavigating] = useState(false);
@@ -22,12 +22,12 @@ const TournamentCard = ({ tournament }) => {
         </span>
         <span
           className={`absolute top-3 right-3 px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-full text-white shadow-md ${tournament.status === "live"
-              ? "bg-green-500/90 animate-pulse"
-              : tournament.status === "registration-open"
-                ? "bg-blue-500/90"
-                : tournament.status === "upcoming"
-                  ? "bg-yellow-500/90"
-                  : "bg-gray-500/90"
+            ? "bg-green-500/90 animate-pulse"
+            : tournament.status === "registration-open"
+              ? "bg-blue-500/90"
+              : tournament.status === "upcoming"
+                ? "bg-yellow-500/90"
+                : "bg-gray-500/90"
             }`}
         >
           {tournament.status === "registration-open"
@@ -38,6 +38,12 @@ const TournamentCard = ({ tournament }) => {
                 ? "⏰ SOON"
                 : "✅ ENDED"}
         </span>
+
+        {tournament.participant_type === 'Team' && (
+          <span className="absolute bottom-3 right-3 px-2.5 py-1 text-[10px] sm:text-xs font-black rounded-full bg-blue-600/90 text-white shadow-md flex items-center gap-1 border border-blue-400/30 animate-pulse">
+            <Shield size={12} fill="currentColor" /> SQUAD
+          </span>
+        )}
       </div>
 
       {/* CONTENT */}
@@ -71,7 +77,7 @@ const TournamentCard = ({ tournament }) => {
         {/* Players Progress */}
         <div>
           <div className="flex justify-between items-center text-xs text-gray-400 mb-1">
-            <span>Players</span>
+            <span>{tournament.participant_type === 'Team' ? 'Squads' : 'Players'}</span>
             <span className="text-white">
               {tournament.currentPlayers}/{tournament.maxPlayers}
             </span>
@@ -87,20 +93,7 @@ const TournamentCard = ({ tournament }) => {
           </div>
         </div>
 
-        {/* Prize Distribution */}
-        {tournament.prizeDistribution?.length > 0 && (
-          <div className="bg-[#1a1a1d]/90 border border-orange-500/30 rounded-lg p-2 text-xs text-white space-y-1 max-h-20 overflow-y-auto hover:bg-[#1f1f23]/90 transition-colors">
-            {tournament.prizeDistribution.map((prize, index) => (
-              <div
-                key={index}
-                className="flex justify-between text-[11px] sm:text-sm"
-              >
-                <span>{prize.rank}</span>
-                <span>{prize.percentage}%</span>
-              </div>
-            ))}
-          </div>
-        )}
+
 
         {/* CTA */}
         <Link

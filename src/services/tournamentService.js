@@ -54,7 +54,7 @@ class TournamentService {
       image: data.tournament_flyer || data.game_icon || '/assets/raid1.svg',
       prizePool: (data.first_place || 0) + (data.second_place || 0),
       entryFee: data.entry_fee || 0,
-      currentPlayers: data.current_participants || 0,
+      currentPlayers: data.participant_type === 'Team' ? (data.teams || []).length : (data.current_participants || 0),
       maxPlayers: data.max_participant || 0,
       format: data.format || data.platform || 'Knockout',
       region: country,
@@ -73,7 +73,12 @@ class TournamentService {
       ],
       bracketGenerated: data.bracketGenerated || false,
       currentRound: data.currentRound || 0,
-      totalRounds: data.totalRounds || 0
+      totalRounds: data.totalRounds || 0,
+      participant_type: data.participant_type || 'Individual',
+      squad_size: data.squad_size || null,
+      teams: data.teams || [],
+      rosters: data.rosters || {},
+      memberPairings: data.memberPairings || []
     };
   }
 
@@ -257,6 +262,10 @@ class TournamentService {
           throw new Error('Tournament registration is closed');
         }
 
+        if (tournamentData.participant_type === 'Team') {
+          throw new Error('This is a squad tournament. Please register your team via the Manager Portal.');
+        }
+
         transaction.set(participantRef, {
           tournamentId,
           userId,
@@ -413,26 +422,87 @@ class TournamentService {
         throw new Error('Bracket already generated for this tournament');
       }
 
-      // Get active participants
-      const participants = await this.getTournamentParticipants(tournamentId);
+      // Get active participants (individuals or members)
+      const isTeamTournament = tournamentData.participant_type === 'Team';
+      let participants = [];
+
+      if (isTeamTournament) {
+        // Collect all members from rosters
+        const rosters = tournamentData.rosters || {};
+        const allEmails = [];
+        Object.values(rosters).forEach(roster => {
+          if (Array.isArray(roster)) {
+            allEmails.push(...roster);
+          }
+        });
+
+        if (allEmails.length === 0) {
+          throw new Error('No members found in squad rosters. Teams must select their lineups before you can generate the bracket.');
+        }
+
+        // Resolve emails to actual user objects/IDs
+        const { userService } = await import('./userService');
+        const userProfiles = await userService.getUsersByEmails(allEmails);
+
+        // Map back to include team context if needed, but primarily we need user IDs for matches
+        participants = userProfiles.map(u => ({
+          id: u.id,
+          email: u.email,
+          username: u.username,
+          teamId: Object.keys(rosters).find(tid => rosters[tid].includes(u.email))
+        }));
+      } else {
+        // For individual tournaments, fetch from participants collection
+        participants = await this.getTournamentParticipants(tournamentId);
+      }
 
       if (participants.length < 2) {
-        throw new Error('Need at least 2 participants to generate bracket');
+        const typeLabel = isTeamTournament ? 'squad members' : 'active participants';
+        throw new Error(`Need at least 2 ${typeLabel} to generate bracket. Current: ${participants.length}`);
       }
 
       // Calculate rounds
       const totalRounds = this.calculateTotalRounds(participants.length);
 
-      // Shuffle participants for random matching
-      const shuffledParticipants = this.shuffleArray(participants);
-
       // Generate first round matches
       const batch = writeBatch(db);
       const matches = [];
 
-      for (let i = 0; i < shuffledParticipants.length; i += 2) {
-        const player1 = shuffledParticipants[i];
-        const player2 = shuffledParticipants[i + 1] || null; // Bye if odd number
+      let firstRoundParticipants = [];
+      if (isTeamTournament) {
+        // SPECIAL LOGIC: Try to pair members of different teams against each other in Round 1
+        const pools = {};
+        participants.forEach(p => {
+          if (!pools[p.teamId]) pools[p.teamId] = [];
+          pools[p.teamId].push(p);
+        });
+
+        const poolKeys = Object.keys(pools);
+        if (poolKeys.length >= 2) {
+          // Cross-team pairing
+          const p1Pool = pools[poolKeys[0]];
+          const p2Pool = pools[poolKeys[1]] || [];
+          // This is a simplified version; for multiple teams we'd need more complex logic
+          // but let's at least fulfill the "pair members of a team with members of the other"
+          const maxLen = Math.max(p1Pool.length, p2Pool.length);
+          for (let i = 0; i < maxLen; i++) {
+            if (p1Pool[i]) firstRoundParticipants.push(p1Pool[i]);
+            if (p2Pool[i]) firstRoundParticipants.push(p2Pool[i]);
+          }
+          // Add any remaining pools
+          poolKeys.slice(2).forEach(tk => {
+            firstRoundParticipants.push(...pools[tk]);
+          });
+        } else {
+          firstRoundParticipants = this.shuffleArray(participants);
+        }
+      } else {
+        firstRoundParticipants = this.shuffleArray(participants);
+      }
+
+      for (let i = 0; i < firstRoundParticipants.length; i += 2) {
+        const player1 = firstRoundParticipants[i];
+        const player2 = firstRoundParticipants[i + 1] || null; // Bye if odd number
 
         const matchRef = doc(collection(db, MATCHES_COLLECTION));
         const matchData = {
@@ -489,8 +559,8 @@ class TournamentService {
         ...doc.data()
       }));
 
-      // Get user data for each match
-      const matchesWithUsers = await Promise.all(
+      // Get player profiles for each match
+      const matchesWithParticipants = await Promise.all(
         matches.map(async (match) => {
           const player1 = match.player1Id ? await this.getUserData(match.player1Id) : null;
           const player2 = match.player2Id ? await this.getUserData(match.player2Id) : null;
@@ -505,7 +575,7 @@ class TournamentService {
 
       // Group by rounds
       const rounds = {};
-      matchesWithUsers.forEach(match => {
+      matchesWithParticipants.forEach(match => {
         if (!rounds[match.round]) {
           rounds[match.round] = [];
         }
@@ -535,6 +605,26 @@ class TournamentService {
       };
     } catch (error) {
       console.error('Error fetching user data:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get team data for bracket display
+   */
+  async getTeamData(teamId) {
+    try {
+      const teamDoc = await getDoc(doc(db, 'teams', teamId));
+      if (!teamDoc.exists()) return null;
+
+      const data = teamDoc.data();
+      return {
+        id: teamId,
+        username: data.name || 'Unknown Team', // Using username prop to remain compatible with Bracket component
+        avatarUrl: data.avatarUrl || null
+      };
+    } catch (error) {
+      console.error('Error fetching team data:', error);
       return null;
     }
   }
@@ -707,6 +797,88 @@ class TournamentService {
       }));
     } catch (error) {
       console.error('Error fetching live tournaments:', error);
+      throw error;
+    }
+  }
+  /**
+   * Generate random pairings between members of different squads
+   */
+  async generateMemberPairings(tournamentId) {
+    try {
+      const tournamentRef = doc(db, TOURNAMENTS_COLLECTION, tournamentId);
+      const tournamentDoc = await getDoc(tournamentRef);
+
+      if (!tournamentDoc.exists()) {
+        throw new Error('Tournament not found');
+      }
+
+      const tournamentData = tournamentDoc.data();
+      const rosters = tournamentData.rosters || {};
+      const teamIds = Object.keys(rosters);
+
+      if (teamIds.length < 2) {
+        throw new Error('Not enough squads with selected lineups. Need at least 2 squads to have set their rosters before pairings can be generated.');
+      }
+
+      // Collect all members with their team context
+      let allMembers = [];
+      teamIds.forEach(teamId => {
+        const members = rosters[teamId] || [];
+        members.forEach(email => {
+          allMembers.push({ email, teamId });
+        });
+      });
+
+      if (allMembers.length < 2) {
+        throw new Error('Not enough members to generate pairings');
+      }
+
+      const pairings = [];
+      const MAX_ATTEMPTS = 100;
+      let success = false;
+
+      for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        const tempPairings = [];
+        const available = [...allMembers];
+        this.shuffleArray(available);
+
+        let failed = false;
+        while (available.length > 1) {
+          const m1 = available.pop();
+          const m2Index = available.findIndex(m => m.teamId !== m1.teamId);
+
+          if (m2Index === -1) {
+            failed = true;
+            break;
+          }
+
+          const m2 = available.splice(m2Index, 1)[0];
+          tempPairings.push({ player1: m1, player2: m2 });
+        }
+
+        if (!failed) {
+          if (available.length > 0) {
+            tempPairings.push({ player1: available[0], player2: null, isBye: true });
+          }
+          pairings.push(...tempPairings);
+          success = true;
+          break;
+        }
+      }
+
+      if (!success) {
+        throw new Error('Could not generate valid pairings after multiple attempts. Try adding more members or squads.');
+      }
+
+      // Save pairings to tournament document
+      await updateDoc(tournamentRef, {
+        memberPairings: pairings,
+        pairingsGeneratedAt: serverTimestamp()
+      });
+
+      return pairings;
+    } catch (error) {
+      console.error('Error generating member pairings:', error);
       throw error;
     }
   }

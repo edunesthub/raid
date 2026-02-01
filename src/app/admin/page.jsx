@@ -2,15 +2,15 @@
 "use client";
 
 import { useState } from "react";
-import { 
-  LayoutDashboard, 
-  Trophy, 
-  Users, 
-  BarChart3, 
-  Settings, 
-  LogOut, 
-  Menu, 
-  X, 
+import {
+  LayoutDashboard,
+  Trophy,
+  Users,
+  BarChart3,
+  Settings,
+  LogOut,
+  Menu,
+  X,
   Gamepad2,
   Award,
   ClipboardCheck,
@@ -48,7 +48,7 @@ export default function AdminPortal() {
     { id: "winner-selection", label: "Select Winners", icon: Crown },
     { id: "results", label: "Verify Results", icon: ClipboardCheck },
     { id: "users", label: "Users", icon: Users },
-    { id: "stats-utility", label: "Stats Utility", icon: Calculator }, // NEW
+    { id: "stats-utility", label: "Stats Utility", icon: Calculator },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "settings", label: "Settings", icon: Settings },
   ];
@@ -90,9 +90,8 @@ export default function AdminPortal() {
               <button
                 key={item.id}
                 onClick={() => handleTabClick(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 text-sm transition-all ${
-                  activeTab === item.id ? "bg-orange-500 text-white" : "text-gray-400 hover:bg-gray-800 hover:text-white"
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 text-sm transition-all ${activeTab === item.id ? "bg-orange-500 text-white" : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                  }`}
               >
                 <Icon size={18} />
                 <span>{item.label}</span>
