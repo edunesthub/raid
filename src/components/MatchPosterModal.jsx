@@ -181,12 +181,12 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                             {/* PLAYER 1 (LEFT) */}
                             <div className="flex flex-col items-center">
                                 <div className="relative group flex-shrink-0">
-                                    {/* Outer Glow */}
-                                    <div className="absolute -inset-4 bg-orange-600/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    {/* Permanent Outer Glow */}
+                                    <div className="absolute -inset-4 bg-orange-600/40 blur-2xl rounded-full opacity-100 transition-opacity" />
 
                                     {/* Avatar Frame - FALLBACKS ADDED */}
-                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-orange-500/40 overflow-hidden shadow-[0_0_40px_rgba(234,88,12,0.5)] transform hover:scale-105 transition-transform duration-500">
-                                        <div className="absolute inset-0 bg-gradient-to-tr from-orange-600/30 to-transparent z-10" />
+                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-orange-500/50 overflow-hidden shadow-[0_0_50px_rgba(234,88,12,0.6)] transform hover:scale-105 transition-transform duration-500">
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-orange-600/40 to-transparent z-10" />
                                         <img
                                             src={p1.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p1.username || 'P1'}`}
                                             className="w-full h-full object-cover scale-110"
@@ -199,12 +199,12 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
 
                                 {/* FIXED HEIGHT TEXT CONTAINER */}
                                 <div className="relative z-30 -mt-4 text-center h-20 w-full px-2 flex flex-col justify-start">
-                                    <h2 className="text-2xl sm:text-3xl font-[1000] italic leading-tight text-white uppercase tracking-tighter mb-1 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+                                    <h2 className="text-2xl sm:text-3xl font-[1000] italic leading-tight text-white uppercase tracking-tighter mb-1 drop-shadow-[0_4px_12px_rgba(0,0,0,1)]">
                                         {p1.username}
                                     </h2>
-                                    {p1TeamName && p1TeamName !== p1.username && (
-                                        <div className="flex items-center justify-center gap-1 text-orange-400 font-bold text-[9px] tracking-widest uppercase opacity-90 drop-shadow-md">
-                                            <Shield size={8} className="flex-shrink-0" />
+                                    {p1TeamName && (
+                                        <div className="flex items-center justify-center gap-1 text-orange-400 font-bold text-[10px] tracking-widest uppercase opacity-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                                            <Shield size={9} className="flex-shrink-0" />
                                             <span>{p1TeamName}</span>
                                         </div>
                                     )}
@@ -214,15 +214,15 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                             {/* PLAYER 2 (RIGHT) */}
                             <div className="flex flex-col items-center">
                                 <div className="relative group flex-shrink-0">
-                                    {/* Outer Glow */}
-                                    <div className="absolute -inset-4 bg-blue-600/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    {/* Permanent Outer Glow */}
+                                    <div className="absolute -inset-4 bg-blue-600/40 blur-2xl rounded-full opacity-100 transition-opacity" />
 
                                     {/* Avatar Frame */}
-                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-blue-500/40 overflow-hidden shadow-[0_0_40px_rgba(37,99,235,0.5)] transform hover:scale-105 transition-transform duration-500">
-                                        <div className="absolute inset-0 bg-gradient-to-tl from-blue-600/30 to-transparent z-10" />
+                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-blue-500/50 overflow-hidden shadow-[0_0_50px_rgba(37,99,235,0.6)] transform hover:scale-105 transition-transform duration-500">
+                                        <div className="absolute inset-0 bg-gradient-to-tl from-blue-600/40 to-transparent z-10" />
                                         {isBye ? (
                                             <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
-                                                <Trophy className="text-blue-500/40 w-12 h-12" />
+                                                <Trophy className="text-blue-500/50 w-12 h-12" />
                                             </div>
                                         ) : (
                                             <img
@@ -238,12 +238,12 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
 
                                 {/* FIXED HEIGHT TEXT CONTAINER */}
                                 <div className="relative z-30 -mt-4 text-center h-20 w-full px-2 flex flex-col justify-start">
-                                    <h2 className="text-2xl sm:text-3xl font-[1000] italic leading-tight text-white uppercase tracking-tighter mb-1 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+                                    <h2 className="text-2xl sm:text-3xl font-[1000] italic leading-tight text-white uppercase tracking-tighter mb-1 drop-shadow-[0_4px_12px_rgba(0,0,0,1)]">
                                         {isBye ? 'AUTO-WIN' : p2.username}
                                     </h2>
-                                    {p2TeamName && !isBye && p2TeamName !== p2.username && (
-                                        <div className="flex items-center justify-center gap-1 text-blue-400 font-bold text-[9px] tracking-widest uppercase opacity-90 drop-shadow-md">
-                                            <Shield size={8} className="flex-shrink-0" />
+                                    {p2TeamName && !isBye && (
+                                        <div className="flex items-center justify-center gap-1 text-blue-400 font-bold text-[10px] tracking-widest uppercase opacity-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                                            <Shield size={9} className="flex-shrink-0" />
                                             <span>{p2TeamName}</span>
                                         </div>
                                     )}
