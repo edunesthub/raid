@@ -1,13 +1,17 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getManagers, deleteManager } from '@/services/teamService';
-import { Trash2, UserPlus, Search, ShieldAlert, Mail } from 'lucide-react';
+import { getManagers, deleteManager, getTeams, deleteTeam } from '@/services/teamService';
+import { Trash2, UserPlus, Search, ShieldAlert, Mail, Shield, Users, X, Loader2 } from 'lucide-react';
 
 export default function ManagerManagement() {
     const [managers, setManagers] = useState([]);
+    const [teams, setTeams] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isDeleting, setIsDeleting] = useState(null);
+    const [selectedManager, setSelectedManager] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeletingTeam, setIsDeletingTeam] = useState(null);
 
     useEffect(() => {
         loadManagers();
@@ -16,28 +20,47 @@ export default function ManagerManagement() {
     const loadManagers = async () => {
         try {
             setLoading(true);
-            const data = await getManagers();
-            setManagers(data);
+            const [managerData, teamData] = await Promise.all([
+                getManagers(),
+                getTeams()
+            ]);
+            setManagers(managerData);
+            setTeams(teamData);
         } catch (err) {
-            console.error('Error loading managers:', err);
+            console.error('Error loading data:', err);
         } finally {
             setLoading(false);
         }
     };
 
     const handleDelete = async (email) => {
-        if (!window.confirm(`Are you sure you want to delete the manager with email: ${email}? This will revoke their access to the manager portal.`)) return;
+        if (!window.confirm(`WARNING: DELETING MANAGER [${email}]\n\nThis will PERMANENTLY revoke their access to the portal. Are you sure?`)) return;
 
         try {
             setIsDeleting(email);
             await deleteManager(email);
             setManagers(prev => prev.filter(m => m.id !== email));
             alert('Manager deleted successfully');
+            if (selectedManager?.id === email) setIsModalOpen(false);
         } catch (err) {
             console.error('Failed to delete manager:', err);
             alert('Failed to delete manager');
         } finally {
             setIsDeleting(null);
+        }
+    };
+
+    const handleDeleteTeam = async (teamId) => {
+        if (!window.confirm('CRITICAL ACTION: Delete this team permanently? This cannot be undone.')) return;
+        try {
+            setIsDeletingTeam(teamId);
+            await deleteTeam(teamId);
+            setTeams(prev => prev.filter(t => t.id !== teamId));
+        } catch (err) {
+            console.error('Failed to delete team:', err);
+            alert('Failed to delete team');
+        } finally {
+            setIsDeletingTeam(null);
         }
     };
 
@@ -86,7 +109,11 @@ export default function ManagerManagement() {
                     {filteredManagers.map((manager) => (
                         <div
                             key={manager.id || manager.email}
-                            className="group bg-gray-900/40 border border-gray-800 hover:border-orange-500/30 rounded-[2rem] p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-orange-500/5"
+                            onClick={() => {
+                                setSelectedManager(manager);
+                                setIsModalOpen(true);
+                            }}
+                            className="group bg-gray-900/40 border border-gray-800 hover:border-orange-500/30 rounded-[2rem] p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-orange-500/5 cursor-pointer"
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-4">
@@ -101,9 +128,6 @@ export default function ManagerManagement() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="px-2 py-0.5 bg-gray-800 border border-gray-700 rounded text-[9px] font-black uppercase tracking-widest text-gray-400">
-                                    Manager
-                                </div>
                             </div>
 
                             <div className="pt-4 border-t border-gray-800/50 flex items-center justify-between">
@@ -111,9 +135,12 @@ export default function ManagerManagement() {
                                     Authentication: OK
                                 </div>
                                 <button
-                                    onClick={() => handleDelete(manager.id || manager.email)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(manager.id || manager.email);
+                                    }}
                                     disabled={isDeleting === (manager.id || manager.email)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all font-bold text-xs border border-red-500/20 hover:scale-105 active:scale-95 disabled:opacity-50"
+                                    className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all font-bold text-[10px] sm:text-xs border border-red-500/20 hover:scale-105 active:scale-95 disabled:opacity-50"
                                 >
                                     {isDeleting === (manager.id || manager.email) ? (
                                         <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
@@ -129,6 +156,122 @@ export default function ManagerManagement() {
                     ))}
                 </div>
             )}
+
+            {/* Manager Details Modal */}
+            {isModalOpen && selectedManager && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/90 backdrop-blur-xl animate-fade-in py-8">
+                    <div className="relative w-full max-w-2xl bg-zinc-950 rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-full">
+                        {/* Close Button */}
+                        <button
+                            onClick={() => setIsModalOpen(false)}
+                            className="absolute top-6 right-6 z-[110] p-3 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-all border border-white/5"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="p-8 pb-0">
+                            <div className="flex items-center gap-6 mb-8">
+                                <div className="w-20 h-20 rounded-3xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 font-black text-3xl">
+                                    {selectedManager.name?.charAt(0).toUpperCase() || 'M'}
+                                </div>
+                                <div className="min-w-0">
+                                    <h2 className="text-3xl font-black text-white uppercase tracking-tighter truncate">{selectedManager.name || 'Anonymous'}</h2>
+                                    <p className="text-gray-500 font-bold text-sm tracking-widest uppercase flex items-center gap-2 mt-1">
+                                        <Mail size={14} className="text-orange-500" />
+                                        {selectedManager.email}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
+                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/30">Managed Teams</h3>
+                                <div className="bg-orange-500/10 text-orange-500 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase border border-orange-500/20">
+                                    {teams.filter(t => t.manager === selectedManager.email).length} Teams
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto px-8 pb-8 custom-scrollbar space-y-3">
+                            {teams.filter(t => t.manager === selectedManager.email).length === 0 ? (
+                                <div className="text-center py-10 bg-white/5 rounded-3xl border border-dashed border-white/10">
+                                    <Shield className="text-gray-700 mx-auto mb-2 opacity-30" size={32} />
+                                    <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">No teams associated with this operative.</p>
+                                </div>
+                            ) : (
+                                teams.filter(t => t.manager === selectedManager.email).map((team) => (
+                                    <div key={team.id} className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-2xl group/team hover:bg-white/10 transition-all">
+                                        <div className="flex items-center gap-4 min-w-0">
+                                            <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                {team.avatarUrl ? (
+                                                    <img src={team.avatarUrl} alt={team.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <Shield className="text-orange-500" size={20} />
+                                                )}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-bold text-white truncate">{team.name}</p>
+                                                <div className="flex items-center gap-1.5 text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-0.5">
+                                                    <Users size={10} />
+                                                    <span>{team.members?.length || 0} Members</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteTeam(team.id);
+                                            }}
+                                            disabled={isDeletingTeam === team.id}
+                                            className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all border border-red-500/20 active:scale-90"
+                                            title="Delete Team"
+                                        >
+                                            {isDeletingTeam === team.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        <div className="p-5 sm:p-8 pt-4 border-t border-white/5 bg-zinc-900/40">
+                            <button
+                                onClick={() => handleDelete(selectedManager.email)}
+                                disabled={isDeleting === selectedManager.email}
+                                className="w-full flex items-center justify-center gap-3 py-3.5 sm:py-4 bg-red-600 hover:bg-red-500 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs transition-all shadow-[0_10px_30px_rgba(220,38,38,0.2)] active:scale-95 disabled:opacity-50"
+                            >
+                                {isDeleting === selectedManager.email ? (
+                                    <Loader2 size={18} className="animate-spin" />
+                                ) : (
+                                    <>
+                                        <Trash2 size={18} />
+                                        <span>Terminate Manager Access</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style jsx>{`
+                @keyframes fade-in {
+                    from { opacity: 0; transform: scale(0.98); }
+                    to { opacity: 1; transform: scale(1); }
+                }
+                .animate-fade-in {
+                    animation: fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 10px;
+                }
+            `}</style>
         </div>
     );
 }
