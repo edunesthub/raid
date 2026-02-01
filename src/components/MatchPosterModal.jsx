@@ -3,6 +3,41 @@ import { X, Trophy, Zap, Shield, Share2, Loader2, User, Download } from 'lucide-
 import { toBlob } from 'html-to-image';
 import { userService } from '@/services/userService';
 
+// --- GLOBAL HELPERS (Outside Component to prevent Initialization Errors) ---
+function getPlayerData(baseData, fetchedData, fallback = 'TBD') {
+    const data = fetchedData || baseData;
+    if (!data) return { username: fallback };
+    if (typeof data === 'string') {
+        if (data.includes('@')) return { username: data.split('@')[0] };
+        return { username: data };
+    }
+    const username = data.username || data.displayName || data.name || (data.email ? data.email.split('@')[0] : fallback);
+    return {
+        ...data,
+        name: username,
+        username: username,
+        avatarUrl: data.avatarUrl || data.photoURL || null
+    };
+}
+
+function getTeamName(teamData) {
+    if (!teamData) return null;
+    if (typeof teamData === 'string') return teamData;
+    return teamData.name || teamData.username || teamData.title || null;
+}
+
+function formatDisplayName(name) {
+    if (!name || typeof name !== 'string') return name;
+    const words = name.trim().split(/\s+/);
+    if (words.length <= 1) return name;
+    return (
+        <span className="flex flex-col items-center leading-[0.8] tracking-tighter">
+            <span className="block">{words.slice(0, -1).join(' ')}</span>
+            <span className="block text-[0.9em] opacity-90 mt-1">{words[words.length - 1]}</span>
+        </span>
+    );
+}
+
 export default function MatchPosterModal({ isOpen, onClose, match, tournament, mode = 'match' }) {
     const modalRef = useRef(null);
     const posterRef = useRef(null);
@@ -86,6 +121,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
 
     // CONVERT AVATARS TO BASE64 FOR MOBILE RENDERING
     useEffect(() => {
+        if (!isOpen || !match) return;
         const p1Url = getPlayerData(match.player1, extraData.p1).avatarUrl;
         const p2Url = getPlayerData(match.player2, extraData.p2).avatarUrl;
 
@@ -117,45 +153,6 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     }, [isOpen, extraData, match?.player1, match?.player2]);
 
     if (!isOpen || !match) return null;
-
-    // ROBUST DATA EXTRACTION
-    const getPlayerData = (baseData, fetchedData, fallback = 'TBD') => {
-        // Favor fetched data if available
-        const data = fetchedData || baseData;
-        if (!data) return { username: fallback };
-
-        if (typeof data === 'string') {
-            if (data.includes('@')) return { username: data.split('@')[0] };
-            return { username: data };
-        }
-
-        const username = data.username || data.displayName || data.name || (data.email ? data.email.split('@')[0] : fallback);
-
-        return {
-            ...data,
-            name: username,
-            username: username,
-            avatarUrl: data.avatarUrl || data.photoURL || null
-        };
-    };
-
-    const getTeamName = (teamData) => {
-        if (!teamData) return null;
-        if (typeof teamData === 'string') return teamData;
-        return teamData.name || teamData.username || teamData.title || null;
-    };
-
-    const formatDisplayName = (name) => {
-        if (!name || typeof name !== 'string') return name;
-        const words = name.trim().split(/\s+/);
-        if (words.length <= 1) return name;
-        return (
-            <span className="flex flex-col items-center leading-[0.8] tracking-tighter">
-                <span className="block">{words.slice(0, -1).join(' ')}</span>
-                <span className="block text-[0.9em] opacity-90 mt-1">{words[words.length - 1]}</span>
-            </span>
-        );
-    };
 
     const p1 = getPlayerData(match.player1, extraData.p1, 'PLAYER 1');
     const p2 = getPlayerData(match.player2, extraData.p2, 'PLAYER 2');
