@@ -9,12 +9,31 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
 
     if (!isOpen || !match) return null;
 
-    const p1 = match.player1 || { username: 'TBD' };
-    const p2 = match.player2 || { username: 'TBD' };
-    const isBye = !match.player2Id;
+    // ROBUST DATA EXTRACTION
+    const getPlayerData = (playerData, fallback = 'TBD') => {
+        if (!playerData) return { username: fallback };
+        // If it's just a string, wrap it
+        if (typeof playerData === 'string') return { username: playerData };
+        return {
+            ...playerData,
+            name: playerData.name || playerData.displayName || playerData.username || fallback,
+            username: playerData.username || playerData.displayName || playerData.name || fallback,
+            avatarUrl: playerData.avatarUrl || playerData.photoURL
+        };
+    };
 
-    const p1Team = match.player1Team || match.team1 || null;
-    const p2Team = match.player2Team || match.team2 || null;
+    const getTeamName = (teamData) => {
+        if (!teamData) return null;
+        if (typeof teamData === 'string') return teamData;
+        return teamData.name || teamData.username || teamData.title || null;
+    };
+
+    const p1 = getPlayerData(match.player1, 'PLAYER 1');
+    const p2 = getPlayerData(match.player2, 'PLAYER 2');
+    const isBye = !match.player2Id && !match.player2;
+
+    const p1TeamName = getTeamName(match.player1Team || match.team1);
+    const p2TeamName = getTeamName(match.player2Team || match.team2);
 
     const getShareUrl = () => {
         const url = new URL(window.location.origin + window.location.pathname);
@@ -57,13 +76,17 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         try {
             let file = null;
             if (posterRef.current) {
+                // Give the browser a moment to ensure all high-res assets are painted
+                await new Promise(r => setTimeout(r, 500));
+
                 try {
                     const blob = await toBlob(posterRef.current, {
                         cacheBust: true,
-                        pixelRatio: 4, // Ultra high quality
+                        pixelRatio: 3, // Balanced high quality
                         backgroundColor: '#000',
                         useCORS: true,
                         allowTaint: true,
+                        skipFonts: false,
                     });
                     if (blob) {
                         file = new File([blob], 'raid-match-card.png', { type: 'image/png' });
@@ -133,9 +156,9 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
 
                     {/* --- HEADER: RAID ARENA --- */}
                     <div className="relative z-50 pt-8 px-8 flex flex-col items-center">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 text-white">
                             <div className="h-[2px] w-6 bg-gradient-to-r from-transparent to-orange-500" />
-                            <h1 className="text-xl sm:text-2xl font-[1000] italic tracking-[0.3em] text-white uppercase flex items-center gap-2">
+                            <h1 className="text-xl sm:text-2xl font-[1000] italic tracking-[0.3em] uppercase flex items-center gap-2">
                                 RAID <span className="text-orange-500">ARENA</span>
                             </h1>
                             <div className="h-[2px] w-6 bg-gradient-to-l from-transparent to-blue-500" />
@@ -147,7 +170,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
 
                         {/* THE BIG VS */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 select-none">
-                            <span className="text-[10rem] sm:text-[12rem] font-[1000] italic text-white/[0.03] leading-none transform -skew-x-12">
+                            <span className="text-[10rem] sm:text-[12rem] font-[1000] italic text-white/[0.04] leading-none transform -skew-x-12">
                                 VS
                             </span>
                         </div>
@@ -159,15 +182,15 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                             <div className="flex flex-col items-center">
                                 <div className="relative group flex-shrink-0">
                                     {/* Outer Glow */}
-                                    <div className="absolute -inset-4 bg-orange-600/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="absolute -inset-4 bg-orange-600/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
 
                                     {/* Avatar Frame - FALLBACKS ADDED */}
-                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-orange-500/30 overflow-hidden shadow-[0_0_40px_rgba(234,88,12,0.4)] transform hover:scale-105 transition-transform duration-500">
-                                        <div className="absolute inset-0 bg-gradient-to-tr from-orange-600/20 to-transparent z-10" />
+                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-orange-500/40 overflow-hidden shadow-[0_0_40px_rgba(234,88,12,0.5)] transform hover:scale-105 transition-transform duration-500">
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-orange-600/30 to-transparent z-10" />
                                         <img
-                                            src={p1.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p1.name || p1.username || 'P1'}`}
+                                            src={p1.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p1.username || 'P1'}`}
                                             className="w-full h-full object-cover scale-110"
-                                            alt={p1.username || p1.name}
+                                            alt={p1.username}
                                             crossOrigin="anonymous"
                                         />
                                         <div className="absolute inset-0 bg-black/20" />
@@ -176,13 +199,13 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
 
                                 {/* FIXED HEIGHT TEXT CONTAINER */}
                                 <div className="relative z-30 -mt-4 text-center h-20 w-full px-2 flex flex-col justify-start">
-                                    <h2 className="text-2xl sm:text-3xl font-[1000] italic leading-tight text-white uppercase tracking-tighter mb-1 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
-                                        {p1.name || p1.username}
+                                    <h2 className="text-2xl sm:text-3xl font-[1000] italic leading-tight text-white uppercase tracking-tighter mb-1 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+                                        {p1.username}
                                     </h2>
-                                    {p1Team && (p1Team.name || p1Team.username) !== (p1.name || p1.username) && (
-                                        <div className="flex items-center justify-center gap-1 text-orange-400 font-bold text-[9px] tracking-widest uppercase opacity-80">
+                                    {p1TeamName && p1TeamName !== p1.username && (
+                                        <div className="flex items-center justify-center gap-1 text-orange-400 font-bold text-[9px] tracking-widest uppercase opacity-90 drop-shadow-md">
                                             <Shield size={8} className="flex-shrink-0" />
-                                            <span>{p1Team.name || p1Team.username}</span>
+                                            <span>{p1TeamName}</span>
                                         </div>
                                     )}
                                 </div>
@@ -192,20 +215,20 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                             <div className="flex flex-col items-center">
                                 <div className="relative group flex-shrink-0">
                                     {/* Outer Glow */}
-                                    <div className="absolute -inset-4 bg-blue-600/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="absolute -inset-4 bg-blue-600/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
 
                                     {/* Avatar Frame */}
-                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-blue-500/30 overflow-hidden shadow-[0_0_40px_rgba(37,99,235,0.4)] transform hover:scale-105 transition-transform duration-500">
-                                        <div className="absolute inset-0 bg-gradient-to-tl from-blue-600/20 to-transparent z-10" />
+                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-blue-500/40 overflow-hidden shadow-[0_0_40px_rgba(37,99,235,0.5)] transform hover:scale-105 transition-transform duration-500">
+                                        <div className="absolute inset-0 bg-gradient-to-tl from-blue-600/30 to-transparent z-10" />
                                         {isBye ? (
                                             <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
-                                                <Trophy className="text-blue-500/30 w-12 h-12" />
+                                                <Trophy className="text-blue-500/40 w-12 h-12" />
                                             </div>
                                         ) : (
                                             <img
-                                                src={p2.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p2.name || p2.username || 'P2'}`}
+                                                src={p2.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p2.username || 'P2'}`}
                                                 className="w-full h-full object-cover scale-110"
-                                                alt={p2.username || p2.name}
+                                                alt={p2.username}
                                                 crossOrigin="anonymous"
                                             />
                                         )}
@@ -215,13 +238,13 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
 
                                 {/* FIXED HEIGHT TEXT CONTAINER */}
                                 <div className="relative z-30 -mt-4 text-center h-20 w-full px-2 flex flex-col justify-start">
-                                    <h2 className="text-2xl sm:text-3xl font-[1000] italic leading-tight text-white uppercase tracking-tighter mb-1 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
-                                        {isBye ? 'AUTO-WIN' : (p2.name || p2.username)}
+                                    <h2 className="text-2xl sm:text-3xl font-[1000] italic leading-tight text-white uppercase tracking-tighter mb-1 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+                                        {isBye ? 'AUTO-WIN' : p2.username}
                                     </h2>
-                                    {p2Team && !isBye && (p2Team.name || p2Team.username) !== (p2.name || p2.username) && (
-                                        <div className="flex items-center justify-center gap-1 text-blue-400 font-bold text-[9px] tracking-widest uppercase opacity-80">
+                                    {p2TeamName && !isBye && p2TeamName !== p2.username && (
+                                        <div className="flex items-center justify-center gap-1 text-blue-400 font-bold text-[9px] tracking-widest uppercase opacity-90 drop-shadow-md">
                                             <Shield size={8} className="flex-shrink-0" />
-                                            <span>{p2Team.name || p2Team.username}</span>
+                                            <span>{p2TeamName}</span>
                                         </div>
                                     )}
                                 </div>
@@ -232,8 +255,8 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                         {/* CENTRAL VS OVERLAY (SHARPER) */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
                             <div className="relative">
-                                <div className="absolute inset-0 bg-white/40 blur-3xl rounded-full scale-50" />
-                                <span className="relative block text-5xl sm:text-6xl font-[1000] italic bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-100 to-gray-500 drop-shadow-[0_0_40px_rgba(255,255,255,0.6)] transform -skew-x-12">
+                                <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-50" />
+                                <span className="relative block text-5xl sm:text-6xl font-[1000] italic bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-100 to-gray-400 drop-shadow-[0_0_40px_rgba(255,255,255,0.4)] transform -skew-x-12">
                                     VS
                                 </span>
                             </div>
@@ -244,10 +267,10 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                     {/* --- FOOTER: TOURNAMENT INFO --- */}
                     <div className="relative z-50 pb-6 px-8">
                         <div className="flex flex-col items-center">
-                            <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent mb-4" />
+                            <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent mb-4" />
 
                             <div className="flex flex-wrap justify-center mb-3">
-                                <div className="flex items-center gap-1.5 px-4 py-1 bg-white/5 border border-white/10 rounded-full backdrop-blur-xl">
+                                <div className="flex items-center gap-1.5 px-4 py-1.5 bg-zinc-900/90 border border-white/20 rounded-full">
                                     <Trophy size={14} className="text-orange-500" />
                                     <span className="text-[11px] font-[1000] tracking-[0.2em] uppercase text-white drop-shadow-sm">
                                         {tournament?.title || 'CHAMPIONS LEAGUE'}
@@ -255,7 +278,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                 </div>
                             </div>
 
-                            <div className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full backdrop-blur-xl">
+                            <div className="px-4 py-1.5 bg-zinc-900/90 border border-white/20 rounded-full">
                                 <span className="text-[8px] font-black tracking-[0.4em] text-orange-400 uppercase">
                                     #RAIDARENA-MATCH-CARD
                                 </span>
@@ -286,6 +309,8 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
             </div>
 
             <style jsx>{`
+                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@900&display=swap');
+
                 @keyframes fade-in {
                     from { opacity: 0; transform: scale(0.95); }
                     to { opacity: 1; transform: scale(1); }
@@ -293,9 +318,9 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                 .animate-fade-in {
                     animation: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                 }
-                @font-face {
-                    font-family: 'Outfit';
-                    src: url('https://fonts.googleapis.com/css2?family=Outfit:wght@900&display=swap');
+                
+                :global(.font-sans) {
+                    font-family: 'Outfit', sans-serif !important;
                 }
             `}</style>
         </div>
