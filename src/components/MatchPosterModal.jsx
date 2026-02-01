@@ -18,11 +18,23 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     // Construct share URL with params for OG Image
     const getShareUrl = () => {
         const url = new URL(window.location.origin + window.location.pathname);
+        const origin = window.location.origin;
+
+        const getAbsoluteUrl = (path) => {
+            if (!path) return null;
+            if (path.startsWith('http')) return path;
+            return `${origin}${path.startsWith('/') ? '' : '/'}${path}`;
+        };
+
         if (mode === 'match') {
             if (p1.username) url.searchParams.set('p1Name', p1.username);
             if (p2.username) url.searchParams.set('p2Name', p2.username);
-            if (p1.avatarUrl) url.searchParams.set('p1Avatar', p1.avatarUrl);
-            if (p2.avatarUrl) url.searchParams.set('p2Avatar', p2.avatarUrl);
+
+            const p1AvatarAbs = getAbsoluteUrl(p1.avatarUrl);
+            const p2AvatarAbs = getAbsoluteUrl(p2.avatarUrl);
+
+            if (p1AvatarAbs) url.searchParams.set('p1Avatar', p1AvatarAbs);
+            if (p2AvatarAbs) url.searchParams.set('p2Avatar', p2AvatarAbs);
             if (match.round) url.searchParams.set('round', match.round);
         } else {
             url.searchParams.set('mode', 'tournament');

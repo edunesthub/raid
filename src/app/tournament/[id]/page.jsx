@@ -36,8 +36,15 @@ export async function generateMetadata({ params, searchParams }) {
     imageUrl = `/api/og?tName=${encodeURIComponent(tName)}&mode=tournament`;
   }
 
-  // Ensure absolute URL
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://raid-esports.vercel.app'; // Fallback
+  // Robust Base URL detection
+  const getBaseUrl = () => {
+    if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL;
+    if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+    if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+    return 'http://localhost:3000';
+  };
+
+  const baseUrl = getBaseUrl();
   const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `${baseUrl}${imageUrl}`;
 
   return {
