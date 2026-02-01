@@ -1,9 +1,12 @@
 import React, { useRef, useState } from 'react';
-import { X, Copy, MessageCircle, Trophy, Swords, Zap, Star, Shield, Target, TrendingUp, Check, Share2 } from 'lucide-react';
+import { X, Copy, MessageCircle, Trophy, Swords, Zap, Star, Shield, Target, TrendingUp, Check, Share2, Loader2 } from 'lucide-react';
+import { toBlob } from 'html-to-image';
 
 export default function MatchPosterModal({ isOpen, onClose, match, tournament, mode = 'match' }) {
     const modalRef = useRef(null);
+    const posterRef = useRef(null);
     const [copied, setCopied] = useState(false);
+    const [isSharing, setIsSharing] = useState(false);
 
     if (!isOpen || !match) return null;
 
@@ -51,7 +54,6 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
 
         try {
             await navigator.clipboard.writeText(shareText); // Copy full text including URL
-            // Or just URL? Usually users prefer the text blob.
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
@@ -60,31 +62,57 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     };
 
     const handleShare = async () => {
+        setIsSharing(true);
         const shareUrl = getShareUrl();
         const shareText = mode === 'match'
             ? `🔥 MATCH ALERT: ${p1.username} VS ${p2.username} in ${tournament?.title || 'the tournament'}! 🏆 Check it out on RAID Arena: ${shareUrl}`
             : `🏆 TOURNAMENT ALERT: ${tournament?.title} is LIVE! 🎮 Prize Pool: ${tournament?.prizePool} ${tournament?.currency}! join the raid: ${shareUrl}`;
 
-        // Try to use native sharing
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: 'RAID Arena Matchup',
-                    text: shareText,
-                    url: shareUrl,
-                });
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    console.warn('Sharing failed', err);
-                    // Fallback
-                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-                    window.open(whatsappUrl, '_blank');
+        try {
+            // Attempt to generate image from DOM
+            let file = null;
+            if (posterRef.current) {
+                try {
+                    // Slight delay to ensure images loaded? or retry if fails first time (common weirdness with fonts)
+                    const blob = await toBlob(posterRef.current, {
+                        cacheBust: true,
+                        style: { borderRadius: '0px' }, // Fix rounded corners if any
+                        pixelRatio: 2, // High res
+                    });
+                    if (blob) {
+                        file = new File([blob], 'match-poster.png', { type: 'image/png' });
+                    }
+                } catch (e) {
+                    console.error("Image generation failed", e);
                 }
             }
-        } else {
-            // Fallback
-            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-            window.open(whatsappUrl, '_blank');
+
+            // Prepare share data
+            const shareData = {
+                title: 'RAID Arena Matchup',
+                text: shareText,
+                url: shareUrl, // Some apps ignore URL if files are present, but good to include
+            };
+
+            if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+                shareData.files = [file];
+            }
+
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                // Fallback
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+                window.open(whatsappUrl, '_blank');
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.warn('Sharing failed', err);
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+                window.open(whatsappUrl, '_blank');
+            }
+        } finally {
+            setIsSharing(false);
         }
     };
 
@@ -106,7 +134,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                 </button>
 
                 {/* Poster Content */}
-                <div className="relative aspect-[4/5] sm:aspect-video w-full overflow-hidden flex items-center justify-center bg-black">
+                <div ref={posterRef} className="relative aspect-[4/5] sm:aspect-video w-full overflow-hidden flex items-center justify-center bg-black">
                     {/* Background Layer with Scanlines effect */}
                     <div className="absolute inset-0 z-0 overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black z-10" />
@@ -292,10 +320,15 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                             </button>
                             <button
                                 onClick={handleShare}
-                                className="w-full sm:w-auto flex-1 sm:flex-none flex items-center justify-center gap-3 px-6 py-3 sm:px-8 sm:py-4 bg-orange-600 hover:bg-orange-500 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-[0_0_20px_rgba(234,88,12,0.3)] hover:scale-105 active:scale-95 group"
+                                disabled={isSharing}
+                                className="w-full sm:w-auto flex-1 sm:flex-none flex items-center justify-center gap-3 px-6 py-3 sm:px-8 sm:py-4 bg-orange-600 hover:bg-orange-500 disabled:bg-orange-600/50 disabled:cursor-not-allowed text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-[0_0_20px_rgba(234,88,12,0.3)] hover:scale-105 active:scale-95 group"
                             >
-                                <Share2 size={18} className="group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform" />
-                                <span>Share</span>
+                                {isSharing ? (
+                                    <Loader2 size={18} className="animate-spin" />
+                                ) : (
+                                    <Share2 size={18} className="group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform" />
+                                )}
+                                <span>{isSharing ? 'Generating...' : 'Share'}</span>
                             </button>
                         </div>
                     </div>
