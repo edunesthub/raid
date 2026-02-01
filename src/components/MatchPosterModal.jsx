@@ -149,11 +149,11 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     };
 
     const getShareText = () => {
-        const url = getShareUrl();
+        const url = 'https://raidarena.vercel.app';
         if (mode === 'match') {
-            return `👊 ${p1.username} vs ${p2.username}\n🏆 ${tournament?.title || 'RAID Tournament'}\n🔴 LIVE NOW on RAID\n\n🔗 Watch here: ${url}`;
+            return `👊 ${p1.username} vs ${p2.username}\n🏆 ${tournament?.title || 'RAID Tournament'}\n🔴 LIVE NOW on RAID\n\n🔗 Join RAID Arena: ${url}`;
         }
-        return `🏆 ${tournament?.title}\n💰 Prize Pool: ${tournament?.prizePool} ${tournament?.currency}\n🎮 Join the Fight\n\n🔗 Enter here: ${url}`;
+        return `🏆 ${tournament?.title}\n💰 Prize Pool: ${tournament?.prizePool} ${tournament?.currency}\n🎮 Join the Fight\n\n🔗 Join RAID Arena: ${url}`;
     }
 
     const handleDownload = async () => {
@@ -161,55 +161,57 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         setIsDownloading(true);
         try {
             if (posterRef.current) {
-                // Ensure fonts and images are ready
-                await new Promise(r => setTimeout(r, 800));
+                // Wait for all assets to be ready
+                await new Promise(r => setTimeout(r, 1000));
 
-                const options = {
+                const blob = await toBlob(posterRef.current, {
                     cacheBust: true,
-                    pixelRatio: 2, // 2x on 1080px is plenty for mobile and prevents memory issues
+                    pixelRatio: 3, // High quality (1080p+ logic)
                     backgroundColor: '#050505',
                     useCORS: true,
                     allowTaint: true,
-                    width: 1080, // Force a standard High-Res width
-                    height: 1350, // 4:5 ratio
-                    style: {
-                        transform: 'scale(1)', // Reset any viewport-based scaling
-                        margin: '0',
-                        padding: '0',
-                    }
-                };
-
-                const blob = await toBlob(posterRef.current, options);
+                });
 
                 if (blob) {
                     const fileName = `raid-match-${p1.username.toLowerCase()}-vs-${p2.username.toLowerCase()}.png`;
 
-                    // On mobile, if share API is available, it's often more reliable to "Share" as a file save
-                    // than a direct link click which can be blocked or result in a .txt file on some browsers.
+                    // DESKTOP: Always force direct download
+                    // MOBILE: Try share API first for "Save to Gallery"
+                    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
                     const file = new File([blob], fileName, { type: 'image/png' });
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                            files: [file],
-                            title: 'RAID Match Poster',
-                        });
+
+                    if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({
+                                files: [file],
+                                title: 'RAID Match Poster',
+                            });
+                        } catch (sErr) {
+                            // Fallback if share is cancelled or fails
+                            triggerDirectDownload(blob, fileName);
+                        }
                     } else {
-                        // Desktop fallback
-                        const url = window.URL.createObjectURL(blob);
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.download = fileName;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        window.URL.revokeObjectURL(url);
+                        triggerDirectDownload(blob, fileName);
                     }
                 }
             }
         } catch (err) {
-            console.error("Download failed", err);
+            console.error("Download failed:", err);
+            alert("Capture failed. Please try again.");
         } finally {
             setIsDownloading(false);
         }
+    };
+
+    const triggerDirectDownload = (blob, fileName) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
     };
 
     const handleShare = async () => {
@@ -224,9 +226,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                 try {
                     const blob = await toBlob(posterRef.current, {
                         cacheBust: true,
-                        pixelRatio: 2,
-                        width: 1080,
-                        height: 1350,
+                        pixelRatio: 3,
                         backgroundColor: '#050505',
                         useCORS: true,
                         allowTaint: true,
