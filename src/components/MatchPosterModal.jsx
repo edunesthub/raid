@@ -294,15 +294,15 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/90 backdrop-blur-3xl animate-fade-in overflow-y-auto py-8">
-            <div className="relative w-full max-w-xl bg-zinc-950 rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] my-auto select-none">
+            {/* Close Button (Outside the poster area) */}
+            <button
+                onClick={onClose}
+                className="fixed top-8 right-8 z-[110] p-4 bg-zinc-900/80 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-all backdrop-blur-xl border border-white/10 shadow-2xl"
+            >
+                <X size={24} />
+            </button>
 
-                {/* Close Button */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-6 right-6 z-[60] p-3 bg-black/40 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-all backdrop-blur-xl border border-white/5"
-                >
-                    <X size={20} />
-                </button>
+            <div className="relative w-full max-w-xl bg-zinc-950 rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] my-auto select-none">
 
                 {/* THE POSTER CONTAINER */}
                 <div ref={posterRef} className="relative aspect-[4/5] w-full bg-black text-white overflow-hidden flex flex-col font-sans">
@@ -482,25 +482,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                     <div className="absolute inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,3px_100%]" />
                 </div>
 
-                {/* CONTROLS (Glassmorphic) */}
-                <div className="p-6 sm:p-8 bg-zinc-950 border-t border-white/5 flex flex-col sm:flex-row gap-3 sm:gap-4">
-                    <button
-                        onClick={handleDownload}
-                        disabled={isDownloading || isSharing || !captureReady}
-                        className="flex-1 flex items-center justify-center gap-2 py-4 sm:py-5 rounded-2xl bg-zinc-900 border border-white/10 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] sm:text-[11px] transition-all active:scale-95 disabled:opacity-50 order-2 sm:order-1"
-                    >
-                        {isDownloading ? <Loader2 size={18} className="animate-spin text-orange-500" /> : <Download size={18} />}
-                        {isDownloading ? 'Processing...' : 'Download Image'}
-                    </button>
-                    <button
-                        onClick={handleShare}
-                        disabled={isSharing || isDownloading || !captureReady}
-                        className="flex-1 flex items-center justify-center gap-2 py-4 sm:py-5 rounded-2xl bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:from-orange-500 hover:to-orange-400 font-black uppercase tracking-widest text-[10px] sm:text-[11px] transition-all shadow-[0_10px_30px_rgba(234,88,12,0.3)] active:scale-95 disabled:opacity-50 order-1 sm:order-2"
-                    >
-                        {isSharing ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
-                        {isSharing ? 'Capturing...' : 'Share Poster'}
-                    </button>
-                </div>
+
             </div>
 
             <style jsx>{`

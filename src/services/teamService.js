@@ -101,3 +101,14 @@ export async function getTournaments() {
   const querySnapshot = await getDocs(collection(db, "tournaments"));
   return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
+
+export async function getManagers() {
+  const querySnapshot = await getDocs(collection(db, "managers"));
+  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+}
+
+export async function deleteManager(email) {
+  const managerRef = doc(db, "managers", email);
+  await deleteDoc(managerRef);
+  return true;
+}

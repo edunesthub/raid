@@ -5,11 +5,14 @@ import { getTeams } from "@/services/teamService";
 import { Users, Info, Trophy, UserCircle, Shield, Briefcase } from "lucide-react";
 import { userService } from "@/services/userService";
 import Link from "next/link";
+import TeamDetailsModal from "@/components/TeamDetailsModal";
 
 export default function EsportsTeamsPage() {
   const [teams, setTeams] = useState([]);
   const [memberDetails, setMemberDetails] = useState({});
   const [loading, setLoading] = useState(true);
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -80,7 +83,11 @@ export default function EsportsTeamsPage() {
             {teams.map((team, index) => (
               <div
                 key={team.id}
-                className="group relative bg-gray-900/40 border border-gray-800 hover:border-orange-500/50 rounded-3xl p-6 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(255,140,0,0.1)] overflow-hidden"
+                onClick={() => {
+                  setSelectedTeam(team);
+                  setIsModalOpen(true);
+                }}
+                className="group relative bg-gray-900/40 border border-gray-800 hover:border-orange-500/50 rounded-3xl p-6 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(255,140,0,0.1)] overflow-hidden cursor-pointer active:scale-95"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {/* Accent line */}
@@ -160,6 +167,13 @@ export default function EsportsTeamsPage() {
           </div>
         )}
       </div>
+
+      <TeamDetailsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        team={selectedTeam}
+        memberDetails={memberDetails}
+      />
     </div>
   );
 }

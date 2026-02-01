@@ -15,7 +15,8 @@ import {
   Award,
   ClipboardCheck,
   Crown,
-  Calculator // NEW: Stats utility icon
+  Calculator,
+  UserCheck
 } from "lucide-react";
 import useAdminAuth from "./hooks/useAdminAuth";
 import Dashboard from "./components/Dashboard";
@@ -26,6 +27,7 @@ import ResultsManagement from './components/ResultsManagement';
 import NonBracketResults from './components/NonBracketResults';
 import WinnerSelection from './components/WinnerSelection';
 import AdminActivity from './components/AdminActivity';
+import ManagerManagement from './components/ManagerManagement';
 import dynamic from 'next/dynamic';
 
 // Lazy load the stats page
@@ -48,6 +50,7 @@ export default function AdminPortal() {
     { id: "winner-selection", label: "Select Winners", icon: Crown },
     { id: "results", label: "Verify Results", icon: ClipboardCheck },
     { id: "users", label: "Users", icon: Users },
+    { id: "managers", label: "Team Managers", icon: UserCheck },
     { id: "stats-utility", label: "Stats Utility", icon: Calculator },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "settings", label: "Settings", icon: Settings },
@@ -118,6 +121,7 @@ export default function AdminPortal() {
         {activeTab === "winner-selection" && <WinnerSelection />}
         {activeTab === "results" && <ResultsVerification />}
         {activeTab === "users" && <UserManagement />}
+        {activeTab === "managers" && <ManagerManagement />}
         {activeTab === "stats-utility" && <AdminStatsUtility />}
         {activeTab === "analytics" && <div className="text-white p-4">Analytics coming soon...</div>}
         {activeTab === "settings" && <div className="text-white p-4">Settings coming soon...</div>}
