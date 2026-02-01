@@ -15,13 +15,31 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     const p1Team = match.player1Team || match.team1 || null;
     const p2Team = match.player2Team || match.team2 || null;
 
+    // Construct share URL with params for OG Image
+    const getShareUrl = () => {
+        const url = new URL(window.location.origin + window.location.pathname);
+        if (mode === 'match') {
+            if (p1.username) url.searchParams.set('p1Name', p1.username);
+            if (p2.username) url.searchParams.set('p2Name', p2.username);
+            if (p1.avatarUrl) url.searchParams.set('p1Avatar', p1.avatarUrl);
+            if (p2.avatarUrl) url.searchParams.set('p2Avatar', p2.avatarUrl);
+            if (match.round) url.searchParams.set('round', match.round);
+        } else {
+            url.searchParams.set('mode', 'tournament');
+        }
+        if (tournament?.title) url.searchParams.set('tName', tournament.title);
+        return url.toString();
+    };
+
     const handleCopy = async () => {
+        const shareUrl = getShareUrl();
         const shareText = mode === 'match'
-            ? `🔥 MATCH ALERT: ${p1.username} VS ${p2.username} in ${tournament?.title || 'the tournament'}! 🏆 Check it out on RAID Arena: ${window.location.href}`
-            : `🏆 TOURNAMENT ALERT: ${tournament?.title} is LIVE! 🎮 Prize Pool: ${tournament?.prizePool} ${tournament?.currency}! join the raid: ${window.location.href}`;
+            ? `🔥 MATCH ALERT: ${p1.username} VS ${p2.username} in ${tournament?.title || 'the tournament'}! 🏆 Check it out on RAID Arena: ${shareUrl}`
+            : `🏆 TOURNAMENT ALERT: ${tournament?.title} is LIVE! 🎮 Prize Pool: ${tournament?.prizePool} ${tournament?.currency}! join the raid: ${shareUrl}`;
 
         try {
-            await navigator.clipboard.writeText(`${shareText}`);
+            await navigator.clipboard.writeText(shareText); // Copy full text including URL
+            // Or just URL? Usually users prefer the text blob.
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
@@ -30,9 +48,10 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     };
 
     const handleShare = async () => {
+        const shareUrl = getShareUrl();
         const shareText = mode === 'match'
-            ? `🔥 MATCH ALERT: ${p1.username} VS ${p2.username} in ${tournament?.title || 'the tournament'}! 🏆 Check it out on RAID Arena: ${window.location.href}`
-            : `🏆 TOURNAMENT ALERT: ${tournament?.title} is LIVE! 🎮 Prize Pool: ${tournament?.prizePool} ${tournament?.currency}! join the raid: ${window.location.href}`;
+            ? `🔥 MATCH ALERT: ${p1.username} VS ${p2.username} in ${tournament?.title || 'the tournament'}! 🏆 Check it out on RAID Arena: ${shareUrl}`
+            : `🏆 TOURNAMENT ALERT: ${tournament?.title} is LIVE! 🎮 Prize Pool: ${tournament?.prizePool} ${tournament?.currency}! join the raid: ${shareUrl}`;
 
         // Try to use native sharing
         if (navigator.share) {
@@ -40,18 +59,18 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                 await navigator.share({
                     title: 'RAID Arena Matchup',
                     text: shareText,
-                    url: window.location.href,
+                    url: shareUrl,
                 });
             } catch (err) {
                 if (err.name !== 'AbortError') {
                     console.warn('Sharing failed', err);
-                    // Fallback if sharing fails technically
+                    // Fallback
                     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
                     window.open(whatsappUrl, '_blank');
                 }
             }
         } else {
-            // Fallback for browsers without navigator.share
+            // Fallback
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
             window.open(whatsappUrl, '_blank');
         }
