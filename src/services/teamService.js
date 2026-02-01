@@ -7,6 +7,7 @@ import {
   updateDoc,
   doc,
   arrayUnion,
+  arrayRemove,
   setDoc,
   getDoc,
   deleteDoc
@@ -69,6 +70,13 @@ export async function getTeams() {
 export async function addMemberToTeam(teamId, userEmail) {
   const teamRef = doc(db, "teams", teamId);
   await updateDoc(teamRef, { members: arrayUnion(userEmail) });
+  const snap = await getDoc(teamRef);
+  return { id: teamId, ...snap.data() };
+}
+
+export async function removeMemberFromTeam(teamId, userEmail) {
+  const teamRef = doc(db, "teams", teamId);
+  await updateDoc(teamRef, { members: arrayRemove(userEmail) });
   const snap = await getDoc(teamRef);
   return { id: teamId, ...snap.data() };
 }

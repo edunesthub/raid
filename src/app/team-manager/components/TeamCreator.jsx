@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { Plus, Search, Users, UserPlus, CheckCircle2, Shield, Loader2, Trophy, Trash2, X, AlertCircle, ArrowLeft, ChevronRight, LayoutGrid, Edit2, Camera, Save, LogOut } from "lucide-react";
-import { createTeam, getTeams, addMemberToTeam, deleteTeam, updateTeam } from "@/services/teamService";
+import { createTeam, getTeams, addMemberToTeam, removeMemberFromTeam, deleteTeam, updateTeam } from "@/services/teamService";
 import { userService } from "@/services/userService";
 import { db } from "@/lib/firebase";
 import { collection, query, getDocs, limit, where, doc, updateDoc, arrayUnion, arrayRemove, increment, deleteField } from "firebase/firestore";
@@ -410,6 +410,28 @@ export default function TeamManagerTeamCreator({ managerEmail }) {
       setShowSearchResults(false);
     } catch (err) {
       setMessage("Error adding member.");
+    }
+  };
+
+  const handleRemoveMember = async (userEmail) => {
+    if (!createdTeam) return;
+    if (!confirm(`Are you sure you want to remove ${memberDetails[userEmail]?.username || userEmail} from the team?`)) return;
+
+    try {
+      await removeMemberFromTeam(createdTeam.id, userEmail);
+
+      // Optimistic update
+      setCreatedTeam(prev => ({
+        ...prev,
+        members: prev.members.filter(m => m !== userEmail)
+      }));
+
+      await fetchTeams();
+      setMessage("Member removed.");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (err) {
+      console.error("Error removing member:", err);
+      setMessage("Error removing member.");
     }
   };
 
@@ -836,7 +858,16 @@ export default function TeamManagerTeamCreator({ managerEmail }) {
                         </p>
                         <p className="text-[10px] text-gray-500 truncate">{email}</p>
                       </div>
-                      <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => handleRemoveMember(email)}
+                          className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                          title="Remove Member"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                        <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                      </div>
                     </div>
                   ))}
                   {(createdTeam.members || []).length === 0 && (
