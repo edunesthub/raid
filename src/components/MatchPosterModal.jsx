@@ -1,24 +1,97 @@
-import React, { useRef, useState } from 'react';
-import { X, Trophy, Zap, Shield, Share2, Loader2 } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { X, Trophy, Zap, Shield, Share2, Loader2, User } from 'lucide-react';
 import { toBlob } from 'html-to-image';
+import { userService } from '@/services/userService';
 
 export default function MatchPosterModal({ isOpen, onClose, match, tournament, mode = 'match' }) {
     const modalRef = useRef(null);
     const posterRef = useRef(null);
     const [isSharing, setIsSharing] = useState(false);
+    const [extraData, setExtraData] = useState({ p1: null, p2: null });
+    const [isFetchingInfo, setIsFetchingInfo] = useState(false);
+
+    // FETCH MISSING PLAYER DATA
+    useEffect(() => {
+        if (!isOpen || !match) return;
+
+        const fetchMissingInfo = async () => {
+            setIsFetchingInfo(true);
+            try {
+                const newData = { p1: null, p2: null };
+
+                const resolvePlayer = async (source, idFallback) => {
+                    if (!source && !idFallback) return null;
+
+                    // 1. If source is an email string
+                    if (typeof source === 'string' && source.includes('@')) {
+                        const profiles = await userService.getUsersByEmails([source]);
+                        return profiles.length > 0 ? profiles[0] : null;
+                    }
+
+                    // 2. If source is an ID string
+                    if (typeof source === 'string') {
+                        return await userService.getUserProfile(source);
+                    }
+
+                    // 3. If source is an object
+                    if (source && typeof source === 'object') {
+                        // If it's a member object {email, teamId}
+                        if (source.email) {
+                            const profiles = await userService.getUsersByEmails([source.email]);
+                            return profiles.length > 0 ? profiles[0] : null;
+                        }
+                        // If it has an ID but missing critical info
+                        if (source.id && (!source.username || !source.avatarUrl)) {
+                            return await userService.getUserProfile(source.id);
+                        }
+                        // If it's already a full profile, use it as is (or fetch fresh if missing avatar)
+                        if (source.username && !source.avatarUrl && (source.id || idFallback)) {
+                            return await userService.getUserProfile(source.id || idFallback);
+                        }
+                    }
+
+                    // 4. Fallback to ID
+                    if (idFallback) {
+                        return await userService.getUserProfile(idFallback);
+                    }
+
+                    return null;
+                };
+
+                newData.p1 = await resolvePlayer(match.player1, match.player1Id);
+                newData.p2 = await resolvePlayer(match.player2, match.player2Id);
+
+                setExtraData(newData);
+            } catch (err) {
+                console.error("Error fetching poster extra data:", err);
+            } finally {
+                setIsFetchingInfo(false);
+            }
+        };
+
+        fetchMissingInfo();
+    }, [isOpen, match?.id, match?.player1Id, match?.player2Id]);
 
     if (!isOpen || !match) return null;
 
     // ROBUST DATA EXTRACTION
-    const getPlayerData = (playerData, fallback = 'TBD') => {
-        if (!playerData) return { username: fallback };
-        // If it's just a string, wrap it
-        if (typeof playerData === 'string') return { username: playerData };
+    const getPlayerData = (baseData, fetchedData, fallback = 'TBD') => {
+        // Favor fetched data if available
+        const data = fetchedData || baseData;
+        if (!data) return { username: fallback };
+
+        if (typeof data === 'string') {
+            if (data.includes('@')) return { username: data.split('@')[0] };
+            return { username: data };
+        }
+
+        const username = data.username || data.displayName || data.name || (data.email ? data.email.split('@')[0] : fallback);
+
         return {
-            ...playerData,
-            name: playerData.name || playerData.displayName || playerData.username || fallback,
-            username: playerData.username || playerData.displayName || playerData.name || fallback,
-            avatarUrl: playerData.avatarUrl || playerData.photoURL
+            ...data,
+            name: username,
+            username: username,
+            avatarUrl: data.avatarUrl || data.photoURL || null
         };
     };
 
@@ -28,24 +101,20 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         return teamData.name || teamData.username || teamData.title || null;
     };
 
-    const formatTeamName = (name) => {
-        if (!name) return null;
-        const lowerName = name.trim().toLowerCase();
-        if (lowerName.startsWith('team ')) {
-            const teamWord = name.slice(0, 4);
-            const rest = name.slice(5);
-            return (
-                <div className="flex flex-col items-center leading-none">
-                    <span className="opacity-80">{teamWord}</span>
-                    <span className="text-[12px] sm:text-[14px] text-white mt-1 font-black">{rest}</span>
-                </div>
-            );
-        }
-        return <span>{name}</span>;
+    const formatDisplayName = (name) => {
+        if (!name || typeof name !== 'string') return name;
+        const words = name.trim().split(/\s+/);
+        if (words.length <= 1) return name;
+        return (
+            <span className="flex flex-col items-center leading-[0.8] tracking-tighter">
+                <span className="block">{words.slice(0, -1).join(' ')}</span>
+                <span className="block text-[0.9em] opacity-90 mt-1">{words[words.length - 1]}</span>
+            </span>
+        );
     };
 
-    const p1 = getPlayerData(match.player1, 'PLAYER 1');
-    const p2 = getPlayerData(match.player2, 'PLAYER 2');
+    const p1 = getPlayerData(match.player1, extraData.p1, 'PLAYER 1');
+    const p2 = getPlayerData(match.player2, extraData.p2, 'PLAYER 2');
     const isBye = !match.player2Id && !match.player2;
 
     const p1TeamName = getTeamName(match.player1Team || match.team1);
@@ -201,27 +270,31 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                     <div className="absolute -inset-4 bg-orange-600/40 blur-2xl rounded-full opacity-100 transition-opacity" />
 
                                     {/* Avatar Frame - FALLBACKS ADDED */}
-                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-orange-500/50 overflow-hidden shadow-[0_0_50px_rgba(234,88,12,0.6)] transform hover:scale-105 transition-transform duration-500">
+                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-orange-500/50 overflow-hidden shadow-[0_0_50px_rgba(234,88,12,0.6)] transform hover:scale-105 transition-transform duration-500 flex items-center justify-center bg-zinc-900">
                                         <div className="absolute inset-0 bg-gradient-to-tr from-orange-600/40 to-transparent z-10" />
-                                        <img
-                                            src={p1.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p1.username || 'P1'}`}
-                                            className="w-full h-full object-cover scale-110"
-                                            alt={p1.username}
-                                            crossOrigin="anonymous"
-                                        />
+                                        {isFetchingInfo && !p1.avatarUrl ? (
+                                            <Loader2 size={32} className="animate-spin text-orange-500/50" />
+                                        ) : (
+                                            <img
+                                                src={p1.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p1.username || 'P1'}`}
+                                                className="w-full h-full object-cover scale-110"
+                                                alt={p1.username}
+                                                crossOrigin="anonymous"
+                                            />
+                                        )}
                                         <div className="absolute inset-0 bg-black/20" />
                                     </div>
                                 </div>
 
-                                {/* FIXED HEIGHT TEXT CONTAINER */}
-                                <div className="relative z-30 -mt-4 text-center h-20 w-full px-2 flex flex-col justify-start">
-                                    <h2 className="text-2xl sm:text-3xl font-[1000] italic leading-tight text-white uppercase tracking-tighter mb-1 drop-shadow-[0_4px_12px_rgba(0,0,0,1)]">
-                                        {p1.username}
+                                {/* FLEXIBLE HEIGHT TEXT CONTAINER */}
+                                <div className="relative z-30 -mt-4 text-center min-h-[6rem] w-full px-2 flex flex-col justify-start">
+                                    <h2 className="text-2xl sm:text-3xl font-[1000] italic leading-[0.9] text-white uppercase tracking-tighter mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,1)]">
+                                        {formatDisplayName(p1.username)}
                                     </h2>
                                     {p1TeamName && (
-                                        <div className="flex items-center justify-center gap-2 text-orange-400 font-bold text-[10px] tracking-widest uppercase opacity-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mt-1">
-                                            <Shield size={10} className="flex-shrink-0" />
-                                            {formatTeamName(p1TeamName)}
+                                        <div className="flex items-center justify-center gap-1 text-orange-400 font-bold text-[10px] tracking-widest uppercase opacity-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                                            <Shield size={9} className="flex-shrink-0" />
+                                            <span>{p1TeamName}</span>
                                         </div>
                                     )}
                                 </div>
@@ -234,12 +307,14 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                     <div className="absolute -inset-4 bg-blue-600/40 blur-2xl rounded-full opacity-100 transition-opacity" />
 
                                     {/* Avatar Frame */}
-                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-blue-500/50 overflow-hidden shadow-[0_0_50px_rgba(37,99,235,0.6)] transform hover:scale-105 transition-transform duration-500">
+                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-blue-500/50 overflow-hidden shadow-[0_0_50px_rgba(37,99,235,0.6)] transform hover:scale-105 transition-transform duration-500 flex items-center justify-center bg-zinc-900">
                                         <div className="absolute inset-0 bg-gradient-to-tl from-blue-600/40 to-transparent z-10" />
                                         {isBye ? (
-                                            <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
+                                            <div className="w-full h-full flex items-center justify-center bg-zinc-900">
                                                 <Trophy className="text-blue-500/50 w-12 h-12" />
                                             </div>
+                                        ) : isFetchingInfo && !p2.avatarUrl ? (
+                                            <Loader2 size={32} className="animate-spin text-blue-500/50" />
                                         ) : (
                                             <img
                                                 src={p2.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p2.username || 'P2'}`}
@@ -252,15 +327,15 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                     </div>
                                 </div>
 
-                                {/* FIXED HEIGHT TEXT CONTAINER */}
-                                <div className="relative z-30 -mt-4 text-center h-20 w-full px-2 flex flex-col justify-start">
-                                    <h2 className="text-2xl sm:text-3xl font-[1000] italic leading-tight text-white uppercase tracking-tighter mb-1 drop-shadow-[0_4px_12px_rgba(0,0,0,1)]">
-                                        {isBye ? 'AUTO-WIN' : p2.username}
+                                {/* FLEXIBLE HEIGHT TEXT CONTAINER */}
+                                <div className="relative z-30 -mt-4 text-center min-h-[6rem] w-full px-2 flex flex-col justify-start">
+                                    <h2 className="text-2xl sm:text-3xl font-[1000] italic leading-[0.9] text-white uppercase tracking-tighter mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,1)]">
+                                        {isBye ? 'AUTO-WIN' : formatDisplayName(p2.username)}
                                     </h2>
                                     {p2TeamName && !isBye && (
-                                        <div className="flex items-center justify-center gap-2 text-blue-400 font-bold text-[10px] tracking-widest uppercase opacity-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mt-1">
-                                            <Shield size={10} className="flex-shrink-0" />
-                                            {formatTeamName(p2TeamName)}
+                                        <div className="flex items-center justify-center gap-1 text-blue-400 font-bold text-[10px] tracking-widest uppercase opacity-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                                            <Shield size={9} className="flex-shrink-0" />
+                                            <span>{p2TeamName}</span>
                                         </div>
                                     )}
                                 </div>
@@ -269,7 +344,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                         </div>
 
                         {/* CENTRAL VS OVERLAY (SHARPER) */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
                             <div className="relative">
                                 <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-50" />
                                 <span className="relative block text-5xl sm:text-6xl font-[1000] italic bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-100 to-gray-400 drop-shadow-[0_0_40px_rgba(255,255,255,0.4)] transform -skew-x-12">
