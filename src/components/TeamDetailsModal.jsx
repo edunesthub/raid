@@ -18,17 +18,17 @@ export default function TeamDetailsModal({ isOpen, onClose, team, memberDetails 
     if (!isOpen || !team) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/95 backdrop-blur-3xl animate-fade-in overflow-y-auto py-8">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center bg-black animate-fade-in overflow-y-auto">
             {/* Background elements */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-600/10 rounded-full blur-[120px] pointer-events-none" />
 
-            <div className="relative w-full max-w-2xl bg-zinc-950 rounded-[2.5rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden">
+            <div className="relative w-full min-h-screen bg-zinc-950 overflow-hidden flex flex-col">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 z-[110] p-3 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-all backdrop-blur-xl border border-white/5"
+                    className="fixed top-6 right-6 z-[120] p-4 bg-zinc-900/80 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-all backdrop-blur-xl border border-white/10 shadow-2xl"
                 >
-                    <X size={20} />
+                    <X size={24} />
                 </button>
 
                 {/* Header/Cover Image Section */}
@@ -39,8 +39,8 @@ export default function TeamDetailsModal({ isOpen, onClose, team, memberDetails 
                 </div>
 
                 {/* Team Profile Section */}
-                <div className="relative px-5 sm:px-8 pb-8 -mt-12 sm:-mt-16">
-                    <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6 mb-8">
+                <div className="relative flex-1 px-6 sm:px-12 md:px-24 pb-20 -mt-12 sm:-mt-16 max-w-7xl mx-auto w-full">
+                    <div className="flex flex-col sm:flex-row sm:items-end gap-6 sm:gap-10 mb-12">
                         <div className="relative self-start sm:self-auto">
                             <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl bg-zinc-900 border-4 border-zinc-950 shadow-2xl flex items-center justify-center overflow-hidden">
                                 {team.avatarUrl ? (
@@ -75,10 +75,10 @@ export default function TeamDetailsModal({ isOpen, onClose, team, memberDetails 
 
                     <div className="space-y-8">
                         {/* Roster Section */}
-                        <div className="space-y-4">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 border-b border-white/5 pb-2">Verified Roster</h3>
+                        <div className="space-y-6">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 border-b border-white/5 pb-2">Team Members</h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
                                 {/* Manager */}
                                 <div className="flex items-center justify-between p-3 bg-orange-500/5 border border-orange-500/10 rounded-2xl">
                                     <div className="flex items-center gap-3">
@@ -146,11 +146,11 @@ export default function TeamDetailsModal({ isOpen, onClose, team, memberDetails 
 
             <style jsx>{`
         @keyframes fade-in {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         .animate-fade-in {
-          animation: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: fade-in 0.3s ease-out forwards;
         }
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
