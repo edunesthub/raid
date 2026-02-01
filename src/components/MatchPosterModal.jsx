@@ -1,11 +1,10 @@
 import React, { useRef, useState } from 'react';
-import { X, Copy, MessageCircle, Trophy, Swords, Zap, Star, Shield, Target, TrendingUp, Check, Share2, Loader2 } from 'lucide-react';
+import { X, Trophy, Zap, Shield, Share2, Loader2 } from 'lucide-react';
 import { toBlob } from 'html-to-image';
 
 export default function MatchPosterModal({ isOpen, onClose, match, tournament, mode = 'match' }) {
     const modalRef = useRef(null);
     const posterRef = useRef(null);
-    const [copied, setCopied] = useState(false);
     const [isSharing, setIsSharing] = useState(false);
 
     if (!isOpen || !match) return null;
@@ -14,11 +13,9 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     const p2 = match.player2 || { username: 'TBD' };
     const isBye = !match.player2Id;
 
-    // Enhanced details
     const p1Team = match.player1Team || match.team1 || null;
     const p2Team = match.player2Team || match.team2 || null;
 
-    // Construct share URL with params for OG Image
     const getShareUrl = () => {
         const url = new URL(window.location.origin + window.location.pathname);
         const origin = window.location.origin;
@@ -46,7 +43,6 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         return url.toString();
     };
 
-    // Cleaner Share Text
     const getShareText = () => {
         const url = getShareUrl();
         if (mode === 'match') {
@@ -55,32 +51,22 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         return `🏆 ${tournament?.title}\n💰 Prize Pool: ${tournament?.prizePool} ${tournament?.currency}\n🎮 Join the Fight\n\n🔗 Enter here: ${url}`;
     }
 
-    const handleCopy = async () => {
-        const text = getShareText();
-        try {
-            await navigator.clipboard.writeText(text);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
-            console.warn('Copy failed', err);
-        }
-    };
-
     const handleShare = async () => {
         setIsSharing(true);
         const text = getShareText();
         try {
-            // Attempt to generate image from DOM
             let file = null;
             if (posterRef.current) {
                 try {
                     const blob = await toBlob(posterRef.current, {
                         cacheBust: true,
-                        pixelRatio: 2,
-                        backgroundColor: '#000', // Ensure black bg
+                        pixelRatio: 4, // Ultra high quality
+                        backgroundColor: '#000',
+                        useCORS: true,
+                        allowTaint: true,
                     });
                     if (blob) {
-                        file = new File([blob], 'fight-card.png', { type: 'image/png' });
+                        file = new File([blob], 'raid-match-card.png', { type: 'image/png' });
                     }
                 } catch (e) {
                     console.error("Image generation failed", e);
@@ -88,14 +74,14 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
             }
 
             const shareData = {
-                title: 'RAID Fight Card',
+                title: 'RAID Match Card',
                 text: text,
             };
 
             if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
                 shareData.files = [file];
             } else {
-                shareData.url = getShareUrl(); // Fallback to URL if no file support
+                shareData.url = getShareUrl();
             }
 
             if (navigator.share) {
@@ -105,7 +91,6 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
             }
         } catch (err) {
             if (err.name !== 'AbortError') {
-                // Fallback
                 const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
                 window.open(whatsappUrl, '_blank');
             }
@@ -115,153 +100,202 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/95 backdrop-blur-2xl animate-fade-in overflow-y-auto sm:overflow-hidden">
-            <div className="relative w-full max-w-lg bg-black rounded-3xl overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(234,88,12,0.15)] my-auto select-none">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/90 backdrop-blur-3xl animate-fade-in overflow-y-auto py-8">
+            <div className="relative w-full max-w-xl bg-zinc-950 rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] my-auto select-none">
 
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-50 p-2 bg-black/50 hover:bg-white/20 rounded-full text-white/70 hover:text-white transition-all backdrop-blur-md"
+                    className="absolute top-6 right-6 z-[60] p-3 bg-black/40 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-all backdrop-blur-xl border border-white/5"
                 >
                     <X size={20} />
                 </button>
 
-                {/* THE POSTER */}
-                <div ref={posterRef} className="relative aspect-[4/5] w-full bg-black text-white overflow-hidden flex flex-col">
+                {/* THE POSTER CONTAINER */}
+                <div ref={posterRef} className="relative aspect-[4/5] w-full bg-black text-white overflow-hidden flex flex-col font-sans">
 
-                    {/* Background Ambience */}
+                    {/* --- CINEMATIC BACKGROUND --- */}
                     <div className="absolute inset-0 bg-[#050505]">
-                        {/* Subtle grit texture */}
-                        <div className="absolute inset-0 opacity-[0.15] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
-                        {/* Lighting */}
-                        <div className="absolute top-0 inset-x-0 h-1/2 bg-gradient-to-b from-orange-900/20 to-transparent opacity-60" />
-                        <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-blue-900/20 to-transparent opacity-60" />
+                        {/* 1. Base Gradient Glows */}
+                        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(234,88,12,0.15),transparent_50%)]" />
+                        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_80%_70%,rgba(37,99,235,0.15),transparent_50%)]" />
+
+                        {/* 2. Hexagonal Pattern (Cyberpunk Feel) */}
+                        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+
+                        {/* 3. Central Light Streak */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[1px] bg-white/10 rotate-[15deg] blur-sm" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[1px] bg-white/5 rotate-[-15deg] blur-sm" />
+
+                        {/* 4. Vignette */}
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]" />
                     </div>
 
-                    {/* Tournament Header (Compact) */}
-                    <div className="relative z-10 pt-6 pb-2 text-center">
-                        <h2 className="text-[10px] sm:text-xs font-[900] tracking-[0.3em] text-white/60 uppercase">
-                            {tournament?.game || 'RAID ARENA'}
-                        </h2>
-                        <h1 className="text-xl sm:text-2xl font-[1000] uppercase italic tracking-tighter leading-none mt-1 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/50">
-                            {tournament?.title || 'CHAMPIONSHIP'}
-                        </h1>
+                    {/* --- HEADER: RAID ARENA --- */}
+                    <div className="relative z-50 pt-8 px-8 flex flex-col items-center">
+                        <div className="flex items-center gap-3">
+                            <div className="h-[2px] w-6 bg-gradient-to-r from-transparent to-orange-500" />
+                            <h1 className="text-xl sm:text-2xl font-[1000] italic tracking-[0.3em] text-white uppercase flex items-center gap-2">
+                                RAID <span className="text-orange-500">ARENA</span>
+                            </h1>
+                            <div className="h-[2px] w-6 bg-gradient-to-l from-transparent to-blue-500" />
+                        </div>
                     </div>
 
-                    {/* FIGHTERS CONTAINER */}
-                    <div className="flex-1 relative flex flex-col sm:flex-row items-center justify-center">
+                    {/* --- MAIN CONTENT AREA --- */}
+                    <div className="relative flex-1 w-full flex flex-col justify-center items-center px-6 mt-8">
 
-                        {/* FIGHTER 1 (Red Corner/Top) */}
-                        <div className="relative flex-1 w-full h-full flex flex-col items-center justify-end sm:justify-center pb-8 sm:pb-0 z-10">
-                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80 sm:bg-gradient-to-r sm:to-black/80" />
-
-                            {/* Avatar */}
-                            <div className="relative w-32 h-32 sm:w-48 sm:h-48 mb-2 z-20">
-                                <div className="absolute inset-0 bg-orange-600 blur-[60px] opacity-20" />
-                                <div className="w-full h-full rounded-full border-2 border-orange-500/50 p-1">
-                                    <img
-                                        src={p1.avatarUrl || 'https://placehold.co/200x200/1a1a1a/FFF?text=?'}
-                                        className="w-full h-full object-cover rounded-full grayscaleContrast"
-                                        alt={p1.username}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Name */}
-                            <div className="relative z-20 text-center">
-                                <div className="inline-block px-2 py-0.5 bg-orange-600/20 border border-orange-600/30 rounded text-[10px] font-bold text-orange-500 mb-1 tracking-widest uppercase">
-                                    {p1Team?.name?.substring(0, 10) || 'CHALLENGER'}
-                                </div>
-                                <h3 className="text-3xl sm:text-4xl font-[1000] uppercase italic leading-none tracking-tighter drop-shadow-lg">
-                                    {p1.username?.substring(0, 12)}
-                                </h3>
-                            </div>
+                        {/* THE BIG VS */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 select-none">
+                            <span className="text-[10rem] sm:text-[12rem] font-[1000] italic text-white/[0.03] leading-none transform -skew-x-12">
+                                VS
+                            </span>
                         </div>
 
-                        {/* VS ELEMENT */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 flex items-center justify-center">
+                        {/* PLAYER CARDS CONTAINER */}
+                        <div className="relative w-full grid grid-cols-2 gap-4 items-center z-20">
+
+                            {/* PLAYER 1 (LEFT) */}
+                            <div className="flex flex-col items-center">
+                                <div className="relative group flex-shrink-0">
+                                    {/* Outer Glow */}
+                                    <div className="absolute -inset-4 bg-orange-600/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                                    {/* Avatar Frame - FALLBACKS ADDED */}
+                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-orange-500/30 overflow-hidden shadow-[0_0_40px_rgba(234,88,12,0.4)] transform hover:scale-105 transition-transform duration-500">
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-orange-600/20 to-transparent z-10" />
+                                        <img
+                                            src={p1.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p1.name || p1.username || 'P1'}`}
+                                            className="w-full h-full object-cover scale-110"
+                                            alt={p1.username || p1.name}
+                                            crossOrigin="anonymous"
+                                        />
+                                        <div className="absolute inset-0 bg-black/20" />
+                                    </div>
+                                </div>
+
+                                {/* FIXED HEIGHT TEXT CONTAINER */}
+                                <div className="relative z-30 -mt-4 text-center h-20 w-full px-2 flex flex-col justify-start">
+                                    <h2 className="text-2xl sm:text-3xl font-[1000] italic leading-tight text-white uppercase tracking-tighter mb-1 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
+                                        {p1.name || p1.username}
+                                    </h2>
+                                    {p1Team && (p1Team.name || p1Team.username) !== (p1.name || p1.username) && (
+                                        <div className="flex items-center justify-center gap-1 text-orange-400 font-bold text-[9px] tracking-widest uppercase opacity-80">
+                                            <Shield size={8} className="flex-shrink-0" />
+                                            <span>{p1Team.name || p1Team.username}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* PLAYER 2 (RIGHT) */}
+                            <div className="flex flex-col items-center">
+                                <div className="relative group flex-shrink-0">
+                                    {/* Outer Glow */}
+                                    <div className="absolute -inset-4 bg-blue-600/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                                    {/* Avatar Frame */}
+                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-blue-500/30 overflow-hidden shadow-[0_0_40px_rgba(37,99,235,0.4)] transform hover:scale-105 transition-transform duration-500">
+                                        <div className="absolute inset-0 bg-gradient-to-tl from-blue-600/20 to-transparent z-10" />
+                                        {isBye ? (
+                                            <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
+                                                <Trophy className="text-blue-500/30 w-12 h-12" />
+                                            </div>
+                                        ) : (
+                                            <img
+                                                src={p2.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p2.name || p2.username || 'P2'}`}
+                                                className="w-full h-full object-cover scale-110"
+                                                alt={p2.username || p2.name}
+                                                crossOrigin="anonymous"
+                                            />
+                                        )}
+                                        <div className="absolute inset-0 bg-black/20" />
+                                    </div>
+                                </div>
+
+                                {/* FIXED HEIGHT TEXT CONTAINER */}
+                                <div className="relative z-30 -mt-4 text-center h-20 w-full px-2 flex flex-col justify-start">
+                                    <h2 className="text-2xl sm:text-3xl font-[1000] italic leading-tight text-white uppercase tracking-tighter mb-1 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
+                                        {isBye ? 'AUTO-WIN' : (p2.name || p2.username)}
+                                    </h2>
+                                    {p2Team && !isBye && (p2Team.name || p2Team.username) !== (p2.name || p2.username) && (
+                                        <div className="flex items-center justify-center gap-1 text-blue-400 font-bold text-[9px] tracking-widest uppercase opacity-80">
+                                            <Shield size={8} className="flex-shrink-0" />
+                                            <span>{p2Team.name || p2Team.username}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        {/* CENTRAL VS OVERLAY (SHARPER) */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
                             <div className="relative">
-                                <div className="absolute inset-0 bg-white blur-[40px] opacity-10" />
-                                <span className="relative z-10 font-[1000] text-5xl sm:text-7xl italic text-transparent bg-clip-text bg-gradient-to-b from-white via-gray-200 to-gray-500 drop-shadow-[0_4px_4px_rgba(0,0,0,1)]">
+                                <div className="absolute inset-0 bg-white/40 blur-3xl rounded-full scale-50" />
+                                <span className="relative block text-5xl sm:text-6xl font-[1000] italic bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-100 to-gray-500 drop-shadow-[0_0_40px_rgba(255,255,255,0.6)] transform -skew-x-12">
                                     VS
                                 </span>
                             </div>
                         </div>
 
-                        {/* FIGHTER 2 (Blue Corner/Bottom) */}
-                        <div className="relative flex-1 w-full h-full flex flex-col items-center justify-start sm:justify-center pt-8 sm:pt-0 z-10">
-                            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-black/80 sm:bg-gradient-to-l sm:from-transparent sm:via-transparent sm:to-black/80" />
+                    </div>
 
-                            {/* Avatar */}
-                            <div className="relative w-32 h-32 sm:w-48 sm:h-48 mb-2 z-20 order-last sm:order-first">
-                                <div className="absolute inset-0 bg-blue-600 blur-[60px] opacity-20" />
-                                <div className="w-full h-full rounded-full border-2 border-blue-500/50 p-1">
-                                    {isBye ? (
-                                        <div className="w-full h-full rounded-full bg-blue-900/20 flex items-center justify-center border border-blue-500/30">
-                                            <span className="font-black italic text-blue-500 text-xl">BYE</span>
-                                        </div>
-                                    ) : (
-                                        <img
-                                            src={p2.avatarUrl || 'https://placehold.co/200x200/1a1a1a/FFF?text=?'}
-                                            className="w-full h-full object-cover rounded-full grayscaleContrast"
-                                            alt={p2.username}
-                                        />
-                                    )}
+                    {/* --- FOOTER: TOURNAMENT INFO --- */}
+                    <div className="relative z-50 pb-6 px-8">
+                        <div className="flex flex-col items-center">
+                            <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent mb-4" />
+
+                            <div className="flex flex-wrap justify-center mb-3">
+                                <div className="flex items-center gap-1.5 px-4 py-1 bg-white/5 border border-white/10 rounded-full backdrop-blur-xl">
+                                    <Trophy size={14} className="text-orange-500" />
+                                    <span className="text-[11px] font-[1000] tracking-[0.2em] uppercase text-white drop-shadow-sm">
+                                        {tournament?.title || 'CHAMPIONS LEAGUE'}
+                                    </span>
                                 </div>
                             </div>
 
-                            {/* Name */}
-                            <div className="relative z-20 text-center order-first sm:order-last mb-2 sm:mb-0 sm:mt-2">
-                                <h3 className="text-3xl sm:text-4xl font-[1000] uppercase italic leading-none tracking-tighter drop-shadow-lg">
-                                    {isBye ? 'AUTO ADV' : p2.username?.substring(0, 12)}
-                                </h3>
-                                {!isBye && (
-                                    <div className="inline-block mt-1 px-2 py-0.5 bg-blue-600/20 border border-blue-600/30 rounded text-[10px] font-bold text-blue-500 tracking-widest uppercase">
-                                        {p2Team?.name?.substring(0, 10) || 'CONTENDER'}
-                                    </div>
-                                )}
+                            <div className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full backdrop-blur-xl">
+                                <span className="text-[8px] font-black tracking-[0.4em] text-orange-400 uppercase">
+                                    #RAIDARENA-MATCH-CARD
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Footer / Tale of the tape */}
-                    <div className="relative z-10 pb-8 pt-4 flex flex-col items-center gap-2">
-                        <div className="h-px w-full max-w-[200px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                        <div className="flex items-center gap-4 text-xs font-bold tracking-widest uppercase text-white/50">
-                            <span className="flex items-center gap-1.5 ">
-                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                                LIVE ON RAID
-                            </span>
-                            <span className="text-white/20">•</span>
-                            <span>ROUND {match.round || 1}</span>
-                        </div>
-                    </div>
+                    {/* --- CINEMATIC LIGHT LEAK --- */}
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
+                    {/* --- DECORATIVE SCANLINES & GRAIN --- */}
+                    <div className="absolute inset-0 pointer-events-none opacity-[0.08] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay" />
+                    <div className="absolute inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,3px_100%]" />
                 </div>
 
-                {/* CONTROLS */}
-                <div className="p-4 bg-black border-t border-white/5 grid grid-cols-2 gap-3">
-                    <button
-                        onClick={handleCopy}
-                        className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold uppercase tracking-wider text-[10px] transition-all border border-white/5 active:scale-95"
-                    >
-                        {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-                        {copied ? 'Link Copied' : 'Copy Link'}
-                    </button>
+                {/* CONTROLS (Glassmorphic) */}
+                <div className="p-8 bg-zinc-950 border-t border-white/5">
                     <button
                         onClick={handleShare}
                         disabled={isSharing}
-                        className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-white text-black hover:bg-gray-200 font-[900] uppercase tracking-wider text-[10px] transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full flex items-center justify-center gap-2 py-5 rounded-2xl bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:from-orange-500 hover:to-orange-400 font-black uppercase tracking-widest text-[11px] transition-all shadow-[0_10px_30px_rgba(234,88,12,0.3)] active:scale-95 disabled:opacity-50"
                     >
-                        {isSharing ? <Loader2 size={16} className="animate-spin" /> : <Share2 size={16} />}
-                        {isSharing ? 'Saving...' : 'Share Image'}
+                        {isSharing ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
+                        {isSharing ? 'Capturing...' : 'Share'}
                     </button>
                 </div>
             </div>
 
             <style jsx>{`
-                .grayscaleContrast {
-                    filter: grayscale(100%) contrast(1.2) brightness(1.1);
+                @keyframes fade-in {
+                    from { opacity: 0; transform: scale(0.95); }
+                    to { opacity: 1; transform: scale(1); }
+                }
+                .animate-fade-in {
+                    animation: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+                @font-face {
+                    font-family: 'Outfit';
+                    src: url('https://fonts.googleapis.com/css2?family=Outfit:wght@900&display=swap');
                 }
             `}</style>
         </div>
