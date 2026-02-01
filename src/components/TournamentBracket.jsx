@@ -51,10 +51,11 @@ export default function TournamentBracket({ tournamentId }) {
     return (
       <div
         onClick={() => {
+          if (tournament?.participant_type !== 'Team') return;
           setSelectedMatch(match);
           setShowPosterModal(true);
         }}
-        className={`bg-gray-800 border-2 rounded-xl p-4 mb-4 transition-all cursor-pointer hover:border-orange-500 hover:scale-[1.02] active:scale-[0.98] ${isCompleted ? 'border-green-500/50' : 'border-gray-700'
+        className={`bg-gray-800 border-2 rounded-xl p-4 mb-4 transition-all ${tournament?.participant_type === 'Team' ? 'cursor-pointer hover:border-orange-500 hover:scale-[1.02] active:scale-[0.98]' : 'cursor-default'} ${isCompleted ? 'border-green-500/50' : 'border-gray-700'
           }`}
       >
         {/* Match Header */}
@@ -71,8 +72,8 @@ export default function TournamentBracket({ tournamentId }) {
 
         {/* Player 1 */}
         <div className={`flex items-center justify-between p-3 rounded-lg mb-2 ${isCompleted && match.winnerId === match.player1Id
-            ? 'bg-green-500/20 border border-green-500/40'
-            : 'bg-gray-700/50'
+          ? 'bg-green-500/20 border border-green-500/40'
+          : 'bg-gray-700/50'
           }`}>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-r from-orange-600 to-orange-400">
@@ -106,8 +107,8 @@ export default function TournamentBracket({ tournamentId }) {
 
             {/* Player 2 */}
             <div className={`flex items-center justify-between p-3 rounded-lg ${isCompleted && match.winnerId === match.player2Id
-                ? 'bg-green-500/20 border border-green-500/40'
-                : 'bg-gray-700/50'
+              ? 'bg-green-500/20 border border-green-500/40'
+              : 'bg-gray-700/50'
               }`}>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-r from-orange-600 to-orange-400">
