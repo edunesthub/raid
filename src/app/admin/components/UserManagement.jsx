@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { Eye, X } from 'lucide-react';
 
 export default function UserManagement() {
@@ -17,7 +17,8 @@ export default function UserManagement() {
       try {
         setLoading(true);
         const usersRef = collection(db, 'users');
-        const snapshot = await getDocs(usersRef);
+        const q = query(usersRef, orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
         const userData = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
@@ -102,7 +103,17 @@ export default function UserManagement() {
                     </span>
                   )}
                 </p>
+                {(user.firstName || user.lastName) && (
+                  <p className="text-xs font-bold text-orange-500/70 uppercase tracking-widest -mt-1">
+                    {user.firstName} {user.lastName}
+                  </p>
+                )}
                 <p className="text-gray-400 text-sm">{user.email}</p>
+                {user.createdAt && (
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                    Joined: {new Date(user.createdAt?.seconds * 1000).toLocaleDateString()}
+                  </p>
+                )}
               </div>
               <button
                 onClick={() => openUserModal(user.id)}
