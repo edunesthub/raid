@@ -46,6 +46,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     const [extraData, setExtraData] = useState({ p1: null, p2: null });
     const [base64Avatars, setBase64Avatars] = useState({ p1: null, p2: null });
     const [isFetchingInfo, setIsFetchingInfo] = useState(false);
+    const [captureReady, setCaptureReady] = useState(false);
 
     // PREVENT BODY SCROLL
     useEffect(() => {
@@ -119,45 +120,40 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         fetchMissingInfo();
     }, [isOpen, match?.id, match?.player1Id, match?.player2Id]);
 
-    // CONVERT AVATARS TO BASE64 FOR MOBILE RENDERING
+    // CONVERT AVATARS TO BASE64 (FORCEFUL WITH PROXY)
     useEffect(() => {
         if (!isOpen || !match) return;
+
         const p1Url = getPlayerData(match.player1, extraData.p1).avatarUrl;
         const p2Url = getPlayerData(match.player2, extraData.p2).avatarUrl;
 
-        const toBase64 = async (url, fallbackName = 'Player') => {
-            if (!url) return null;
+        const toBase64Forceful = async (url, fallbackName) => {
+            // Force proxy to bypass CORS
+            const finalUrl = url
+                ? `https://images.weserv.nl/?url=${encodeURIComponent(url)}&output=png`
+                : `https://api.dicebear.com/7.x/initials/svg?seed=${fallbackName}`;
 
-            const convertUrl = async (targetUrl) => {
-                try {
-                    const response = await fetch(targetUrl, { mode: 'cors' });
-                    if (!response.ok) throw new Error('Network response not ok');
-                    const blob = await response.blob();
-                    return new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.readAsDataURL(blob);
-                    });
-                } catch (e) {
-                    return null;
-                }
-            };
-
-            let result = await convertUrl(url);
-            if (!result && !url.includes('dicebear')) {
-                // If primary fails, try dicebear which has better CORS support
-                const diceUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${fallbackName}`;
-                result = await convertUrl(diceUrl);
+            try {
+                const response = await fetch(finalUrl);
+                const blob = await response.blob();
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            } catch (e) {
+                return null;
             }
-            return result;
         };
 
         const loadAvatars = async () => {
+            setCaptureReady(false);
             const [b1, b2] = await Promise.all([
-                toBase64(p1Url, p1.username),
-                toBase64(p2Url, p2.username || 'P2')
+                toBase64Forceful(p1Url, p1.username),
+                toBase64Forceful(p2Url, p2.username || 'P2')
             ]);
             setBase64Avatars({ p1: b1, p2: b2 });
+            setCaptureReady(true);
         };
 
         if (isOpen) loadAvatars();
@@ -208,13 +204,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     }
 
     const handleDownload = async () => {
-        if (isDownloading || isFetchingInfo) return;
-
-        // Wait for base64 avatars if they're still loading
-        if ((p1.avatarUrl && !base64Avatars.p1) || (!isBye && p2.avatarUrl && !base64Avatars.p2)) {
-            // Give it a bit more time if needed
-            await new Promise(r => setTimeout(r, 1000));
-        }
+        if (isDownloading || isFetchingInfo || !captureReady) return;
 
         setIsDownloading(true);
         try {
@@ -272,13 +262,8 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     };
 
     const handleShare = async () => {
-        if (isSharing || isFetchingInfo) return;
+        if (isSharing || isFetchingInfo || !captureReady) return;
         setIsSharing(true);
-
-        // Ensure base64 is ready
-        if ((p1.avatarUrl && !base64Avatars.p1) || (!isBye && p2.avatarUrl && !base64Avatars.p2)) {
-            await new Promise(r => setTimeout(r, 1000));
-        }
 
         const text = getShareText();
         try {
@@ -407,7 +392,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                     {/* Avatar Frame - FALLBACKS ADDED */}
                                     <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-orange-500/50 overflow-hidden shadow-[0_0_50px_rgba(234,88,12,0.6)] flex items-center justify-center bg-zinc-900">
                                         <div className="absolute inset-0 bg-gradient-to-tr from-orange-600/40 to-transparent z-10" />
-                                        {(isFetchingInfo || !base64Avatars.p1) && p1.avatarUrl ? (
+                                        {!captureReady && p1.avatarUrl ? (
                                             <Loader2 size={32} className="animate-spin text-orange-500/50" />
                                         ) : (
                                             <img
@@ -448,7 +433,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                             <div className="w-full h-full flex items-center justify-center bg-zinc-900">
                                                 <Trophy className="text-blue-500/50 w-12 h-12" />
                                             </div>
-                                        ) : (isFetchingInfo || !base64Avatars.p2) && p2.avatarUrl ? (
+                                        ) : (!captureReady && p2.avatarUrl) ? (
                                             <Loader2 size={32} className="animate-spin text-blue-500/50" />
                                         ) : (
                                             <img
@@ -525,7 +510,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                 <div className="p-6 sm:p-8 bg-zinc-950 border-t border-white/5 flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <button
                         onClick={handleDownload}
-                        disabled={isDownloading || isSharing}
+                        disabled={isDownloading || isSharing || !captureReady}
                         className="flex-1 flex items-center justify-center gap-2 py-4 sm:py-5 rounded-2xl bg-zinc-900 border border-white/10 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] sm:text-[11px] transition-all active:scale-95 disabled:opacity-50 order-2 sm:order-1"
                     >
                         {isDownloading ? <Loader2 size={18} className="animate-spin text-orange-500" /> : <Download size={18} />}
@@ -533,7 +518,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                     </button>
                     <button
                         onClick={handleShare}
-                        disabled={isSharing || isDownloading}
+                        disabled={isSharing || isDownloading || !captureReady}
                         className="flex-1 flex items-center justify-center gap-2 py-4 sm:py-5 rounded-2xl bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:from-orange-500 hover:to-orange-400 font-black uppercase tracking-widest text-[10px] sm:text-[11px] transition-all shadow-[0_10px_30px_rgba(234,88,12,0.3)] active:scale-95 disabled:opacity-50 order-1 sm:order-2"
                     >
                         {isSharing ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
