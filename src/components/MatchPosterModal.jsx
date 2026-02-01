@@ -125,27 +125,37 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         const p1Url = getPlayerData(match.player1, extraData.p1).avatarUrl;
         const p2Url = getPlayerData(match.player2, extraData.p2).avatarUrl;
 
-        const toBase64 = async (url) => {
+        const toBase64 = async (url, fallbackName = 'Player') => {
             if (!url) return null;
-            try {
-                const response = await fetch(url, { mode: 'cors' });
-                if (!response.ok) throw new Error('Network response was not ok');
-                const blob = await response.blob();
-                return new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.readAsDataURL(blob);
-                });
-            } catch (e) {
-                console.error("Base64 conversion failed", e);
-                return null; // Return null so img src fallback can work
+
+            const convertUrl = async (targetUrl) => {
+                try {
+                    const response = await fetch(targetUrl, { mode: 'cors' });
+                    if (!response.ok) throw new Error('Network response not ok');
+                    const blob = await response.blob();
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (e) {
+                    return null;
+                }
+            };
+
+            let result = await convertUrl(url);
+            if (!result && !url.includes('dicebear')) {
+                // If primary fails, try dicebear which has better CORS support
+                const diceUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${fallbackName}`;
+                result = await convertUrl(diceUrl);
             }
+            return result;
         };
 
         const loadAvatars = async () => {
             const [b1, b2] = await Promise.all([
-                toBase64(p1Url),
-                toBase64(p2Url)
+                toBase64(p1Url, p1.username),
+                toBase64(p2Url, p2.username || 'P2')
             ]);
             setBase64Avatars({ p1: b1, p2: b2 });
         };
@@ -198,24 +208,33 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     }
 
     const handleDownload = async () => {
-        if (isDownloading) return;
+        if (isDownloading || isFetchingInfo) return;
+
+        // Wait for base64 avatars if they're still loading
+        if ((p1.avatarUrl && !base64Avatars.p1) || (!isBye && p2.avatarUrl && !base64Avatars.p2)) {
+            // Give it a bit more time if needed
+            await new Promise(r => setTimeout(r, 1000));
+        }
+
         setIsDownloading(true);
         try {
             if (posterRef.current) {
-                // Wait for all assets to be ready
-                await new Promise(r => setTimeout(r, 1000));
+                // Wait for all assets to be ready and painted
+                await new Promise(r => setTimeout(r, 1500));
 
-                const blob = await toBlob(posterRef.current, {
+                const options = {
                     cacheBust: true,
-                    pixelRatio: 2, // 2 is safer for mobile memory limits
+                    pixelRatio: 3, // High quality as requested
                     backgroundColor: '#050505',
                     useCORS: true,
-                    allowTaint: false, // Don't allow tainting as it breaks blob creation
+                    allowTaint: false,
                     skipFonts: false,
-                });
+                };
+
+                const blob = await toBlob(posterRef.current, options);
 
                 if (blob) {
-                    const fileName = `raid-match-${p1.username.toLowerCase()}-vs-${p2.username.toLowerCase()}.png`;
+                    const fileName = `raid-match-${p1.username.toLowerCase()}-vs-${(p2.username || 'unknown').toLowerCase()}.png`;
                     const file = new File([blob], fileName, { type: 'image/png' });
                     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
@@ -226,7 +245,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                 title: 'RAID Match Poster',
                             });
                         } catch (sErr) {
-                            triggerDirectDownload(blob, fileName);
+                            if (sErr.name !== 'AbortError') triggerDirectDownload(blob, fileName);
                         }
                     } else {
                         triggerDirectDownload(blob, fileName);
@@ -235,7 +254,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
             }
         } catch (err) {
             console.error("Download failed:", err);
-            alert("Capture failed. Please try again.");
+            alert("Capture failed. Please wait for images to load and try again.");
         } finally {
             setIsDownloading(false);
         }
@@ -249,50 +268,58 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        setTimeout(() => window.URL.revokeObjectURL(url), 100);
     };
 
     const handleShare = async () => {
+        if (isSharing || isFetchingInfo) return;
         setIsSharing(true);
+
+        // Ensure base64 is ready
+        if ((p1.avatarUrl && !base64Avatars.p1) || (!isBye && p2.avatarUrl && !base64Avatars.p2)) {
+            await new Promise(r => setTimeout(r, 1000));
+        }
+
         const text = getShareText();
         try {
-            let file = null;
             if (posterRef.current) {
-                // Give the browser a moment to ensure all high-res assets are painted
-                await new Promise(r => setTimeout(r, 1000));
+                await new Promise(r => setTimeout(r, 1500));
 
-                try {
-                    const blob = await toBlob(posterRef.current, {
-                        cacheBust: true,
-                        pixelRatio: 2,
-                        backgroundColor: '#050505',
-                        useCORS: true,
-                        allowTaint: false,
-                        skipFonts: false,
-                    });
-                    if (blob) {
-                        file = new File([blob], 'raid-match-card.png', { type: 'image/png' });
+                const options = {
+                    cacheBust: true,
+                    pixelRatio: 3,
+                    backgroundColor: '#050505',
+                    useCORS: true,
+                    allowTaint: false,
+                    skipFonts: false,
+                };
+
+                const blob = await toBlob(posterRef.current, options);
+
+                if (blob) {
+                    const file = new File([blob], 'raid-match-card.png', { type: 'image/png' });
+                    const shareData = {
+                        title: 'RAID Match Card',
+                        text: text,
+                    };
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        shareData.files = [file];
+                        await navigator.share(shareData);
+                        return;
                     }
-                } catch (e) {
-                    console.error("Image generation failed", e);
                 }
             }
 
-            const shareData = {
-                title: 'RAID Match Card',
-                text: text,
-            };
-
-            if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-                shareData.files = [file];
-            } else {
-                shareData.url = getShareUrl();
-            }
-
+            // Fallback for browsers that don't support file sharing
             if (navigator.share) {
-                await navigator.share(shareData);
+                await navigator.share({
+                    title: 'RAID Match Card',
+                    text: text,
+                    url: getShareUrl()
+                });
             } else {
-                throw new Error("No native share support");
+                throw new Error("No native share");
             }
         } catch (err) {
             if (err.name !== 'AbortError') {
@@ -330,18 +357,21 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                     {/* --- CINEMATIC BACKGROUND --- */}
                     <div className="absolute inset-0 bg-[#050505]">
                         {/* 1. Base Gradient Glows */}
-                        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(234,88,12,0.15),transparent_50%)]" />
-                        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_80%_70%,rgba(37,99,235,0.15),transparent_50%)]" />
+                        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(234,88,12,0.12),transparent_60%)]" />
+                        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_80%_70%,rgba(37,99,235,0.12),transparent_60%)]" />
 
-                        {/* 2. Hexagonal Pattern (Cyberpunk Feel) */}
+                        {/* 2. Hexagonal Pattern */}
                         <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
 
-                        {/* 3. Central Light Streak */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[1px] bg-white/10 rotate-[15deg] blur-sm" />
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[1px] bg-white/5 rotate-[-15deg] blur-sm" />
+                        {/* 3. Central Accents (Better for Export) */}
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                            <div className="absolute top-1/2 left-[-25%] w-[150%] h-[1px] bg-white/10" style={{ transform: 'rotate(15deg)' }} />
+                            <div className="absolute top-1/2 left-[-25%] w-[150%] h-[1px] bg-white/5" style={{ transform: 'rotate(-15deg)' }} />
+                        </div>
 
                         {/* 4. Vignette */}
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-60" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black opacity-60" />
                     </div>
 
                     {/* --- HEADER: RAID ARENA --- */}
@@ -358,9 +388,9 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                     {/* --- MAIN CONTENT AREA --- */}
                     <div className="relative flex-1 w-full flex flex-col justify-center items-center px-6 mt-8">
 
-                        {/* THE BIG VS */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 select-none">
-                            <span className="text-[10rem] sm:text-[12rem] font-[1000] italic text-white/[0.04] leading-none transform -skew-x-12">
+                        {/* THE BIG VS (BACKGROUND) */}
+                        <div className="absolute inset-0 flex items-center justify-center z-10 select-none overflow-hidden">
+                            <span className="text-[12rem] sm:text-[15rem] font-[1000] italic text-white/[0.04] leading-none transform -skew-x-12 select-none translate-y-[-5%]">
                                 VS
                             </span>
                         </div>
@@ -375,13 +405,13 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                     <div className="absolute -inset-4 bg-orange-600/40 blur-2xl rounded-full opacity-100 transition-opacity" />
 
                                     {/* Avatar Frame - FALLBACKS ADDED */}
-                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-orange-500/50 overflow-hidden shadow-[0_0_50px_rgba(234,88,12,0.6)] transform hover:scale-105 transition-transform duration-500 flex items-center justify-center bg-zinc-900">
+                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-orange-500/50 overflow-hidden shadow-[0_0_50px_rgba(234,88,12,0.6)] flex items-center justify-center bg-zinc-900">
                                         <div className="absolute inset-0 bg-gradient-to-tr from-orange-600/40 to-transparent z-10" />
-                                        {isFetchingInfo && !p1.avatarUrl ? (
+                                        {(isFetchingInfo || !base64Avatars.p1) && p1.avatarUrl ? (
                                             <Loader2 size={32} className="animate-spin text-orange-500/50" />
                                         ) : (
                                             <img
-                                                src={base64Avatars.p1 || p1.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p1.username || 'P1'}`}
+                                                src={base64Avatars.p1 || `https://api.dicebear.com/7.x/initials/svg?seed=${p1.username || 'P1'}`}
                                                 className="w-full h-full object-cover"
                                                 alt={p1.username}
                                                 crossOrigin="anonymous"
@@ -412,17 +442,17 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                     <div className="absolute -inset-4 bg-blue-600/40 blur-2xl rounded-full opacity-100 transition-opacity" />
 
                                     {/* Avatar Frame */}
-                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-blue-500/50 overflow-hidden shadow-[0_0_50px_rgba(37,99,235,0.6)] transform hover:scale-105 transition-transform duration-500 flex items-center justify-center bg-zinc-900">
+                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-blue-500/50 overflow-hidden shadow-[0_0_50px_rgba(37,99,235,0.6)] flex items-center justify-center bg-zinc-900">
                                         <div className="absolute inset-0 bg-gradient-to-tl from-blue-600/40 to-transparent z-10" />
                                         {isBye ? (
                                             <div className="w-full h-full flex items-center justify-center bg-zinc-900">
                                                 <Trophy className="text-blue-500/50 w-12 h-12" />
                                             </div>
-                                        ) : isFetchingInfo && !p2.avatarUrl ? (
+                                        ) : (isFetchingInfo || !base64Avatars.p2) && p2.avatarUrl ? (
                                             <Loader2 size={32} className="animate-spin text-blue-500/50" />
                                         ) : (
                                             <img
-                                                src={base64Avatars.p2 || p2.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p2.username || 'P2'}`}
+                                                src={base64Avatars.p2 || `https://api.dicebear.com/7.x/initials/svg?seed=${p2.username || 'P2'}`}
                                                 className="w-full h-full object-cover"
                                                 alt={p2.username}
                                                 crossOrigin="anonymous"
