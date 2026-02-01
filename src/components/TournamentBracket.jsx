@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Trophy, User, Clock, CheckCircle } from 'lucide-react';
 import { tournamentService } from '@/services/tournamentService';
+import MatchPosterModal from './MatchPosterModal';
 
 export default function TournamentBracket({ tournamentId }) {
   const [bracket, setBracket] = useState({});
   const [tournament, setTournament] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedMatch, setSelectedMatch] = useState(null);
+  const [showPosterModal, setShowPosterModal] = useState(false);
 
   useEffect(() => {
     loadBracket();
@@ -29,10 +32,10 @@ export default function TournamentBracket({ tournamentId }) {
 
   const getRoundName = (roundNumber) => {
     if (!tournament) return `Round ${roundNumber}`;
-    
+
     const totalRounds = tournament.totalRounds;
     const roundsFromEnd = totalRounds - roundNumber;
-    
+
     switch (roundsFromEnd) {
       case 0: return 'Final';
       case 1: return 'Semifinals';
@@ -46,9 +49,14 @@ export default function TournamentBracket({ tournamentId }) {
     const isBye = !match.player2Id;
 
     return (
-      <div className={`bg-gray-800 border-2 rounded-xl p-4 mb-4 transition-all ${
-        isCompleted ? 'border-green-500/50' : 'border-gray-700'
-      }`}>
+      <div
+        onClick={() => {
+          setSelectedMatch(match);
+          setShowPosterModal(true);
+        }}
+        className={`bg-gray-800 border-2 rounded-xl p-4 mb-4 transition-all cursor-pointer hover:border-orange-500 hover:scale-[1.02] active:scale-[0.98] ${isCompleted ? 'border-green-500/50' : 'border-gray-700'
+          }`}
+      >
         {/* Match Header */}
         <div className="flex items-center justify-between mb-3">
           <span className="text-gray-400 text-xs font-semibold">
@@ -62,11 +70,10 @@ export default function TournamentBracket({ tournamentId }) {
         </div>
 
         {/* Player 1 */}
-        <div className={`flex items-center justify-between p-3 rounded-lg mb-2 ${
-          isCompleted && match.winnerId === match.player1Id 
-            ? 'bg-green-500/20 border border-green-500/40' 
+        <div className={`flex items-center justify-between p-3 rounded-lg mb-2 ${isCompleted && match.winnerId === match.player1Id
+            ? 'bg-green-500/20 border border-green-500/40'
             : 'bg-gray-700/50'
-        }`}>
+          }`}>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-r from-orange-600 to-orange-400">
               {match.player1?.avatarUrl ? (
@@ -98,11 +105,10 @@ export default function TournamentBracket({ tournamentId }) {
             </div>
 
             {/* Player 2 */}
-            <div className={`flex items-center justify-between p-3 rounded-lg ${
-              isCompleted && match.winnerId === match.player2Id 
-                ? 'bg-green-500/20 border border-green-500/40' 
+            <div className={`flex items-center justify-between p-3 rounded-lg ${isCompleted && match.winnerId === match.player2Id
+                ? 'bg-green-500/20 border border-green-500/40'
                 : 'bg-gray-700/50'
-            }`}>
+              }`}>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-r from-orange-600 to-orange-400">
                   {match.player2?.avatarUrl ? (
@@ -154,7 +160,7 @@ export default function TournamentBracket({ tournamentId }) {
               </p>
             </div>
           </div>
-          
+
           {tournament.status === 'completed' && tournament.winnerId && (
             <div className="bg-green-500/20 border border-green-500/40 rounded-lg p-4 flex items-center gap-3">
               <Trophy className="w-6 h-6 text-green-400" />
@@ -206,6 +212,14 @@ export default function TournamentBracket({ tournamentId }) {
           <p className="text-gray-400">The tournament bracket will be generated once it starts</p>
         </div>
       )}
+
+      {/* Match Poster Modal */}
+      <MatchPosterModal
+        isOpen={showPosterModal}
+        onClose={() => setShowPosterModal(false)}
+        match={selectedMatch}
+        tournament={tournament}
+      />
     </div>
   );
 }

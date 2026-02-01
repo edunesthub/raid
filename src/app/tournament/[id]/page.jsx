@@ -16,6 +16,7 @@ import { paystackService } from '@/services/paystackService';
 import { userService } from '@/services/userService';
 import MatchResultSubmission from '@/components/MatchResultSubmission';
 import InGameNameModal from '@/components/InGameNameModal';
+import MatchPosterModal from '@/components/MatchPosterModal';
 import {
   Trophy,
   Medal,
@@ -36,7 +37,8 @@ import {
   Loader2,
   Edit2,
   Shuffle,
-  Swords
+  Swords,
+  Share2
 } from 'lucide-react';
 
 function TournamentPageContent({ resolvedParams }) {
@@ -61,6 +63,9 @@ function TournamentPageContent({ resolvedParams }) {
   const [teamsLoading, setTeamsLoading] = useState(false);
   const [rosterMemberDetails, setRosterMemberDetails] = useState({});
   const [managerEmail, setManagerEmail] = useState(null);
+  const [selectedMatch, setSelectedMatch] = useState(null);
+  const [showPosterModal, setShowPosterModal] = useState(false);
+  const [posterMode, setPosterMode] = useState('match');
 
   useEffect(() => {
     setManagerEmail(localStorage.getItem('managerEmail'));
@@ -364,6 +369,23 @@ function TournamentPageContent({ resolvedParams }) {
 
   const handlePaymentError = (error) => {
     setActionError(error.message || 'Payment failed');
+  };
+
+  const handleShareTournament = () => {
+    setPosterMode('tournament');
+
+    // Create a special match object for the tournament poster
+    const tournamentMatch = {
+      player1: enrolledTeams[0] || { username: 'CHAMPIONS' },
+      player2: enrolledTeams[1] || { username: 'CHALLENGERS' },
+      player1Team: enrolledTeams[0],
+      player2Team: enrolledTeams[1],
+      round: tournament.currentRound || 1,
+      player2Id: enrolledTeams[1] ? 'exists' : null
+    };
+
+    setSelectedMatch(tournamentMatch);
+    setShowPosterModal(true);
   };
 
   const handleLeaveTournament = async () => {
@@ -693,6 +715,14 @@ function TournamentPageContent({ resolvedParams }) {
                   <span>Watch Stream</span>
                 </a>
               )}
+
+              <button
+                onClick={handleShareTournament}
+                className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-gradient-to-r from-orange-600/20 to-orange-500/10 hover:from-orange-600/40 hover:to-orange-500/30 text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all backdrop-blur-md border border-orange-500/30 ml-2 shadow-[0_0_15px_rgba(249,115,22,0.1)] hover:shadow-[0_0_20px_rgba(249,115,22,0.2)]"
+              >
+                <Share2 size={16} className="sm:w-5 sm:h-5 text-orange-500" />
+                <span>Share Tournament</span>
+              </button>
             </div>
 
             <div className={`${statusConfig.color} px-4 sm:px-6 py-2 sm:py-3 rounded-full text-xs sm:text-sm font-bold text-white flex items-center gap-2 animate-pulse shadow-lg`}>
@@ -858,7 +888,25 @@ function TournamentPageContent({ resolvedParams }) {
                       const p2 = pair.player2 ? rosterMemberDetails[pair.player2.email] : null;
 
                       return (
-                        <div key={idx} className="bg-gradient-to-br from-gray-900/40 to-black/40 border border-gray-800/50 rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex items-center justify-between group hover:border-orange-500/30 transition-all relative overflow-hidden backdrop-blur-sm">
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            // Normalize the data for the MatchPosterModal
+                            const normalizedMatch = {
+                              player1: p1 || { username: pair.player1.email.split('@')[0] },
+                              player2: p2 || (pair.player2 ? { username: pair.player2.email.split('@')[0] } : null),
+                              player1Team: enrolledTeams.find(t => t.id === pair.player1.teamId)?.name,
+                              player2Team: pair.player2 ? enrolledTeams.find(t => t.id === pair.player2.teamId)?.name : null,
+                              player2Id: pair.player2 ? 'exists' : null,
+                              round: 1, // Member pairings are usually round 1 duels
+                              ...pair
+                            };
+                            setPosterMode('match');
+                            setSelectedMatch(normalizedMatch);
+                            setShowPosterModal(true);
+                          }}
+                          className="bg-gradient-to-br from-gray-900/40 to-black/40 border border-gray-800/50 rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex items-center justify-between group hover:border-orange-500/30 transition-all cursor-pointer relative overflow-hidden backdrop-blur-sm"
+                        >
                           {/* Player 1 */}
                           <div className="flex items-center gap-2 sm:gap-3 flex-1">
                             <div className="relative">
@@ -1356,7 +1404,15 @@ function TournamentPageContent({ resolvedParams }) {
           animation-delay: 300ms;
         }
       `}</style>
-    </div >
+
+      <MatchPosterModal
+        isOpen={showPosterModal}
+        onClose={() => setShowPosterModal(false)}
+        match={selectedMatch}
+        tournament={tournament}
+        mode={posterMode}
+      />
+    </div>
   );
 }
 
