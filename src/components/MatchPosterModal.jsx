@@ -9,6 +9,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     const [isSharing, setIsSharing] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [extraData, setExtraData] = useState({ p1: null, p2: null });
+    const [base64Avatars, setBase64Avatars] = useState({ p1: null, p2: null });
     const [isFetchingInfo, setIsFetchingInfo] = useState(false);
 
     // PREVENT BODY SCROLL
@@ -82,6 +83,38 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
 
         fetchMissingInfo();
     }, [isOpen, match?.id, match?.player1Id, match?.player2Id]);
+
+    // CONVERT AVATARS TO BASE64 FOR MOBILE RENDERING
+    useEffect(() => {
+        const p1Url = getPlayerData(match.player1, extraData.p1).avatarUrl;
+        const p2Url = getPlayerData(match.player2, extraData.p2).avatarUrl;
+
+        const toBase64 = async (url) => {
+            if (!url) return null;
+            try {
+                const response = await fetch(url, { mode: 'cors' });
+                const blob = await response.blob();
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            } catch (e) {
+                console.error("Base64 conversion failed", e);
+                return url; // Fallback to original
+            }
+        };
+
+        const loadAvatars = async () => {
+            const [b1, b2] = await Promise.all([
+                toBase64(p1Url),
+                toBase64(p2Url)
+            ]);
+            setBase64Avatars({ p1: b1, p2: b2 });
+        };
+
+        if (isOpen) loadAvatars();
+    }, [isOpen, extraData, match?.player1, match?.player2]);
 
     if (!isOpen || !match) return null;
 
@@ -350,7 +383,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                             <Loader2 size={32} className="animate-spin text-orange-500/50" />
                                         ) : (
                                             <img
-                                                src={p1.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p1.username || 'P1'}`}
+                                                src={base64Avatars.p1 || p1.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p1.username || 'P1'}`}
                                                 className="w-full h-full object-cover scale-110"
                                                 alt={p1.username}
                                                 crossOrigin="anonymous"
@@ -391,7 +424,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                             <Loader2 size={32} className="animate-spin text-blue-500/50" />
                                         ) : (
                                             <img
-                                                src={p2.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p2.username || 'P2'}`}
+                                                src={base64Avatars.p2 || p2.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${p2.username || 'P2'}`}
                                                 className="w-full h-full object-cover scale-110"
                                                 alt={p2.username}
                                                 crossOrigin="anonymous"
