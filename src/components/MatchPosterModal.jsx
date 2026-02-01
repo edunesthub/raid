@@ -161,27 +161,48 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         setIsDownloading(true);
         try {
             if (posterRef.current) {
-                // Give the browser a moment to ensure all high-res assets are painted
-                await new Promise(r => setTimeout(r, 600));
+                // Ensure fonts and images are ready
+                await new Promise(r => setTimeout(r, 800));
 
-                const blob = await toBlob(posterRef.current, {
+                const options = {
                     cacheBust: true,
-                    pixelRatio: 4, // Even higher quality for downloads
-                    backgroundColor: '#000',
+                    pixelRatio: 2, // 2x on 1080px is plenty for mobile and prevents memory issues
+                    backgroundColor: '#050505',
                     useCORS: true,
                     allowTaint: true,
-                    skipFonts: false,
-                });
+                    width: 1080, // Force a standard High-Res width
+                    height: 1350, // 4:5 ratio
+                    style: {
+                        transform: 'scale(1)', // Reset any viewport-based scaling
+                        margin: '0',
+                        padding: '0',
+                    }
+                };
+
+                const blob = await toBlob(posterRef.current, options);
 
                 if (blob) {
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `raid-match-${p1.username.toLowerCase()}-vs-${p2.username.toLowerCase()}.png`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    window.URL.revokeObjectURL(url);
+                    const fileName = `raid-match-${p1.username.toLowerCase()}-vs-${p2.username.toLowerCase()}.png`;
+
+                    // On mobile, if share API is available, it's often more reliable to "Share" as a file save
+                    // than a direct link click which can be blocked or result in a .txt file on some browsers.
+                    const file = new File([blob], fileName, { type: 'image/png' });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'RAID Match Poster',
+                        });
+                    } else {
+                        // Desktop fallback
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = fileName;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+                    }
                 }
             }
         } catch (err) {
@@ -198,16 +219,17 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
             let file = null;
             if (posterRef.current) {
                 // Give the browser a moment to ensure all high-res assets are painted
-                await new Promise(r => setTimeout(r, 600));
+                await new Promise(r => setTimeout(r, 800));
 
                 try {
                     const blob = await toBlob(posterRef.current, {
                         cacheBust: true,
-                        pixelRatio: 4, // Ultra high quality (matched to download)
-                        backgroundColor: '#000',
+                        pixelRatio: 2,
+                        width: 1080,
+                        height: 1350,
+                        backgroundColor: '#050505',
                         useCORS: true,
                         allowTaint: true,
-                        skipFonts: false,
                     });
                     if (blob) {
                         file = new File([blob], 'raid-match-card.png', { type: 'image/png' });
@@ -257,6 +279,14 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
 
                 {/* THE POSTER CONTAINER */}
                 <div ref={posterRef} className="relative aspect-[4/5] w-full bg-black text-white overflow-hidden flex flex-col font-sans">
+
+                    {/* Entry Loader (Prevent Mock Data Flash) */}
+                    {isFetchingInfo && (!extraData.p1 || !extraData.p2) && (
+                        <div className="absolute inset-0 z-[70] bg-black/80 backdrop-blur-xl flex flex-col items-center justify-center">
+                            <Loader2 size={40} className="animate-spin text-orange-500 mb-4" />
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">Initializing Arena...</p>
+                        </div>
+                    )}
 
                     {/* --- CINEMATIC BACKGROUND --- */}
                     <div className="absolute inset-0 bg-[#050505]">

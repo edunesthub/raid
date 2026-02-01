@@ -718,10 +718,15 @@ function TournamentPageContent({ resolvedParams }) {
 
               <button
                 onClick={handleShareTournament}
-                className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-gradient-to-r from-orange-600/20 to-orange-500/10 hover:from-orange-600/40 hover:to-orange-500/30 text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all backdrop-blur-md border border-orange-500/30 ml-2 shadow-[0_0_15px_rgba(249,115,22,0.1)] hover:shadow-[0_0_20px_rgba(249,115,22,0.2)]"
+                disabled={teamsLoading}
+                className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-gradient-to-r from-orange-600/20 to-orange-500/10 hover:from-orange-600/40 hover:to-orange-500/30 text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all backdrop-blur-md border border-orange-500/30 ml-2 shadow-[0_0_15px_rgba(249,115,22,0.1)] hover:shadow-[0_0_20px_rgba(249,115,22,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Share2 size={16} className="sm:w-5 sm:h-5 text-orange-500" />
-                <span>Share Tournament</span>
+                {teamsLoading ? (
+                  <Loader2 size={16} className="animate-spin text-orange-500" />
+                ) : (
+                  <Share2 size={16} className="sm:w-5 sm:h-5 text-orange-500" />
+                )}
+                <span>{teamsLoading ? 'Scanning...' : 'Share Tournament'}</span>
               </button>
             </div>
 
