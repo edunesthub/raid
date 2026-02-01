@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { X, Trophy, Zap, Shield, Share2, Loader2, User } from 'lucide-react';
+import { X, Trophy, Zap, Shield, Share2, Loader2, User, Download } from 'lucide-react';
 import { toBlob } from 'html-to-image';
 import { userService } from '@/services/userService';
 
@@ -7,6 +7,7 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
     const modalRef = useRef(null);
     const posterRef = useRef(null);
     const [isSharing, setIsSharing] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
     const [extraData, setExtraData] = useState({ p1: null, p2: null });
     const [isFetchingInfo, setIsFetchingInfo] = useState(false);
 
@@ -155,6 +156,41 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         return `🏆 ${tournament?.title}\n💰 Prize Pool: ${tournament?.prizePool} ${tournament?.currency}\n🎮 Join the Fight\n\n🔗 Enter here: ${url}`;
     }
 
+    const handleDownload = async () => {
+        if (isDownloading) return;
+        setIsDownloading(true);
+        try {
+            if (posterRef.current) {
+                // Give the browser a moment to ensure all high-res assets are painted
+                await new Promise(r => setTimeout(r, 600));
+
+                const blob = await toBlob(posterRef.current, {
+                    cacheBust: true,
+                    pixelRatio: 4, // Even higher quality for downloads
+                    backgroundColor: '#000',
+                    useCORS: true,
+                    allowTaint: true,
+                    skipFonts: false,
+                });
+
+                if (blob) {
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `raid-match-${p1.username.toLowerCase()}-vs-${p2.username.toLowerCase()}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                }
+            }
+        } catch (err) {
+            console.error("Download failed", err);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     const handleShare = async () => {
         setIsSharing(true);
         const text = getShareText();
@@ -162,12 +198,12 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
             let file = null;
             if (posterRef.current) {
                 // Give the browser a moment to ensure all high-res assets are painted
-                await new Promise(r => setTimeout(r, 500));
+                await new Promise(r => setTimeout(r, 600));
 
                 try {
                     const blob = await toBlob(posterRef.current, {
                         cacheBust: true,
-                        pixelRatio: 3, // Balanced high quality
+                        pixelRatio: 4, // Ultra high quality (matched to download)
                         backgroundColor: '#000',
                         useCORS: true,
                         allowTaint: true,
@@ -344,10 +380,10 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                         </div>
 
                         {/* CENTRAL VS OVERLAY (SHARPER) */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
+                        <div className="absolute top-[45%] left-[49%] -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
                             <div className="relative">
                                 <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-50" />
-                                <span className="relative block text-5xl sm:text-6xl font-[1000] italic bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-100 to-gray-400 drop-shadow-[0_0_40px_rgba(255,255,255,0.4)] transform -skew-x-12">
+                                <span className="relative block px-8 text-5xl sm:text-6xl font-[1000] italic bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-100 to-gray-400 drop-shadow-[0_0_40px_rgba(255,255,255,0.4)] transform -skew-x-12">
                                     VS
                                 </span>
                             </div>
@@ -387,14 +423,22 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                 </div>
 
                 {/* CONTROLS (Glassmorphic) */}
-                <div className="p-8 bg-zinc-950 border-t border-white/5">
+                <div className="p-6 sm:p-8 bg-zinc-950 border-t border-white/5 flex flex-col sm:flex-row gap-3 sm:gap-4">
+                    <button
+                        onClick={handleDownload}
+                        disabled={isDownloading || isSharing}
+                        className="flex-1 flex items-center justify-center gap-2 py-4 sm:py-5 rounded-2xl bg-zinc-900 border border-white/10 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] sm:text-[11px] transition-all active:scale-95 disabled:opacity-50 order-2 sm:order-1"
+                    >
+                        {isDownloading ? <Loader2 size={18} className="animate-spin text-orange-500" /> : <Download size={18} />}
+                        {isDownloading ? 'Processing...' : 'Download Image'}
+                    </button>
                     <button
                         onClick={handleShare}
-                        disabled={isSharing}
-                        className="w-full flex items-center justify-center gap-2 py-5 rounded-2xl bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:from-orange-500 hover:to-orange-400 font-black uppercase tracking-widest text-[11px] transition-all shadow-[0_10px_30px_rgba(234,88,12,0.3)] active:scale-95 disabled:opacity-50"
+                        disabled={isSharing || isDownloading}
+                        className="flex-1 flex items-center justify-center gap-2 py-4 sm:py-5 rounded-2xl bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:from-orange-500 hover:to-orange-400 font-black uppercase tracking-widest text-[10px] sm:text-[11px] transition-all shadow-[0_10px_30px_rgba(234,88,12,0.3)] active:scale-95 disabled:opacity-50 order-1 sm:order-2"
                     >
                         {isSharing ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
-                        {isSharing ? 'Capturing...' : 'Share'}
+                        {isSharing ? 'Capturing...' : 'Share Poster'}
                     </button>
                 </div>
             </div>
