@@ -161,24 +161,37 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         setIsDownloading(true);
         try {
             if (posterRef.current) {
-                // Wait for all assets to be ready
-                await new Promise(r => setTimeout(r, 1000));
+                const poster = posterRef.current;
 
-                const blob = await toBlob(posterRef.current, {
+                // 1. Force "Ideal" dimensions for high-res capture
+                const originalStyle = {
+                    width: poster.style.width,
+                    height: poster.style.height
+                };
+                poster.style.width = '1080px';
+                poster.style.height = '1350px';
+
+                // 2. Wait for all assets and reflow
+                await new Promise(r => setTimeout(r, 1200));
+
+                const blob = await toBlob(poster, {
                     cacheBust: true,
-                    pixelRatio: 3, // High quality (1080p+ logic)
+                    pixelRatio: 1, // 1080px is native 1x for this frame
                     backgroundColor: '#050505',
                     useCORS: true,
                     allowTaint: true,
+                    width: 1080,
+                    height: 1350,
                 });
+
+                // 3. Restore layout
+                poster.style.width = originalStyle.width;
+                poster.style.height = originalStyle.height;
 
                 if (blob) {
                     const fileName = `raid-match-${p1.username.toLowerCase()}-vs-${p2.username.toLowerCase()}.png`;
-
-                    // DESKTOP: Always force direct download
-                    // MOBILE: Try share API first for "Save to Gallery"
-                    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
                     const file = new File([blob], fileName, { type: 'image/png' });
+                    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
                     if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
                         try {
@@ -187,7 +200,6 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
                                 title: 'RAID Match Poster',
                             });
                         } catch (sErr) {
-                            // Fallback if share is cancelled or fails
                             triggerDirectDownload(blob, fileName);
                         }
                     } else {
@@ -220,17 +232,32 @@ export default function MatchPosterModal({ isOpen, onClose, match, tournament, m
         try {
             let file = null;
             if (posterRef.current) {
-                // Give the browser a moment to ensure all high-res assets are painted
-                await new Promise(r => setTimeout(r, 800));
+                const poster = posterRef.current;
+
+                // Force "Ideal" dimensions for high-res share capture
+                const originalStyle = {
+                    width: poster.style.width,
+                    height: poster.style.height
+                };
+                poster.style.width = '1080px';
+                poster.style.height = '1350px';
+
+                await new Promise(r => setTimeout(r, 1200));
 
                 try {
-                    const blob = await toBlob(posterRef.current, {
+                    const blob = await toBlob(poster, {
                         cacheBust: true,
-                        pixelRatio: 3,
+                        pixelRatio: 1,
+                        width: 1080,
+                        height: 1350,
                         backgroundColor: '#050505',
                         useCORS: true,
                         allowTaint: true,
                     });
+
+                    poster.style.width = originalStyle.width;
+                    poster.style.height = originalStyle.height;
+
                     if (blob) {
                         file = new File([blob], 'raid-match-card.png', { type: 'image/png' });
                     }
