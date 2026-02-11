@@ -18,13 +18,15 @@ export default function SuccessClient() {
   const { user } = useAuth();
 
   const [finalTournamentId, setFinalTournamentId] = useState(tournamentIdParam || null);
-  const { joinTournament } = useTournament(finalTournamentId);
+  const { tournament, joinTournament } = useTournament(finalTournamentId);
 
   const [status, setStatus] = useState('joining');
   const [message, setMessage] = useState('Finalizing your join...');
   const [ign, setIgn] = useState('');
+  const [partnerIgn, setPartnerIgn] = useState('');
   const [phone, setPhone] = useState('');
   const [savingIGN, setSavingIGN] = useState(false);
+  const [validationError, setValidationError] = useState('');
 
   // Resolve tournamentId from URL, localStorage, or Firestore (reference lookup)
   useEffect(() => {
@@ -180,43 +182,73 @@ export default function SuccessClient() {
                 className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-500"
               />
             </div>
+            {tournament?.participant_type === 'Duo' && (
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">Partner's In-Game Name</label>
+                <input
+                  type="text"
+                  placeholder="Input 'Alone' if playing solo"
+                  value={partnerIgn}
+                  onChange={(e) => setPartnerIgn(e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-500"
+                />
+              </div>
+            )}
             <div className="flex gap-2">
               <button
                 onClick={async () => {
                   const trimmedIgn = (ign || '').trim();
+                  const trimmedPartnerIgn = (partnerIgn || '').trim();
                   const trimmedPhone = (phone || '').trim();
-                  if (!trimmedIgn && !trimmedPhone) return;
+
+                  // Validation
+                  if (!trimmedIgn) {
+                    setValidationError('Your In-Game Name is required');
+                    return;
+                  }
+                  if (!trimmedPhone) {
+                    setValidationError('Phone number is required');
+                    return;
+                  }
+                  if (tournament?.participant_type === 'Duo' && !trimmedPartnerIgn) {
+                    setValidationError("Partner's In-Game Name is required");
+                    return;
+                  }
+
                   try {
                     setSavingIGN(true);
+                    setValidationError('');
                     const partRef = doc(db, 'tournament_participants', `${finalTournamentId}_${user.id}`);
-                    const updates = { inGameNameUpdatedAt: serverTimestamp() };
-                    if (trimmedIgn) updates.inGameName = trimmedIgn;
+                    const updates = {
+                      inGameName: trimmedIgn,
+                      inGameNameUpdatedAt: serverTimestamp()
+                    };
+                    if (trimmedPartnerIgn) updates.partnerInGameName = trimmedPartnerIgn;
                     await updateDoc(partRef, updates);
-                    
+
                     // Update user profile with phone
                     if (trimmedPhone) {
                       const userRef = doc(db, 'users', user.id);
                       await setDoc(userRef, { phone: trimmedPhone }, { merge: true });
                     }
-                    
+
                     router.push(`/tournament/${finalTournamentId}`);
                   } catch (e) {
-                    console.warn('Failed to save:', e?.message);
+                    setValidationError(e?.message || 'Failed to save details');
                   } finally {
                     setSavingIGN(false);
                   }
                 }}
-                disabled={savingIGN || (!(ign || '').trim() && !(phone || '').trim())}
-                className="flex-1 bg-orange-600 hover:bg-orange-500 disabled:bg-gray-700 text-white font-semibold px-4 py-3 rounded-xl transition"
+                disabled={savingIGN}
+                className="w-full bg-orange-600 hover:bg-orange-500 disabled:bg-gray-700 text-white font-bold px-4 py-4 rounded-xl transition shadow-lg shadow-orange-600/20 transform hover:scale-[1.02]"
               >
-                {savingIGN ? 'Saving...' : 'Save & Continue'}
+                {savingIGN ? 'Saving...' : 'Finalize Registration'}
               </button>
-              <button
-                onClick={() => router.push(`/tournament/${finalTournamentId}`)}
-                className="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-semibold px-4 py-3 rounded-xl transition"
-              >
-                Skip
-              </button>
+              {validationError && (
+                <p className="text-red-400 text-xs text-center font-bold animate-pulse">
+                  {validationError}
+                </p>
+              )}
             </div>
           </div>
         )}
