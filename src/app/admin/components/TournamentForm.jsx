@@ -41,6 +41,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
     squad_size: "5", // Default to 5 for teams
     rules: [],
     twitch_link: "",
+    prize_distribution: [], // [{rank: "1st Place", reward: ""}]
   });
 
   const [loading, setLoading] = useState(false);
@@ -72,6 +73,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
         squad_size: tournament.squad_size?.toString() || "5",
         rules: Array.isArray(tournament.rules) ? tournament.rules : [],
         twitch_link: tournament.twitch_link || "",
+        prize_distribution: Array.isArray(tournament.prize_distribution) ? tournament.prize_distribution : [],
       });
 
       if (tournament.tournament_flyer) {
@@ -103,6 +105,32 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
     const newRules = [...form.rules];
     newRules[index] = value;
     setForm(prev => ({ ...prev, rules: newRules }));
+  };
+
+  const handleAddPrize = () => {
+    const getOrdinal = (n) => {
+      const s = ["th", "st", "nd", "rd"];
+      const v = n % 100;
+      return s[(v - 20) % 10] || s[v] || s[0];
+    };
+    const nextRank = (form.prize_distribution?.length || 0) + 1;
+    setForm(prev => ({
+      ...prev,
+      prize_distribution: [...(prev.prize_distribution || []), { rank: `${nextRank}${getOrdinal(nextRank)} Place`, reward: "" }]
+    }));
+  };
+
+  const handleRemovePrize = (index) => {
+    setForm(prev => ({
+      ...prev,
+      prize_distribution: prev.prize_distribution.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handlePrizeChange = (index, field, value) => {
+    const newPrizes = [...form.prize_distribution];
+    newPrizes[index] = { ...newPrizes[index], [field]: value };
+    setForm(prev => ({ ...prev, prize_distribution: newPrizes }));
   };
 
   const handleImageSelect = (e) => {
@@ -182,14 +210,15 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
         description: form.description || "",
         entry_fee: Number(form.entry_fee) || 0,
         max_participant: Number(form.max_participant) || 0,
-        first_place: Number(form.first_place) || 0,
+        first_place: form.prize_distribution?.[0]?.reward || "",
         tournament_flyer: flyerUrl,
         format: form.format,
         country: form.country || "Ghana",
         participant_type: form.participant_type,
-        squad_size: form.participant_type === "Team" ? (Number(form.squad_size) || 5) : null,
+        squad_size: (form.participant_type === "Team" || form.participant_type === "Duo") ? (Number(form.squad_size) || 1) : null,
         rules: form.rules.filter(rule => rule.trim() !== ""),
         twitch_link: form.twitch_link || "",
+        prize_distribution: form.prize_distribution.filter(p => p.reward.trim() !== ""),
         updated_at: serverTimestamp(),
       };
 
@@ -412,29 +441,41 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
             <label className="block text-sm text-gray-300 font-medium mb-3">
               Participant Type *
             </label>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <button
                 type="button"
-                onClick={() => setForm({ ...form, participant_type: "Individual" })}
-                className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${form.participant_type === "Individual"
+                onClick={() => setForm({ ...form, participant_type: "Individual", squad_size: "1" })}
+                className={`py-3 px-2 rounded-xl border flex flex-col items-center gap-2 transition-all ${form.participant_type === "Individual"
                   ? "bg-orange-600/20 border-orange-500 text-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.15)]"
                   : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600"
                   }`}
               >
                 <Users size={20} className={form.participant_type === "Individual" ? "text-orange-500" : "text-gray-500"} />
-                <span className="font-bold text-xs uppercase tracking-wider">Individual</span>
+                <span className="font-bold text-[10px] uppercase tracking-wider">Individual</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, participant_type: "Duo", squad_size: "2" })}
+                className={`py-3 px-2 rounded-xl border flex flex-col items-center gap-2 transition-all ${form.participant_type === "Duo"
+                  ? "bg-green-600/20 border-green-500 text-green-500 shadow-[0_0_20px_rgba(34,197,94,0.15)]"
+                  : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600"
+                  }`}
+              >
+                <Users size={20} className={form.participant_type === "Duo" ? "text-green-500" : "text-gray-500"} />
+                <span className="font-bold text-[10px] uppercase tracking-wider">Duo</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setForm({ ...form, participant_type: "Team" })}
-                className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${form.participant_type === "Team"
+                className={`py-3 px-2 rounded-xl border flex flex-col items-center gap-2 transition-all ${form.participant_type === "Team"
                   ? "bg-blue-600/20 border-blue-500 text-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
                   : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600"
                   }`}
               >
                 <Shield size={20} className={form.participant_type === "Team" ? "text-blue-500" : "text-gray-500"} />
-                <span className="font-bold text-xs uppercase tracking-wider">Squad / Team</span>
+                <span className="font-bold text-[10px] uppercase tracking-wider">Squad / Team</span>
               </button>
             </div>
             {form.participant_type === "Team" && (
@@ -585,20 +626,65 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
             </div>
           </div>
 
-          {/* First Place Prize */}
-          <div>
-            <label className="block text-sm text-gray-300 font-medium mb-2">
-              First Place Prize ({form.country === 'Nigeria' ? '₦' : '₵'})
-            </label>
-            <input
-              type="number"
-              name="first_place"
-              placeholder="1000"
-              value={form.first_place}
-              onChange={handleChange}
-              min="0"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition"
-            />
+          {/* Prize Distribution */}
+          <div className="space-y-3 bg-gray-800/30 p-4 rounded-xl border border-gray-700/50">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm text-gray-300 font-medium">
+                Prize Distribution
+              </label>
+              <button
+                type="button"
+                onClick={handleAddPrize}
+                className="text-xs flex items-center gap-1 text-green-400 hover:text-green-300 transition-colors bg-green-400/10 px-2 py-1 rounded"
+              >
+                <Plus className="w-3 h-3" />
+                Add Tier
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {Array.isArray(form.prize_distribution) && form.prize_distribution.map((prize, index) => (
+                <div key={index} className="flex flex-col sm:flex-row gap-2 animate-in fade-in slide-in-from-left-2 duration-200 bg-gray-900/40 p-3 rounded-lg border border-gray-700/30">
+                  <div className="flex-1 space-y-2">
+                    <input
+                      value={prize.rank}
+                      onChange={(e) => handlePrizeChange(index, 'rank', e.target.value)}
+                      placeholder="Rank (e.g., 1st Place)"
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-orange-500 transition"
+                    />
+                    <input
+                      value={prize.reward}
+                      onChange={(e) => handlePrizeChange(index, 'reward', e.target.value)}
+                      placeholder="Reward (e.g., 1000 CP + BP)"
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-orange-400 text-xs font-bold focus:outline-none focus:border-orange-500 transition"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePrize(index)}
+                    className="self-end sm:self-center p-2 text-gray-500 hover:text-red-400 transition-colors bg-gray-900 rounded-lg border border-gray-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+
+              {form.prize_distribution?.length === 0 && (
+                <div className="text-center py-4 bg-gray-900/50 rounded-lg border border-dashed border-gray-700">
+                  <p className="text-gray-500 text-xs italic">No prize distribution defined yet.</p>
+                  <button
+                    type="button"
+                    onClick={handleAddPrize}
+                    className="mt-2 text-xs text-green-400 hover:underline"
+                  >
+                    Add the first tier
+                  </button>
+                </div>
+              )}
+            </div>
+            <p className="text-[10px] text-gray-500 italic px-1">
+              Note: The "First Place Prize" summary at the top usually shows the 1st Place reward for quick reference.
+            </p>
           </div>
 
           {/* Buffer space for fixed mobile footer */}

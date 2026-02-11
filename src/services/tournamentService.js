@@ -67,10 +67,10 @@ class TournamentService {
       twitch_link: data.twitch_link || '',
       requirements: [],
       organizer: data.organizer || 'RAID Arena',
-      prizeDistribution: [
-        { rank: '1st Place', percentage: 70 },
-        { rank: '2nd Place', percentage: 30 }
+      prizeDistribution: Array.isArray(data.prize_distribution) ? data.prize_distribution : [
+        { rank: '1st Place', reward: data.first_place || 'TBD' }
       ],
+      first_place: data.first_place || '',
       bracketGenerated: data.bracketGenerated || false,
       currentRound: data.currentRound || 0,
       totalRounds: data.totalRounds || 0,
@@ -265,6 +265,9 @@ class TournamentService {
         if (tournamentData.participant_type === 'Team') {
           throw new Error('This is a squad tournament. Please register your team via the Manager Portal.');
         }
+
+        // Duo tournaments allow individual payments, users will link up later
+        // No change needed here if we treat Duo as Individual-style join
 
         transaction.set(participantRef, {
           tournamentId,

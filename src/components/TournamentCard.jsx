@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
-import { Loader, Shield } from "lucide-react";
+import { Loader, Shield, Users } from "lucide-react";
 
 const TournamentCard = ({ tournament }) => {
   const [isNavigating, setIsNavigating] = useState(false);
@@ -44,6 +44,12 @@ const TournamentCard = ({ tournament }) => {
             <Shield size={12} fill="currentColor" /> SQUAD
           </span>
         )}
+
+        {tournament.participant_type === 'Duo' && (
+          <span className="absolute bottom-3 right-3 px-2.5 py-1 text-[10px] sm:text-xs font-black rounded-full bg-green-600/90 text-white shadow-md flex items-center gap-1 border border-green-400/30 animate-pulse">
+            <Users size={12} fill="currentColor" /> DUO
+          </span>
+        )}
       </div>
 
       {/* CONTENT */}
@@ -61,9 +67,9 @@ const TournamentCard = ({ tournament }) => {
         {/* Prize & Entry */}
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="border border-orange-500/40 rounded-lg p-2 bg-[#1a1a1d]/90 hover:bg-[#1e1e22]/90 transition-colors">
-            <p className="text-gray-400 text-xs">Prize Pool</p>
-            <p className="text-green-400 font-bold">
-              {tournament.currency || '₵'}{tournament.prizePool.toLocaleString()}
+            <p className="text-gray-400 text-xs text-center">Top Prize</p>
+            <p className="text-green-400 font-bold text-center truncate">
+              {tournament.first_place || '-'}
             </p>
           </div>
           <div className="border border-orange-500/40 rounded-lg p-2 bg-[#1a1a1d]/90 hover:bg-[#1e1e22]/90 transition-colors">

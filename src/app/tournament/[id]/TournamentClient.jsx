@@ -97,9 +97,16 @@ function TournamentPageContent({ resolvedParams }) {
     };
   }, [user, resolvedParams?.id, ignPrompted]);
 
-  const handleSaveIgn = async (ign) => {
+  const handleSaveIgn = async (ign, partnerIgn = null) => {
     const participantRef = doc(db, 'tournament_participants', `${resolvedParams.id}_${user.id}`);
-    await updateDoc(participantRef, { inGameName: ign, inGameNameUpdatedAt: serverTimestamp() });
+    const updateData = {
+      inGameName: ign,
+      inGameNameUpdatedAt: serverTimestamp()
+    };
+    if (partnerIgn) {
+      updateData.partnerInGameName = partnerIgn;
+    }
+    await updateDoc(participantRef, updateData);
   };
 
   // Recovery: if user has paid but isn't joined yet, auto-join idempotently
@@ -746,7 +753,9 @@ function TournamentPageContent({ resolvedParams }) {
                 <TrendingUp className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-blue-400 opacity-50" />
               </div>
               <p className="text-base sm:text-2xl md:text-3xl font-bold text-white leading-none">{tournament.currentPlayers}</p>
-              <p className="text-[9px] sm:text-xs text-gray-400 mt-1">{tournament.participant_type === 'Team' ? 'Teams' : 'Players'}</p>
+              <p className="text-[9px] sm:text-xs text-gray-400 mt-1">
+                {tournament.participant_type === 'Team' ? 'Teams' : (tournament.participant_type === 'Duo' ? 'Duos' : 'Players')}
+              </p>
             </div>
 
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-gray-700/50 hover:border-yellow-500/50 transition-all hover:scale-105 transform">
@@ -773,7 +782,9 @@ function TournamentPageContent({ resolvedParams }) {
                 <Star className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-purple-400 opacity-50" />
               </div>
               <p className="text-base sm:text-lxl md:text-2xl font-bold text-white leading-none">{tournament.maxPlayers}</p>
-              <p className="text-[9px] sm:text-xs text-gray-400 mt-1">{tournament.participant_type === 'Team' ? 'Max Teams' : 'Max Players'}</p>
+              <p className="text-[9px] sm:text-xs text-gray-400 mt-1">
+                {tournament.participant_type === 'Team' ? 'Max Teams' : (tournament.participant_type === 'Duo' ? 'Max Duos' : 'Max Players')}
+              </p>
             </div>
           </div>
 
@@ -1264,24 +1275,25 @@ function TournamentPageContent({ resolvedParams }) {
                           <span className="text-white font-bold text-sm sm:text-base">{prize.rank}</span>
                         </div>
                         <div className="text-right">
-                          <p className={`${config.color} font-bold text-lg sm:text-xl`}>{prize.percentage}%</p>
-                          <p className="text-gray-400 text-xs">of prize pool</p>
+                          <p className={`${config.color} font-bold text-base sm:text-lg`}>{prize.reward || 'TBD'}</p>
                         </div>
                       </div>
                     );
                   })}
                 </div>
 
-                <div className="mt-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />
-                    <div>
-                      <p className="text-gray-400 text-xs sm:text-sm">Total Prize Pool</p>
-                      <p className="text-green-400 font-bold text-xl sm:text-2xl">{formatCurrency(tournament.prizePool)}</p>
+                {tournament.prizeDistribution[0]?.reward && (
+                  <div className="mt-4 bg-gradient-to-r from-orange-500/10 to-purple-500/10 border border-orange-500/30 rounded-xl p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400" />
+                      <div>
+                        <p className="text-gray-400 text-xs sm:text-sm">Main Reward (1st Place)</p>
+                        <p className="text-orange-400 font-bold text-xl sm:text-2xl">{tournament.prizeDistribution[0].reward}</p>
+                      </div>
                     </div>
+                    <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400 animate-pulse" />
                   </div>
-                  <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-green-400 animate-pulse" />
-                </div>
+                )}
               </div>
             )}
 
@@ -1338,6 +1350,15 @@ function TournamentPageContent({ resolvedParams }) {
         tournament={tournament}
         user={user}
         onPaymentError={handlePaymentError}
+      />
+
+      <InGameNameModal
+        isOpen={showIgnModal}
+        defaultValue={participantData?.inGameName}
+        defaultPartnerValue={participantData?.partnerInGameName}
+        onClose={() => setShowIgnModal(false)}
+        onSave={handleSaveIgn}
+        isDuo={tournament?.participant_type === 'Duo'}
       />
 
       <style jsx>{`

@@ -52,6 +52,7 @@ export default function TournamentParticipants({ tournamentId, onClose }) {
             status: data.status || 'active',
             paymentStatus: data.paymentStatus || 'pending',
             inGameName: data.inGameName || null,
+            partnerInGameName: data.partnerInGameName || null,
           };
         })
       );
@@ -157,6 +158,7 @@ export default function TournamentParticipants({ tournamentId, onClose }) {
                     <tr>
                       <th className="text-left p-4 rounded-tl-xl">Participant</th>
                       <th className="text-left p-4">IGN</th>
+                      <th className="text-left p-4">Partner IGN</th>
                       <th className="text-left p-4">Contact</th>
                       <th className="text-left p-4">Joined</th>
                       <th className="text-left p-4">Status</th>
@@ -167,9 +169,8 @@ export default function TournamentParticipants({ tournamentId, onClose }) {
                     {participants.map((participant, index) => (
                       <tr
                         key={participant.id}
-                        className={`border-t border-gray-800 hover:bg-gray-800/50 transition-colors ${
-                          index === participants.length - 1 ? 'last:rounded-b-xl' : ''
-                        }`}
+                        className={`border-t border-gray-800 hover:bg-gray-800/50 transition-colors ${index === participants.length - 1 ? 'last:rounded-b-xl' : ''
+                          }`}
                       >
                         <td className="p-4">
                           <div className="flex items-center gap-3">
@@ -194,7 +195,8 @@ export default function TournamentParticipants({ tournamentId, onClose }) {
                             </div>
                           </div>
                         </td>
-                        <td className="p-4 text-gray-300 text-sm">{participant.inGameName || '-'}</td>
+                        <td className="p-4 text-gray-300 text-sm whitespace-nowrap">{participant.inGameName || '-'}</td>
+                        <td className="p-4 text-gray-300 text-sm whitespace-nowrap font-bold text-orange-400">{participant.partnerInGameName || '-'}</td>
                         <td className="p-4">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 text-gray-400 text-sm">
@@ -260,6 +262,10 @@ export default function TournamentParticipants({ tournamentId, onClose }) {
                         <span className="truncate">IGN: <span className="text-white">{participant.inGameName || '-'}</span></span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-400">
+                        <span className="w-4 h-4 flex-shrink-0 text-gray-500">🤝</span>
+                        <span className="truncate">Partner: <span className="text-orange-400 font-bold">{participant.partnerInGameName || '-'}</span></span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-400">
                         <Mail className="w-4 h-4 flex-shrink-0" />
                         <span className="truncate">{participant.email}</span>
                       </div>
@@ -289,6 +295,6 @@ export default function TournamentParticipants({ tournamentId, onClose }) {
           </button>
         </div>
       </div>
-    </div>
+    </div >
   );
 }

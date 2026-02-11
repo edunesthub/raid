@@ -358,6 +358,7 @@ export default function TournamentManagement() {
               <th className="text-left p-4">Status</th>
               <th className="text-left p-4">Participants</th>
               <th className="text-left p-4">Entry Fee</th>
+              <th className="text-left p-4">Prize</th>
               {activeTab === "bracket" && <th className="text-left p-4">Bracket</th>}
               <th className="text-left p-4">Actions</th>
             </tr>
@@ -420,7 +421,9 @@ export default function TournamentManagement() {
                   <td className="p-4">
                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black uppercase border ${t.participant_type === 'Team'
                       ? 'bg-blue-500/10 border-blue-500/30 text-blue-400'
-                      : 'bg-gray-800 border-gray-700 text-gray-400'
+                      : t.participant_type === 'Duo'
+                        ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                        : 'bg-gray-800 border-gray-700 text-gray-400'
                       }`}>
                       {t.participant_type || 'Individual'}
                     </span>
@@ -444,6 +447,7 @@ export default function TournamentManagement() {
                     </button>
                   </td>
                   <td className="p-4 text-gray-400">{t.country === 'Nigeria' ? '₦' : '₵'}{t.entry_fee}</td>
+                  <td className="p-4 text-white font-medium">{t.first_place || '-'}</td>
                   {activeTab === "bracket" && (
                     <td className="p-4">
                       {t.bracketGenerated ? (
@@ -577,6 +581,9 @@ export default function TournamentManagement() {
                 </button>
                 <div className="text-gray-300">
                   Entry Fee: <span className="text-white">{t.country === 'Nigeria' ? '₦' : '₵'}{t.entry_fee}</span>
+                </div>
+                <div className="text-gray-300">
+                  Prize: <span className="text-orange-400 font-bold">{t.first_place || '-'}</span>
                 </div>
                 {activeTab === "bracket" && (
                   <div className="text-gray-300">
