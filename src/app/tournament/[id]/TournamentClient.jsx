@@ -754,7 +754,7 @@ function TournamentPageContent({ resolvedParams }) {
               </div>
               <p className="text-base sm:text-2xl md:text-3xl font-bold text-white leading-none">{tournament.currentPlayers}</p>
               <p className="text-[9px] sm:text-xs text-gray-400 mt-1">
-                {tournament.participant_type === 'Team' ? 'Teams' : (tournament.participant_type === 'Duo' ? 'Duos' : 'Players')}
+                {tournament.participant_type === 'Team' ? 'Teams Joined' : (tournament.participant_type === 'Duo' ? 'Duos Joined' : 'Players Joined')}
               </p>
             </div>
 
