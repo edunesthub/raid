@@ -763,8 +763,8 @@ function TournamentPageContent({ resolvedParams }) {
                 <Trophy className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-yellow-400" />
                 <Sparkles className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-yellow-400 opacity-50" />
               </div>
-              <p className="text-base sm:text-2xl md:text-3xl font-bold text-white leading-none">{formatCurrency(tournament.prizePool)}</p>
-              <p className="text-[9px] sm:text-xs text-gray-400 mt-1">Prize Pool</p>
+              <p className="text-base sm:text-2xl md:text-3xl font-bold text-white leading-none truncate">{tournament.first_place || 'TBA'}</p>
+              <p className="text-[9px] sm:text-xs text-gray-400 mt-1">Top Prize</p>
             </div>
 
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-gray-700/50 hover:border-green-500/50 transition-all hover:scale-105 transform">
@@ -1252,75 +1252,98 @@ function TournamentPageContent({ resolvedParams }) {
               </div>
             )}
 
-            {tournament.entryFee > 0 && tournament.prizeDistribution && tournament.prizeDistribution.length > 0 && (
-              <div className="card-raid p-4 sm:p-6 mb-6">
-                <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
-                  Prize Distribution
-                </h2>
-                <div className="space-y-3">
-                  {tournament.prizeDistribution.map((prize, index) => {
-                    const icons = [
-                      { icon: Crown, color: 'text-yellow-400', bg: 'bg-yellow-500/20', border: 'border-yellow-500/40' },
-                      { icon: Medal, color: 'text-gray-400', bg: 'bg-gray-500/20', border: 'border-gray-500/40' },
-                      { icon: Medal, color: 'text-orange-400', bg: 'bg-orange-500/20', border: 'border-orange-500/40' }
-                    ];
-                    const config = icons[index] || icons[2];
-                    const Icon = config.icon;
+            {/* Prize Distribution Section - Moved and Enhanced */}
+            {(tournament.prizeDistribution?.length > 0 || tournament.first_place) && (
+              <div className="relative mb-8 group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-600/20 via-orange-500/20 to-yellow-600/20 rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <div className="relative card-raid p-5 sm:p-8 overflow-hidden bg-[#0f0f12]/80 backdrop-blur-xl border border-yellow-500/20">
+                  <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-yellow-500/5 rounded-full blur-3xl"></div>
 
-                    return (
-                      <div key={index} className={`flex items-center justify-between ${config.bg} p-3 sm:p-4 rounded-xl border ${config.border} hover:scale-102 transition-transform`}>
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${config.color}`} />
-                          <span className="text-white font-bold text-sm sm:text-base">{prize.rank}</span>
-                        </div>
-                        <div className="text-right">
-                          <p className={`${config.color} font-bold text-base sm:text-lg`}>{prize.reward || 'TBD'}</p>
-                        </div>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                    <div>
+                      <h2 className="text-2xl sm:text-3xl font-black text-white italic uppercase tracking-tighter flex items-center gap-3">
+                        <Trophy className="w-8 h-8 text-yellow-500 drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
+                        Prize Rewards
+                      </h2>
+                      <p className="text-xs text-yellow-500/60 font-black uppercase tracking-widest mt-1">Official Battlefield Spoils</p>
+                    </div>
+                    {tournament.prizeDistribution?.[0]?.reward && (
+                      <div className="bg-yellow-500/10 border border-yellow-500/20 px-4 py-2 rounded-2xl flex items-center gap-3">
+                        <Crown className="w-5 h-5 text-yellow-500" />
+                        <span className="text-yellow-500 font-black text-sm uppercase tracking-tight">{tournament.prizeDistribution[0].reward}</span>
                       </div>
-                    );
-                  })}
-                </div>
+                    )}
+                  </div>
 
-                {tournament.prizeDistribution[0]?.reward && (
-                  <div className="mt-4 bg-gradient-to-r from-orange-500/10 to-purple-500/10 border border-orange-500/30 rounded-xl p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400" />
-                      <div>
-                        <p className="text-gray-400 text-xs sm:text-sm">Main Reward (1st Place)</p>
-                        <p className="text-orange-400 font-bold text-xl sm:text-2xl">{tournament.prizeDistribution[0].reward}</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {tournament.prizeDistribution?.map((prize, index) => {
+                      const configs = [
+                        { icon: Crown, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30', shadow: 'shadow-yellow-500/10' },
+                        { icon: Medal, color: 'text-gray-300', bg: 'bg-gray-400/10', border: 'border-gray-400/30', shadow: 'shadow-gray-400/10' },
+                        { icon: Medal, color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30', shadow: 'shadow-orange-500/10' }
+                      ];
+                      const config = configs[index] || { icon: Star, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', shadow: 'shadow-blue-500/5' };
+                      const Icon = config.icon;
+
+                      return (
+                        <div key={index} className={`flex items-center justify-between ${config.bg} p-4 sm:p-5 rounded-2xl border ${config.border} ${config.shadow} shadow-lg hover:scale-[1.02] transition-all group/item`}>
+                          <div className="flex items-center gap-4">
+                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-black/40 border ${config.border} group-hover/item:rotate-12 transition-transform`}>
+                              <Icon className={`w-6 h-6 sm:w-7 sm:h-7 ${config.color}`} />
+                            </div>
+                            <div>
+                              <span className="text-white font-black text-sm sm:text-base uppercase tracking-tight">{prize.rank}</span>
+                              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Rank Title</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className={`${config.color} font-black text-lg sm:text-2xl uppercase italic tracking-tighter`}>{prize.reward || 'TBD'}</p>
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Assigned Prize</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {tournament.prizeDistribution?.[0]?.reward && (
+                    <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <Sparkles className="w-4 h-4" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Total value based on placement</span>
+                      </div>
+                      <div className="flex -space-x-2">
+                        {[1, 2, 3].map(i => <div key={i} className="w-6 h-6 rounded-full bg-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.4)] border border-black/50 overflow-hidden flex items-center justify-center"><Trophy size={10} className="text-black" /></div>)}
                       </div>
                     </div>
-                    <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400 animate-pulse" />
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
 
             {/* Tournament Info Card */}
-            <div className="card-raid p-4 sm:p-6">
+            <div className="card-raid p-4 sm:p-6 mb-8 bg-[#0f0f12]/60 border border-white/5">
               <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <Star className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
                 Tournament Information
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="bg-gray-800/50 rounded-xl p-3 sm:p-4 border border-gray-700">
-                  <p className="text-gray-400 text-xs sm:text-sm mb-1">Game</p>
-                  <p className="text-white font-semibold text-base sm:text-lg">{tournament.game}</p>
+                  <p className="text-gray-400 text-xs sm:text-sm mb-1 uppercase tracking-widest font-bold">Game</p>
+                  <p className="text-white font-black text-base sm:text-lg uppercase italic">{tournament.game}</p>
                 </div>
                 <div className="bg-gray-800/50 rounded-xl p-3 sm:p-4 border border-gray-700">
-                  <p className="text-gray-400 text-xs sm:text-sm mb-1">Region</p>
-                  <p className="text-white font-semibold text-base sm:text-lg">{tournament.region}</p>
+                  <p className="text-gray-400 text-xs sm:text-sm mb-1 uppercase tracking-widest font-bold">Region</p>
+                  <p className="text-white font-black text-base sm:text-lg uppercase italic">{tournament.region}</p>
                 </div>
                 <div className="bg-gray-800/50 rounded-xl p-3 sm:p-4 border border-gray-700">
-                  <p className="text-gray-400 text-xs sm:text-sm mb-1">Organizer</p>
-                  <p className="text-white font-semibold text-base sm:text-lg">{tournament.organizer}</p>
+                  <p className="text-gray-400 text-xs sm:text-sm mb-1 uppercase tracking-widest font-bold">Organizer</p>
+                  <p className="text-white font-black text-base sm:text-lg uppercase italic">{tournament.organizer}</p>
                 </div>
                 <div className="bg-gray-800/50 rounded-xl p-3 sm:p-4 border border-gray-700">
-                  <p className="text-gray-400 text-xs sm:text-sm mb-1">Status</p>
+                  <p className="text-gray-400 text-xs sm:text-sm mb-1 uppercase tracking-widest font-bold">Status</p>
                   <div className="flex items-center gap-2 mt-1">
                     <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${statusConfig.color} animate-pulse`}></div>
-                    <p className="text-white font-semibold text-sm sm:text-base">{statusConfig.text}</p>
+                    <p className="text-white font-black text-sm sm:text-base uppercase italic">{statusConfig.text}</p>
                   </div>
                 </div>
               </div>

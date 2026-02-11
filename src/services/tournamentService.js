@@ -52,7 +52,7 @@ class TournamentService {
       description: data.description || '',
       game: data.game || 'Unknown Game',
       image: data.tournament_flyer || data.game_icon || '/assets/raid1.svg',
-      prizePool: (data.first_place || 0) + (data.second_place || 0),
+      prizePool: data.first_place || 0,
       entryFee: data.entry_fee || 0,
       currentPlayers: data.participant_type === 'Team' ? (data.teams || []).length : (data.current_participants || 0),
       maxPlayers: data.max_participant || 0,
