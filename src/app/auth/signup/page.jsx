@@ -9,6 +9,7 @@ import { doc, setDoc, updateDoc, collection, query, where, getDocs } from "fireb
 import { auth, db } from "@/lib/firebase";
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle, X } from "lucide-react";
 import { authValidation } from "@/services/authValidation";
+import { COUNTRIES } from "@/utils/countries";
 
 const GENERIC_AVATARS = [
   "https://api.dicebear.com/9.x/adventurer/svg?seed=Felix",
@@ -34,7 +35,7 @@ export default function SignupPage() {
     lastName: "",
     phone: "",
     bio: "",
-    country: "Ghana",
+    country: "",
     dateOfBirth: "",
   });
   const [avatarFile, setAvatarFile] = useState(null);
@@ -511,8 +512,12 @@ export default function SignupPage() {
                     disabled={isLoading}
                     required
                   >
-                    <option value="Ghana">Ghana</option>
-                    <option value="Nigeria">Nigeria</option>
+                    <option value="">Select your country</option>
+                    {COUNTRIES.map((country) => (
+                      <option key={country.code} value={country.name}>
+                        {country.flag} {country.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>

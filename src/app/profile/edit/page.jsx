@@ -7,6 +7,7 @@ import { db } from "../../../lib/firebase";
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { usernameService } from '@/services/usernameService';
+import { COUNTRIES } from '@/utils/countries';
 
 export default function EditProfilePage() {
   const { user, isAuthenticated } = useAuth();
@@ -373,8 +374,12 @@ export default function EditProfilePage() {
               onChange={handleChange}
               className="w-full bg-gray-900 border border-orange-500 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-white placeholder-gray-400 transition"
             >
-              <option value="Ghana">Ghana</option>
-              <option value="Nigeria">Nigeria</option>
+              <option value="">Select your country</option>
+              {COUNTRIES.map((country) => (
+                <option key={country.code} value={country.name}>
+                  {country.flag} {country.name}
+                </option>
+              ))}
             </select>
           </div>
 

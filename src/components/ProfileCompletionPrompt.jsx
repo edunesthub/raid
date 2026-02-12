@@ -4,11 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/app/contexts/AuthContext";
-
-const countries = [
-  { value: "Ghana", label: "Ghana" },
-  { value: "Nigeria", label: "Nigeria" },
-];
+import { COUNTRIES } from "@/utils/countries";
 
 const GENERIC_AVATARS = [
   "https://api.dicebear.com/9.x/adventurer/svg?seed=Felix",
@@ -50,7 +46,7 @@ export default function ProfileCompletionPrompt({ hide }) {
     username: "",
     firstName: "",
     lastName: "",
-    country: "Ghana",
+    country: "",
     phone: "",
     bio: "",
     dateOfBirth: "",
@@ -230,8 +226,11 @@ export default function ProfileCompletionPrompt({ hide }) {
               className="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-white focus:outline-none focus:border-orange-500"
               required
             >
-              {countries.map((c) => (
-                <option key={c.value} value={c.value}>{c.label}</option>
+              <option value="">Select your country</option>
+              {COUNTRIES.map((country) => (
+                <option key={country.code} value={country.name}>
+                  {country.flag} {country.name}
+                </option>
               ))}
             </select>
           </div>
