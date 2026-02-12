@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, User, X, Loader } from 'lucide-react';
-import { collection, query, getDocs, limit } from 'firebase/firestore';
+import { collection, query, getDocs, limit, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import UserAvatar from '@/components/UserAvatar';
 
@@ -41,30 +41,45 @@ const UserSearchBar = () => {
         const usersRef = collection(db, 'users');
         const searchLower = searchQuery.toLowerCase();
 
-        // Get all users and filter client-side
-        const allUsersQuery = query(usersRef, limit(100));
-        const allUsersDocs = await getDocs(allUsersQuery);
+        // Execute parallel queries to increase completeness
+        const [exactEmailSnap, exactUsernameSnap, generalSnap] = await Promise.all([
+          getDocs(query(usersRef, where('email', '==', searchLower), limit(5))),
+          getDocs(query(usersRef, where('username', '==', searchQuery), limit(5))),
+          getDocs(query(usersRef, limit(1000))) // Large batch for partial matches
+        ]);
 
-        const results = [];
-        allUsersDocs.docs.forEach(doc => {
-          const userData = doc.data();
-          const username = (userData.username || '').toLowerCase();
-          const email = (userData.email || '').toLowerCase();
-          const firstName = (userData.firstName || '').toLowerCase();
-          const lastName = (userData.lastName || '').toLowerCase();
+        const combinedDocs = [
+          ...exactEmailSnap.docs,
+          ...exactUsernameSnap.docs,
+          ...generalSnap.docs
+        ];
 
-          // Check if search term matches any field
-          if (
+        // Deduplicate by ID
+        const uniqueDocs = [];
+        const seenIds = new Set();
+
+        combinedDocs.forEach(doc => {
+          if (!seenIds.has(doc.id)) {
+            seenIds.add(doc.id);
+            uniqueDocs.push(doc);
+          }
+        });
+
+        const results = uniqueDocs.map(doc => ({ id: doc.id, ...doc.data() })).filter(user => {
+          const username = (user.username || '').toLowerCase();
+          const email = (user.email || '').toLowerCase();
+          const firstName = (user.firstName || '').toLowerCase();
+          const lastName = (user.lastName || '').toLowerCase();
+
+          return (
             username.includes(searchLower) ||
             email.includes(searchLower) ||
             firstName.includes(searchLower) ||
             lastName.includes(searchLower)
-          ) {
-            results.push({ id: doc.id, ...userData });
-          }
+          );
         });
 
-        setSearchResults(results.slice(0, 10)); // Limit to 10 results
+        setSearchResults(results.slice(0, 10)); // Limit to 10 results for UI
       } catch (error) {
         console.error('Error searching users:', error);
         setSearchResults([]);

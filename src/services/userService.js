@@ -22,26 +22,27 @@ class UserService {
    * @param {number} limitCount
    * @returns {Promise<Array>} Array of user profiles
    */
-  async searchUsersByName(searchTerm, limitCount = 10) {
+  async searchUsersByName(searchTerm, limitCount = 20) {
     try {
       const usersRef = collection(db, USERS_COLLECTION);
-      // Firestore doesn't support full text search natively, so we use prefix search on username and firstName
-      const q = query(
-        usersRef,
-        orderBy('username'),
-        limit(limitCount)
-      );
+      const term = searchTerm.toLowerCase();
+
+      // Fetch a larger batch to filter client-side
+      const q = query(usersRef, limit(1000));
       const snapshot = await getDocs(q);
-      return snapshot.docs
+
+      const results = snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
         .filter(user => {
-          const term = searchTerm.toLowerCase();
           return (
             user.username?.toLowerCase().includes(term) ||
             user.firstName?.toLowerCase().includes(term) ||
-            user.lastName?.toLowerCase().includes(term)
+            user.lastName?.toLowerCase().includes(term) ||
+            user.email?.toLowerCase().includes(term)
           );
         });
+
+      return results.slice(0, limitCount);
     } catch (error) {
       console.error('Error searching users:', error);
       throw new Error('Failed to search users');
