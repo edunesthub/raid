@@ -10,17 +10,7 @@ import { auth, db } from "@/lib/firebase";
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle, X } from "lucide-react";
 import { authValidation } from "@/services/authValidation";
 import { COUNTRIES } from "@/utils/countries";
-
-const GENERIC_AVATARS = [
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Felix",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Aneka",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Midnight",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Shadow",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Destiny",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Spark",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Blade",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Nova"
-];
+import { GENERIC_AVATARS } from "@/utils/avatars";
 
 export default function SignupPage() {
   const router = useRouter();

@@ -8,6 +8,7 @@ import { db } from '@/lib/firebase';
 import { ArrowLeft, Trophy, Award, Calendar, Mail, Phone, Star, TrendingUp, Target, Crown, Medal, Zap, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { getCountryFlag } from '@/utils/countryFlags';
+import UserAvatar from '@/components/UserAvatar';
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -189,20 +190,12 @@ export default function UserProfilePage() {
             {/* Avatar */}
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-purple-500 rounded-full blur-2xl opacity-30 animate-pulse"></div>
-              <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden border-4 border-orange-500 ring-4 ring-orange-500/30 flex-shrink-0 shadow-2xl">
-                {user.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.username}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-r from-black to-orange-500 flex items-center justify-center">
-                    <span className="text-white text-4xl sm:text-5xl font-bold">
-                      {user.username?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
+              <div className="relative">
+                <UserAvatar
+                  user={user}
+                  size="3xl"
+                  className="border-4 border-orange-500 ring-4 ring-orange-500/30 shadow-2xl"
+                />
               </div>
             </div>
 

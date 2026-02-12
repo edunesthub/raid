@@ -17,6 +17,7 @@ import {
   Bell,
   MessageCircle,
 } from "lucide-react";
+import UserAvatar from "@/components/UserAvatar";
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -52,7 +53,7 @@ export default function Navigation() {
     <>
       {/* Desktop Navigation */}
       <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
-         <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center">
@@ -71,11 +72,10 @@ export default function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                    pathname === item.href
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${pathname === item.href
                       ? "bg-orange-500 text-white"
                       : "text-gray-300 hover:text-white hover:bg-gray-800"
-                  }`}
+                    }`}
                 >
                   {item.icon}
                   <span>{item.label}</span>
@@ -93,23 +93,10 @@ export default function Navigation() {
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                       className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
                     >
-                      <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-r from-black to-orange-500">
-                        {user?.avatarUrl ? (
-                          <Image
-                            src={user.avatarUrl}
-                            alt="Profile"
-                            width={32}
-                            height={32}
-                            className="w-8 h-8 object-cover"
-                          />
-                        ) : (
-                          <span className="text-white text-sm font-bold">
-                            {user?.firstName?.charAt(0) ||
-                              user?.email?.charAt(0) ||
-                              "U"}
-                          </span>
-                        )}
-                      </div>
+                      <UserAvatar
+                        user={user}
+                        size="xs"
+                      />
                       <span className="text-sm">▼</span>
                     </button>
                   </div>
@@ -150,11 +137,11 @@ export default function Navigation() {
           </div>
         </div>
       </nav>
-  
+
 
       {/* MOBILE HEADER */}
       <nav className="md:hidden fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
-         <div className="px-4 flex items-center justify-between h-16">
+        <div className="px-4 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center">
             <Image
               src="/assets/raid1.svg"
@@ -197,9 +184,8 @@ export default function Navigation() {
       )}
 
       <div
-        className={`fixed top-0 left-0 h-full w-80 bg-black/70 backdrop-blur-xl border-r border-white/10 shadow-xl transform transition-transform duration-300 z-[100] flex flex-col ${
-          isMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 h-full w-80 bg-black/70 backdrop-blur-xl border-r border-white/10 shadow-xl transform transition-transform duration-300 z-[100] flex flex-col ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="px-5 py-6 flex flex-col space-y-5 flex-grow overflow-y-auto">
           {/* Header */}
@@ -225,20 +211,18 @@ export default function Navigation() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
-                    isActive
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${isActive
                       ? "bg-orange-500/20 border-orange-500 text-orange-400"
                       : "bg-white/5 border-transparent text-gray-300 hover:bg-white/10 hover:text-orange-400"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center space-x-3">
                     {item.icon}
                     <span className="font-medium text-sm">{item.label}</span>
                   </div>
                   <ChevronRight
-                    className={`h-4 w-4 ${
-                      isActive ? "text-orange-400" : "text-gray-500"
-                    }`}
+                    className={`h-4 w-4 ${isActive ? "text-orange-400" : "text-gray-500"
+                      }`}
                   />
                 </Link>
               );
@@ -249,20 +233,18 @@ export default function Navigation() {
               <Link
                 href="/notifications"
                 onClick={() => setIsMenuOpen(false)}
-                className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
-                  pathname === "/notifications"
+                className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${pathname === "/notifications"
                     ? "bg-orange-500/20 border-orange-500 text-orange-400"
                     : "bg-white/5 border-transparent text-gray-300 hover:bg-white/10 hover:text-orange-400"
-                }`}
+                  }`}
               >
                 <div className="flex items-center space-x-3">
                   <Bell className="w-5 h-5" />
                   <span className="font-medium text-sm">Notifications</span>
                 </div>
                 <ChevronRight
-                  className={`h-4 w-4 ${
-                    pathname === "/notifications" ? "text-orange-400" : "text-gray-500"
-                  }`}
+                  className={`h-4 w-4 ${pathname === "/notifications" ? "text-orange-400" : "text-gray-500"
+                    }`}
                 />
               </Link>
             )}
@@ -274,11 +256,10 @@ export default function Navigation() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`px-4 py-2 rounded-lg text-sm transition-all ${
-                    pathname === item.href
+                  className={`px-4 py-2 rounded-lg text-sm transition-all ${pathname === item.href
                       ? "bg-orange-500/20 text-orange-400"
                       : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
-                  }`}
+                    }`}
                 >
                   {item.label}
                 </Link>
@@ -291,23 +272,10 @@ export default function Navigation() {
         {isAuthenticated ? (
           <div className="border-t border-white/10 px-5 py-4 bg-black/60">
             <div className="flex items-center space-x-3 mb-3">
-              <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-r from-black to-orange-500">
-                {user?.avatarUrl ? (
-                  <Image
-                    src={user.avatarUrl}
-                    alt="Profile"
-                    width={40}
-                    height={40}
-                    className="w-10 h-10 object-cover"
-                  />
-                ) : (
-                  <span className="text-white font-bold text-sm">
-                    {user?.firstName?.charAt(0) ||
-                      user?.email?.charAt(0) ||
-                      "U"}
-                  </span>
-                )}
-              </div>
+              <UserAvatar
+                user={user}
+                size="sm"
+              />
               <div>
                 <p className="text-white text-sm font-semibold">
                   {user?.firstName || user?.username || "User"}

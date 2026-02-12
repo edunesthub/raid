@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, User, X, Loader } from 'lucide-react';
 import { collection, query, getDocs, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import UserAvatar from '@/components/UserAvatar';
 
 const UserSearchBar = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,11 +40,11 @@ const UserSearchBar = () => {
       try {
         const usersRef = collection(db, 'users');
         const searchLower = searchQuery.toLowerCase();
-        
+
         // Get all users and filter client-side
         const allUsersQuery = query(usersRef, limit(100));
         const allUsersDocs = await getDocs(allUsersQuery);
-        
+
         const results = [];
         allUsersDocs.docs.forEach(doc => {
           const userData = doc.data();
@@ -51,7 +52,7 @@ const UserSearchBar = () => {
           const email = (userData.email || '').toLowerCase();
           const firstName = (userData.firstName || '').toLowerCase();
           const lastName = (userData.lastName || '').toLowerCase();
-          
+
           // Check if search term matches any field
           if (
             username.includes(searchLower) ||
@@ -93,7 +94,7 @@ const UserSearchBar = () => {
         <div className="absolute left-4 top-1/2 -translate-y-1/2">
           <Search className="w-5 h-5 text-gray-400" />
         </div>
-        
+
         <input
           type="text"
           value={searchQuery}
@@ -135,21 +136,11 @@ const UserSearchBar = () => {
                   onClick={() => handleUserClick(user)}
                   className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 transition-colors text-left"
                 >
-                  <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-r from-black to-orange-500">
-                    {user.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt={user.username}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">
-                          {user.username?.charAt(0).toUpperCase() || user.firstName?.charAt(0).toUpperCase() || user.lastName?.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  <UserAvatar
+                    user={user}
+                    size="md"
+                    className="flex-shrink-0"
+                  />
 
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-semibold truncate">

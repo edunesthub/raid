@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/utils/formatters.js";
 import { collection, query, where, getDocs, orderBy, doc, getDoc } from "firebase/firestore";
 import { Pencil, ChevronRight, LogOut, Settings, User, Trophy, Calendar } from "lucide-react";
+import UserAvatar from "@/components/UserAvatar";
 
 export default function ProfilePage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -123,26 +124,16 @@ export default function ProfilePage() {
           <div className="flex flex-col items-center">
             {/* Avatar display only */}
             <div className="relative mb-6">
-              <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white/10 shadow-2xl">
-                {avatarUrl && typeof avatarUrl === "string" ? (
-                  <Image
-                    src={avatarUrl}
-                    alt="Profile Avatar"
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-orange-600 to-orange-400 flex items-center justify-center">
-                    <span className="text-white text-4xl font-bold">
-                      {(freshUser?.firstName || user?.firstName)?.charAt(0) || (freshUser?.email || user?.email)?.charAt(0) || "U"}
-                    </span>
-                  </div>
-                )}
+              <div className="relative border-4 border-white/10 shadow-2xl rounded-full">
+                <UserAvatar
+                  user={{ ...user, ...freshUser }}
+                  size="2xl"
+                />
 
                 {/* Pencil icon linking to edit profile */}
                 <Link
                   href="/profile/edit"
-                  className="absolute bottom-2 right-2 bg-black/70 border border-white/10 rounded-full p-2 shadow-lg hover:bg-orange-500 transition-all"
+                  className="absolute bottom-2 right-2 bg-black/70 border border-white/10 rounded-full p-2 shadow-lg hover:bg-orange-500 transition-all z-10"
                   aria-label="Edit profile"
                 >
                   <Pencil className="w-4 h-4 text-white" />

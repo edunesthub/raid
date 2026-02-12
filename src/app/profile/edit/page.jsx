@@ -8,6 +8,8 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { usernameService } from '@/services/usernameService';
 import { COUNTRIES } from '@/utils/countries';
+import { GENERIC_AVATARS, getDefaultAvatar } from '@/utils/avatars';
+import UserAvatar from '@/components/UserAvatar';
 
 export default function EditProfilePage() {
   const { user, isAuthenticated } = useAuth();
@@ -126,6 +128,24 @@ export default function EditProfilePage() {
     } catch (err) {
       console.error('Error uploading avatar:', err);
       setError(err.message || 'Avatar upload failed.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleGenericAvatarSelect = async (url) => {
+    try {
+      setUploadingAvatar(true);
+      setAvatarUrl(url);
+      if (user?.id) {
+        const userRef = doc(db, 'users', user.id);
+        await updateDoc(userRef, { avatarUrl: url, updatedAt: new Date() });
+      }
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      console.error('Error selecting generic avatar:', err);
+      setError('Failed to update avatar.');
     } finally {
       setUploadingAvatar(false);
     }
@@ -277,14 +297,11 @@ export default function EditProfilePage() {
 
       {/* Avatar */}
       <div className="mb-6 relative">
-        <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-orange-500 mx-auto mb-4">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="Avatar" className="object-cover w-full h-full" />
-          ) : (
-            <div className="w-full h-full bg-gray-700 flex items-center justify-center text-white text-4xl font-bold">
-              {formData.firstName?.charAt(0) || 'U'}
-            </div>
-          )}
+        <div className="border-4 border-orange-500 rounded-full mx-auto mb-4 overflow-hidden w-fit">
+          <UserAvatar
+            user={{ ...user, avatarUrl }}
+            size="2xl"
+          />
         </div>
         <button
           type="button"
@@ -304,6 +321,23 @@ export default function EditProfilePage() {
           onChange={handleAvatarUpload}
           className="hidden"
         />
+
+        {/* Generic Avatars Selection */}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-400 mb-3 font-medium uppercase tracking-wider">Or choose a generic avatar</p>
+          <div className="flex flex-wrap justify-center gap-3 max-w-sm mx-auto">
+            {GENERIC_AVATARS.map((url, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleGenericAvatarSelect(url)}
+                className={`w-12 h-12 rounded-full overflow-hidden border-2 transition-all hover:scale-110 active:scale-95 ${avatarUrl === url ? 'border-orange-500 ring-2 ring-orange-500/20' : 'border-gray-700 hover:border-gray-500'}`}
+              >
+                <img src={url} alt={`Generic ${idx + 1}`} className="w-full h-full object-cover bg-gray-800" />
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Form Card */}

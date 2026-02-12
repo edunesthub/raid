@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { userService } from "@/services/userService";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import UserAvatar from "@/components/UserAvatar";
 
 export default function LeaderboardPage() {
   const { user } = useAuth();
@@ -61,31 +62,28 @@ export default function LeaderboardPage() {
           <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => setMetric("totalEarnings")}
-              className={`py-3 px-4 rounded-lg font-semibold transition-colors ${
-                metric === "totalEarnings"
+              className={`py-3 px-4 rounded-lg font-semibold transition-colors ${metric === "totalEarnings"
                   ? "bg-orange-500 text-white"
                   : "bg-gray-800 text-gray-400 hover:text-white"
-              }`}
+                }`}
             >
               💰 Earnings
             </button>
             <button
               onClick={() => setMetric("tournamentsWon")}
-              className={`py-3 px-4 rounded-lg font-semibold transition-colors ${
-                metric === "tournamentsWon"
+              className={`py-3 px-4 rounded-lg font-semibold transition-colors ${metric === "tournamentsWon"
                   ? "bg-orange-500 text-white"
                   : "bg-gray-800 text-gray-400 hover:text-white"
-              }`}
+                }`}
             >
               🏅 Wins
             </button>
             <button
               onClick={() => setMetric("winRate")}
-              className={`py-3 px-4 rounded-lg font-semibold transition-colors ${
-                metric === "winRate"
+              className={`py-3 px-4 rounded-lg font-semibold transition-colors ${metric === "winRate"
                   ? "bg-orange-500 text-white"
                   : "bg-gray-800 text-gray-400 hover:text-white"
-              }`}
+                }`}
             >
               📊 Win Rate
             </button>
@@ -118,21 +116,12 @@ export default function LeaderboardPage() {
                 {/* 2nd Place */}
                 <div className="card-raid p-4 text-center flex flex-col items-center justify-end">
                   <div className="text-4xl mb-2">🥈</div>
-                  <div className="relative w-16 h-16 rounded-full overflow-hidden mb-3 border-2 border-gray-400">
-                    {leaderboard[1].avatarUrl ? (
-                      <Image
-                        src={leaderboard[1].avatarUrl}
-                        alt={leaderboard[1].username}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-r from-gray-600 to-gray-400 flex items-center justify-center">
-                        <span className="text-white text-xl font-bold">
-                          {leaderboard[1].username?.charAt(0) || "?"}
-                        </span>
-                      </div>
-                    )}
+                  <div className="relative mb-3">
+                    <UserAvatar
+                      user={leaderboard[1]}
+                      size="lg"
+                      className="border-2 border-gray-400"
+                    />
                   </div>
                   <p className="font-bold text-white text-sm truncate w-full">
                     {leaderboard[1].username}
@@ -145,21 +134,12 @@ export default function LeaderboardPage() {
                 {/* 1st Place */}
                 <div className="card-raid p-4 text-center flex flex-col items-center justify-end bg-gradient-to-b from-orange-900/20 to-transparent">
                   <div className="text-5xl mb-2">🥇</div>
-                  <div className="relative w-20 h-20 rounded-full overflow-hidden mb-3 border-4 border-orange-500">
-                    {leaderboard[0].avatarUrl ? (
-                      <Image
-                        src={leaderboard[0].avatarUrl}
-                        alt={leaderboard[0].username}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-r from-orange-600 to-orange-400 flex items-center justify-center">
-                        <span className="text-white text-2xl font-bold">
-                          {leaderboard[0].username?.charAt(0) || "?"}
-                        </span>
-                      </div>
-                    )}
+                  <div className="relative mb-3">
+                    <UserAvatar
+                      user={leaderboard[0]}
+                      size="xl"
+                      className="border-4 border-orange-500"
+                    />
                   </div>
                   <p className="font-bold text-white truncate w-full">
                     {leaderboard[0].username}
@@ -172,21 +152,12 @@ export default function LeaderboardPage() {
                 {/* 3rd Place */}
                 <div className="card-raid p-4 text-center flex flex-col items-center justify-end">
                   <div className="text-4xl mb-2">🥉</div>
-                  <div className="relative w-16 h-16 rounded-full overflow-hidden mb-3 border-2 border-orange-700">
-                    {leaderboard[2].avatarUrl ? (
-                      <Image
-                        src={leaderboard[2].avatarUrl}
-                        alt={leaderboard[2].username}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-r from-orange-800 to-orange-600 flex items-center justify-center">
-                        <span className="text-white text-xl font-bold">
-                          {leaderboard[2].username?.charAt(0) || "?"}
-                        </span>
-                      </div>
-                    )}
+                  <div className="relative mb-3">
+                    <UserAvatar
+                      user={leaderboard[2]}
+                      size="lg"
+                      className="border-2 border-orange-700"
+                    />
                   </div>
                   <p className="font-bold text-white text-sm truncate w-full">
                     {leaderboard[2].username}
@@ -209,22 +180,11 @@ export default function LeaderboardPage() {
                     <span className="text-gray-400 font-bold w-8 text-center">
                       #{index + 4}
                     </span>
-                    <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-gray-700">
-                      {player.avatarUrl ? (
-                        <Image
-                          src={player.avatarUrl}
-                          alt={player.username}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-r from-gray-700 to-gray-600 flex items-center justify-center">
-                          <span className="text-white text-lg font-bold">
-                            {player.username?.charAt(0) || "?"}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                    <UserAvatar
+                      user={player}
+                      size="md"
+                      className="border-2 border-gray-700"
+                    />
                     <div>
                       <p className="font-semibold text-white">{player.username}</p>
                       <p className="text-gray-400 text-sm">
