@@ -1,0 +1,27 @@
+// src/utils/countryFlags.js
+
+/**
+ * Get the flag emoji for a given country
+ * @param {string} country - Country name
+ * @returns {string} Flag emoji
+ */
+export const getCountryFlag = (country) => {
+    const flags = {
+        'Ghana': '🇬🇭',
+        'Nigeria': '🇳🇬',
+    };
+
+    return flags[country] || '🌍';
+};
+
+/**
+ * Get country info including flag and name
+ * @param {string} country - Country name
+ * @returns {object} Country info with flag and name
+ */
+export const getCountryInfo = (country) => {
+    return {
+        flag: getCountryFlag(country),
+        name: country || 'Unknown',
+    };
+};

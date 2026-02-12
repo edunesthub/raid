@@ -53,6 +53,7 @@ export default function ProfileCompletionPrompt({ hide }) {
     country: "Ghana",
     phone: "",
     bio: "",
+    dateOfBirth: "",
   });
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
@@ -81,6 +82,7 @@ export default function ProfileCompletionPrompt({ hide }) {
         country: user.country || "Ghana",
         phone: user.contact || user.phone || "",
         bio: user.bio || "",
+        dateOfBirth: user.dateOfBirth || "",
       });
       setAvatarPreview(user.avatarUrl || null);
       setOpen(true);
@@ -113,6 +115,16 @@ export default function ProfileCompletionPrompt({ hide }) {
     if (!form.username.trim()) return setError("Username is required");
     if (!form.firstName.trim() || !form.lastName.trim()) return setError("Add your first and last name");
     if (!form.country) return setError("Select your country");
+    if (!form.dateOfBirth) return setError("Enter your date of birth");
+    // Validate age (must be at least 13 years old)
+    const birthDate = new Date(form.dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    if (age < 13) return setError("You must be at least 13 years old");
     const formattedPhone = formatPhone(form.country, form.phone);
     if (!isPhoneValid(form.country, formattedPhone)) return setError(`Enter a valid ${form.country} phone number`);
     if (!form.bio.trim()) return setError("Add a short bio");
@@ -145,6 +157,7 @@ export default function ProfileCompletionPrompt({ hide }) {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         country: form.country,
+        dateOfBirth: form.dateOfBirth,
         contact: formattedPhone,
         phone: formattedPhone,
         bio: form.bio.trim(),
@@ -221,6 +234,19 @@ export default function ProfileCompletionPrompt({ hide }) {
                 <option key={c.value} value={c.value}>{c.label}</option>
               ))}
             </select>
+          </div>
+          <div>
+            <label className="block text-gray-300 text-sm mb-1">Date of Birth *</label>
+            <input
+              type="date"
+              name="dateOfBirth"
+              value={form.dateOfBirth}
+              onChange={handleChange}
+              max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
+              className="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-white focus:outline-none focus:border-orange-500"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">You must be at least 13 years old.</p>
           </div>
           <div>
             <label className="block text-gray-300 text-sm mb-1">Phone (SMS) *</label>

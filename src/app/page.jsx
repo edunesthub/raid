@@ -12,7 +12,7 @@ import { useEffect, useRef } from "react";
 export default function Home() {
   const { user, isLoading: authLoading } = useAuth();
   const { tournaments, loading: tournamentsLoading, error } = useFeaturedTournaments(4);
-  
+
   // Show loading spinner while auth is initializing
   const loading = authLoading || tournamentsLoading;
 
@@ -83,27 +83,27 @@ export default function Home() {
         <section className="mb-8">
           <h2 className="text-xl font-bold text-white mb-4">Ads</h2>
 
-         <div
-  ref={adsRef}
-  className="relative overflow-x-auto overflow-y-hidden w-full group scrollbar-hide"
->
-  <div className="ads-track gap-4 whitespace-nowrap animate-scroll-slow group-hover:pause-scroll">
-    {[...assets, ...assets].map((src, idx) => (
-      <Link
-        key={idx}
-        href={`/ads/${idx % assets.length}`}
-        className="shrink-0 w-64 h-40 relative rounded-lg overflow-hidden border border-gray-700"
-      >
-        <Image
-          src={src}
-          alt={`ad-${idx}`}
-          fill
-          className="object-cover"
-        />
-      </Link>
-    ))}
-  </div>
-</div>
+          <div
+            ref={adsRef}
+            className="relative overflow-x-auto overflow-y-hidden w-full group scrollbar-hide"
+          >
+            <div className="ads-track gap-4 whitespace-nowrap animate-scroll-slow group-hover:pause-scroll">
+              {[...assets, ...assets].map((src, idx) => (
+                <Link
+                  key={idx}
+                  href={`/ads/${idx % assets.length}`}
+                  className="shrink-0 w-64 h-40 relative rounded-lg overflow-hidden border border-gray-700"
+                >
+                  <Image
+                    src={src}
+                    alt={`ad-${idx}`}
+                    fill
+                    className="object-cover"
+                  />
+                </Link>
+              ))}
+            </div>
+          </div>
 
         </section>
 
@@ -134,16 +134,9 @@ export default function Home() {
 
           {!loading && !error && tournaments.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tournaments
-                .filter((t) => {
-                  const viewerCountry = user?.country?.toLowerCase?.();
-                  if (!viewerCountry || (viewerCountry !== "ghana" && viewerCountry !== "nigeria")) return true;
-                  const country = (t.country || t.region || "Ghana").toLowerCase();
-                  return country === viewerCountry;
-                })
-                .map((tournament) => (
-                  <TournamentCard key={tournament.id} tournament={tournament} />
-                ))}
+              {tournaments.map((tournament) => (
+                <TournamentCard key={tournament.id} tournament={tournament} />
+              ))}
             </div>
           )}
 

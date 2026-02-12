@@ -30,7 +30,7 @@ export default function TournamentsPage() {
 
   useEffect(() => {
     applyFilters();
-  }, [tournaments, filters, user?.country]);
+  }, [tournaments, filters]);
 
   const loadTournaments = async () => {
     try {
@@ -57,14 +57,6 @@ export default function TournamentsPage() {
 
   const applyFilters = () => {
     let filtered = [...tournaments];
-
-    const viewerCountry = user?.country?.toLowerCase?.();
-    if (viewerCountry === "ghana" || viewerCountry === "nigeria") {
-      filtered = filtered.filter((t) => {
-        const tournamentCountry = (t.country || t.region || "Ghana").toLowerCase();
-        return tournamentCountry === viewerCountry;
-      });
-    }
 
     // Hide completed tournaments by default
     if (filters.status === "completed") {

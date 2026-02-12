@@ -7,6 +7,7 @@ import { doc, getDoc, collection, query, where, getDocs, orderBy, limit } from '
 import { db } from '@/lib/firebase';
 import { ArrowLeft, Trophy, Award, Calendar, Mail, Phone, Star, TrendingUp, Target, Crown, Medal, Zap, Shield } from 'lucide-react';
 import Link from 'next/link';
+import { getCountryFlag } from '@/utils/countryFlags';
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -63,24 +64,24 @@ export default function UserProfilePage() {
       );
 
       const achievementsSnapshot = await getDocs(achievementsQuery);
-const achievementsList = await Promise.all(
-  achievementsSnapshot.docs.map(async (snap) => {
-    const data = snap.data();
-    const tournamentDoc = await getDoc(doc(db, 'tournaments', data.tournamentId));
+      const achievementsList = await Promise.all(
+        achievementsSnapshot.docs.map(async (snap) => {
+          const data = snap.data();
+          const tournamentDoc = await getDoc(doc(db, 'tournaments', data.tournamentId));
 
-    return {
-      placement: data.placement,
-      placementAt: data.placementAt,
-      tournament: tournamentDoc.exists()
-        ? {
-            id: tournamentDoc.id,
-            name: tournamentDoc.data().tournament_name,
-            game: tournamentDoc.data().game
-          }
-        : null
-    };
-  })
-);
+          return {
+            placement: data.placement,
+            placementAt: data.placementAt,
+            tournament: tournamentDoc.exists()
+              ? {
+                id: tournamentDoc.id,
+                name: tournamentDoc.data().tournament_name,
+                game: tournamentDoc.data().game
+              }
+              : null
+          };
+        })
+      );
 
 
       setAchievements(achievementsList.filter(a => a.tournament));
@@ -94,24 +95,24 @@ const achievementsList = await Promise.all(
       );
 
       const tournamentsSnapshot = await getDocs(tournamentsQuery);
-const tournamentsList = await Promise.all(
-  tournamentsSnapshot.docs.map(async (snap) => {
-    const data = snap.data();
-    const tournamentDoc = await getDoc(doc(db, 'tournaments', data.tournamentId));
+      const tournamentsList = await Promise.all(
+        tournamentsSnapshot.docs.map(async (snap) => {
+          const data = snap.data();
+          const tournamentDoc = await getDoc(doc(db, 'tournaments', data.tournamentId));
 
-    if (!tournamentDoc.exists()) return null;
+          if (!tournamentDoc.exists()) return null;
 
-    const tournamentData = tournamentDoc.data();
+          const tournamentData = tournamentDoc.data();
 
-    return {
-      id: tournamentDoc.id,
-      name: tournamentData.tournament_name,
-      game: tournamentData.game,
-      status: tournamentData.status,
-      placement: data.placement || null
-    };
-  })
-);
+          return {
+            id: tournamentDoc.id,
+            name: tournamentData.tournament_name,
+            game: tournamentData.game,
+            status: tournamentData.status,
+            placement: data.placement || null
+          };
+        })
+      );
 
 
       setRecentTournaments(tournamentsList.filter(t => t));
@@ -183,7 +184,7 @@ const tournamentsList = await Promise.all(
         {/* Profile Header Card */}
         <div className="card-raid p-6 sm:p-8 mb-6 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/5 to-orange-500/0"></div>
-          
+
           <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6">
             {/* Avatar */}
             <div className="relative">
@@ -211,11 +212,16 @@ const tournamentsList = await Promise.all(
                 <h1 className="text-3xl sm:text-4xl font-bold text-white">
                   {user.username || 'Unknown User'}
                 </h1>
+                {user.country && (
+                  <span className="text-3xl sm:text-4xl" title={user.country}>
+                    {getCountryFlag(user.country)}
+                  </span>
+                )}
                 {stats.tournamentsWon > 0 && (
                   <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" />
                 )}
               </div>
-              
+
               {(user.firstName || user.lastName) && (
                 <p className="text-xl text-gray-300 mb-4">
                   {user.firstName} {user.lastName}
@@ -300,7 +306,7 @@ const tournamentsList = await Promise.all(
                         <p className="text-white font-semibold text-xs truncate">{achievement.tournament.name}</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-400">{achievement.tournament.game}</span>
                       <span className="text-gray-500">
@@ -334,7 +340,7 @@ const tournamentsList = await Promise.all(
                       <h3 className="text-white font-semibold truncate mb-1">{tournament.name}</h3>
                       <p className="text-gray-400 text-sm">{tournament.game}</p>
                     </div>
-                    
+
                     <div className="flex items-center gap-3 ml-4">
                       {tournament.placement && (
                         <div className={`${getPlacementBadge(tournament.placement).bg} px-3 py-1 rounded-full border ${getPlacementBadge(tournament.placement).border}`}>
@@ -343,14 +349,13 @@ const tournamentsList = await Promise.all(
                           </span>
                         </div>
                       )}
-                      
-                      <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        tournament.status === 'completed' ? 'bg-gray-700 text-gray-300' :
+
+                      <div className={`px-3 py-1 rounded-full text-xs font-semibold ${tournament.status === 'completed' ? 'bg-gray-700 text-gray-300' :
                         tournament.status === 'live' ? 'bg-green-500/20 text-green-400 animate-pulse' :
-                        'bg-yellow-500/20 text-yellow-400'
-                      }`}>
+                          'bg-yellow-500/20 text-yellow-400'
+                        }`}>
                         {tournament.status === 'completed' ? '✓ Done' :
-                         tournament.status === 'live' ? '🔴 Live' : '⏰ Soon'}
+                          tournament.status === 'live' ? '🔴 Live' : '⏰ Soon'}
                       </div>
                     </div>
                   </div>

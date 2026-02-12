@@ -35,6 +35,7 @@ export default function SignupPage() {
     phone: "",
     bio: "",
     country: "Ghana",
+    dateOfBirth: "",
   });
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
@@ -221,6 +222,22 @@ export default function SignupPage() {
       setError("Please select your country");
       return false;
     }
+    if (!formData.dateOfBirth) {
+      setError("Please enter your date of birth");
+      return false;
+    }
+    // Validate age (must be at least 13 years old)
+    const birthDate = new Date(formData.dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    if (age < 13) {
+      setError("You must be at least 13 years old to sign up");
+      return false;
+    }
     const phone = formData.phone.trim();
     const country = formData.country || "Ghana";
     if (!isValidPhoneForCountry(country, phone)) {
@@ -334,6 +351,7 @@ export default function SignupPage() {
         lastName: formData.lastName.trim(),
         phone: formData.phone.trim(),
         country: formData.country || "Ghana",
+        dateOfBirth: formData.dateOfBirth,
         bio: formData.bio.trim(),
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -496,6 +514,19 @@ export default function SignupPage() {
                     <option value="Ghana">Ghana</option>
                     <option value="Nigeria">Nigeria</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">Date of Birth *</label>
+                  <input
+                    type="date"
+                    value={formData.dateOfBirth}
+                    onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    disabled={isLoading}
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">You must be at least 13 years old to sign up.</p>
                 </div>
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2">Phone Number (SMS-enabled) *</label>

@@ -20,6 +20,7 @@ export default function EditProfilePage() {
     email: '',
     bio: '',
     country: 'Ghana',
+    dateOfBirth: '',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -54,6 +55,7 @@ export default function EditProfilePage() {
             email: data.email || user.email || '',
             bio: data.bio || '',
             country: data.country || 'Ghana',
+            dateOfBirth: data.dateOfBirth || '',
           });
 
           // Set avatar if exists
@@ -145,6 +147,7 @@ export default function EditProfilePage() {
       email: formData.email?.trim() || user.email || "",
       bio: formData.bio?.trim() || user.bio || "",
       country: formData.country || user.country || "Ghana",
+      dateOfBirth: formData.dateOfBirth || user.dateOfBirth || "",
     };
 
     if (!safeFormData.username.trim()) {
@@ -201,6 +204,7 @@ export default function EditProfilePage() {
         email: safeFormData.email.trim(),
         bio: safeFormData.bio.trim(),
         country: safeFormData.country || 'Ghana',
+        dateOfBirth: safeFormData.dateOfBirth || '',
         updatedAt: new Date(),
       });
 
@@ -372,6 +376,20 @@ export default function EditProfilePage() {
               <option value="Ghana">Ghana</option>
               <option value="Nigeria">Nigeria</option>
             </select>
+          </div>
+
+          {/* Date of Birth */}
+          <div>
+            <label className="block text-sm text-gray-300 mb-2">Date of Birth</label>
+            <input
+              type="date"
+              name="dateOfBirth"
+              value={formData.dateOfBirth}
+              onChange={handleChange}
+              max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
+              className="w-full bg-gray-900 border border-orange-500 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-white placeholder-gray-400 transition"
+            />
+            <p className="text-xs text-gray-500 mt-1">You must be at least 13 years old.</p>
           </div>
 
           {/* Email */}
