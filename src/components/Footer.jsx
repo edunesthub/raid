@@ -14,7 +14,7 @@ export default function Footer() {
                         <span className="text-xl font-black text-white tracking-tighter">RAID ARENA</span>
                     </Link>
                     <p className="text-sm text-gray-500 max-w-xs">
-                        The ultimate esports platform for competitive gaming in Ghana & Nigeria. Join tournaments, build your team, and rise to glory.
+                        The ultimate esports platform for competitive gaming in Africa. Join tournaments, build your team, and rise to glory.
                     </p>
                     <div className="flex items-center gap-4 pt-2">
                         <a href="https://x.com/raidarena00" className="text-gray-500 hover:text-orange-500 transition-colors" target="_blank" rel="noopener noreferrer"><Twitter size={20} /></a>
