@@ -133,22 +133,9 @@ export default function EditProfilePage() {
     }
   };
 
-  const handleGenericAvatarSelect = async (url) => {
-    try {
-      setUploadingAvatar(true);
-      setAvatarUrl(url);
-      if (user?.id) {
-        const userRef = doc(db, 'users', user.id);
-        await updateDoc(userRef, { avatarUrl: url, updatedAt: new Date() });
-      }
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
-      console.error('Error selecting generic avatar:', err);
-      setError('Failed to update avatar.');
-    } finally {
-      setUploadingAvatar(false);
-    }
+  const handleGenericAvatarSelect = (url) => {
+    setAvatarUrl(url);
+    // Remove success message here, we save with handleSave
   };
 
   // Handle save
@@ -226,6 +213,7 @@ export default function EditProfilePage() {
         bio: safeFormData.bio.trim(),
         country: safeFormData.country || 'Ghana',
         dateOfBirth: safeFormData.dateOfBirth || '',
+        avatarUrl: avatarUrl || '', // Save the avatar URL here
         updatedAt: new Date(),
       });
 

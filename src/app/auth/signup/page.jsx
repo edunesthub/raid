@@ -335,21 +335,8 @@ export default function SignupPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       const user = userCredential.user;
 
-      await setDoc(doc(db, "users", user.uid), {
-        email: formData.email.toLowerCase().trim(),
-        username: formData.username.trim(),
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        phone: formData.phone.trim(),
-        country: formData.country || "Ghana",
-        dateOfBirth: formData.dateOfBirth,
-        bio: formData.bio.trim(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      // Upload avatar to Cloudinary (same flow as profile edit)
-      let avatarUrl = avatarPreview; // Default to the preview (generic url)
+      // Process avatar (upload or use generic)
+      let avatarUrl = avatarPreview;
 
       if (avatarFile) {
         try {
@@ -374,9 +361,19 @@ export default function SignupPage() {
         }
       }
 
-      // Save avatarUrl to user profile
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, { avatarUrl, updatedAt: new Date() });
+      await setDoc(doc(db, "users", user.uid), {
+        email: formData.email.toLowerCase().trim(),
+        username: formData.username.trim(),
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        phone: formData.phone.trim(),
+        country: formData.country || "Ghana",
+        dateOfBirth: formData.dateOfBirth,
+        bio: formData.bio.trim(),
+        avatarUrl: avatarUrl || '', // Save it here
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
       await setDoc(doc(db, "userStats", user.uid), {
         tournamentsPlayed: 0,
