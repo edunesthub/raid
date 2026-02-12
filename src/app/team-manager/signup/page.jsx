@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { registerManager } from "@/services/teamService";
-import { UserPlus, Mail, Lock, User, Shield, Users, Trophy, ArrowLeft } from "lucide-react";
+import { UserPlus, Mail, Lock, User, Shield, Users, Trophy, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -65,6 +65,13 @@ export default function TeamManagerSignupPage() {
 
                     <div className="bg-gray-900/40 backdrop-blur-2xl border border-gray-800/50 p-6 md:p-10 rounded-[2.5rem] shadow-[0_0_50px_rgba(249,115,22,0.05)] animate-fade-in relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500/20 to-transparent" />
+                        <button
+                            onClick={() => router.back()}
+                            className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-all z-20"
+                            aria-label="Close"
+                        >
+                            <X size={20} />
+                        </button>
                         <div className="flex items-center gap-3 mb-6">
                             <h2 className="text-xl font-black uppercase tracking-tighter">Registration</h2>
                         </div>

@@ -10,6 +10,17 @@ const countries = [
   { value: "Nigeria", label: "Nigeria" },
 ];
 
+const GENERIC_AVATARS = [
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Felix",
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Aneka",
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Midnight",
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Shadow",
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Destiny",
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Spark",
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Blade",
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Nova"
+];
+
 const formatPhone = (country, raw) => {
   const digits = (raw || "").replace(/\D+/g, "");
   if (country === "Nigeria") {
@@ -82,6 +93,11 @@ export default function ProfileCompletionPrompt({ hide }) {
     setAvatarPreview(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
   }, [avatarFile]);
+
+  const handleGenericAvatarSelect = (url) => {
+    setAvatarPreview(url);
+    setAvatarFile(null);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -256,7 +272,23 @@ export default function ProfileCompletionPrompt({ hide }) {
               onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
               disabled={saving || uploadingAvatar}
             />
-            <p className="text-xs text-gray-500">Upload a clear photo; required to continue.</p>
+
+            <div className="mt-4">
+              <p className="block text-gray-300 text-sm mb-2">Or choose a generic avatar:</p>
+              <div className="flex flex-wrap gap-2">
+                {GENERIC_AVATARS.map((url, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleGenericAvatarSelect(url)}
+                    className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all ${avatarPreview === url ? 'border-orange-500 scale-110 shadow-lg shadow-orange-500/20' : 'border-gray-700 hover:border-gray-500'}`}
+                  >
+                    <img src={url} alt={`Avatar ${idx + 1}`} className="w-full h-full object-cover bg-gray-800" />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">Upload a clear photo or select a generic one.</p>
           </div>
           <button
             type="submit"

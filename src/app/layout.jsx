@@ -7,20 +7,21 @@ import { Analytics } from "@vercel/analytics/next";
 import AppProviders from "./AppProviders";
 import PWAInstallPrompt from "../components/PWAInstallPrompt";
 import OfflineLoader from "../components/OfflineLoader";
-import UpdatePrompt from "@/components/UpdatePrompt"; 
+import UpdatePrompt from "@/components/UpdatePrompt";
 import ProfileCompletionPrompt from "@/components/ProfileCompletionPrompt";
 import BottomNav from "../components/BottomNav";
 import { usePathname } from "next/navigation";
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import Footer from "@/components/Footer";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
-  
+
   // Pages that should hide navigation and footer completely
-const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/auth/onboarding", "/admin/login"].includes(pathname) || pathname.startsWith("/admin") || pathname.includes("/tournament/") && pathname.endsWith("/chat");
+  const hideLayout = ["/welcome", "/auth/login", "/auth/signup", "/auth/onboarding", "/admin/login"].includes(pathname) || pathname.startsWith("/admin") || pathname.includes("/tournament/") && pathname.endsWith("/chat");
   return (
     <html lang="en" className="h-full">
       <head>
@@ -50,9 +51,9 @@ const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/auth/onboardin
           <div className="flex flex-col h-full min-h-screen">
             {/* Navigation - only show on regular pages */}
             {!hideLayout && <Navigation />}
-            
+
             {/* Main Content Area */}
-            <main 
+            <main
               className={`flex-1 ${!hideLayout ? 'pt-16 md:pt-16' : ''} ${!hideLayout ? 'pb-24 md:pb-4' : ''}`}
               style={{
                 paddingTop: hideLayout ? '0' : undefined,
@@ -61,18 +62,21 @@ const hideLayout = ["/welcome",  "/auth/login", "/auth/signup", "/auth/onboardin
             >
               {children}
             </main>
-            
+
+
+
             {/* Footer and Bottom Nav - only show on regular pages */}
             {!hideLayout && (
               <>
+                <Footer />
                 <div className="md:hidden">
                   <BottomNav />
                 </div>
               </>
             )}
           </div>
-          
-          <PWAInstallPrompt />
+
+          {/* <PWAInstallPrompt /> */}
           <UpdatePrompt />
           {!hideLayout && <ProfileCompletionPrompt hide={hideLayout} />}
           <OfflineLoader />

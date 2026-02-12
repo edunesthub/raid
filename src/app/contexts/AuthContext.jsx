@@ -2,14 +2,14 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { 
+import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   updateProfile
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 export const AuthContext = createContext(undefined);
@@ -20,30 +20,49 @@ export function AuthProvider({ children }) {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    let unsubscribeSnapshot = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      // Unsubscribe from previous snapshot listener if exists
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+        unsubscribeSnapshot = null;
+      }
+
       if (firebaseUser) {
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        const userData = userDoc.data();
-        
-        setUser({
-          id: firebaseUser.uid,
-          email: firebaseUser.email,
-          username: userData?.username || firebaseUser.email.split('@')[0],
-          contact: userData?.contact || userData?.phone || '',
-          phone: userData?.phone || userData?.contact || '',
-          bio: userData?.bio || '',
-          avatarUrl: firebaseUser.photoURL || userData?.avatarUrl,
-          country: userData?.country || 'Ghana',
-          firstName: userData?.firstName || firebaseUser.displayName?.split(' ')[0] || '',
-          lastName: userData?.lastName || firebaseUser.displayName?.split(' ')[1] || '',
+        // Set up real-time listener for user document
+        const userRef = doc(db, "users", firebaseUser.uid);
+        unsubscribeSnapshot = onSnapshot(userRef, (docSnapshot) => {
+          const userData = docSnapshot.data();
+
+          setUser({
+            id: firebaseUser.uid,
+            email: firebaseUser.email,
+            username: userData?.username || firebaseUser.email.split('@')[0],
+            contact: userData?.contact || userData?.phone || '',
+            phone: userData?.phone || userData?.contact || '',
+            bio: userData?.bio || '',
+            // Use Firestore avatarUrl if available, otherwise firebase photoURL
+            avatarUrl: userData?.avatarUrl || firebaseUser.photoURL,
+            country: userData?.country || 'Ghana',
+            firstName: userData?.firstName || firebaseUser.displayName?.split(' ')[0] || '',
+            lastName: userData?.lastName || firebaseUser.displayName?.split(' ')[1] || '',
+          });
+          setIsLoading(false);
+        }, (error) => {
+          console.error("Error fetching user profile:", error);
+          setIsLoading(false);
         });
       } else {
         setUser(null);
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+      unsubscribeAuth();
+    };
   }, []);
 
   const login = async (email, password) => {
@@ -51,7 +70,7 @@ export function AuthProvider({ children }) {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       // Navigate directly to home after login
-      router.replace("/"); 
+      router.replace("/");
     } catch (error) {
       throw new Error(error.message || "Invalid email or password");
     } finally {

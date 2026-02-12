@@ -111,6 +111,16 @@ export default function TeamManagerLoginPage() {
                             </button>
                         </form>
 
+                        <div className="mt-8 text-center bg-black/30 p-4 rounded-2xl border border-gray-800">
+                            <p className="text-gray-400 text-sm mb-2">New to the arena?</p>
+                            <Link
+                                href="/team-manager/signup"
+                                className="text-orange-500 font-bold hover:text-orange-400 flex items-center justify-center gap-1 transition-colors"
+                            >
+                                <ArrowRight size={14} /> Create Manager Account
+                            </Link>
+                        </div>
+
 
                         {message && (
                             <div className="mt-6 p-4 rounded-xl text-center text-sm bg-red-500/10 text-red-500 border border-red-500/20">

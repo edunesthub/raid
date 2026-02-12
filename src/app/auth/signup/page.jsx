@@ -7,8 +7,19 @@ import Link from "next/link";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle, X } from "lucide-react";
 import { authValidation } from "@/services/authValidation";
+
+const GENERIC_AVATARS = [
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Felix",
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Aneka",
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Midnight",
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Shadow",
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Destiny",
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Spark",
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Blade",
+  "https://api.dicebear.com/9.x/adventurer/svg?seed=Nova"
+];
 
 export default function SignupPage() {
   const router = useRouter();
@@ -27,12 +38,12 @@ export default function SignupPage() {
   });
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  
+
   const [emailChecking, setEmailChecking] = useState(false);
   const [emailAvailable, setEmailAvailable] = useState(null);
 
@@ -46,9 +57,9 @@ export default function SignupPage() {
   const handleEmailChange = (email) => {
     setFormData({ ...formData, email });
     setEmailAvailable(null);
-    
+
     if (window.emailCheckTimeout) clearTimeout(window.emailCheckTimeout);
-    
+
     window.emailCheckTimeout = setTimeout(() => {
       checkEmailAvailability(email);
     }, 800);
@@ -124,7 +135,10 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (!avatarFile) {
-      setAvatarPreview(null);
+      // If no file, keep the existing preview (which might be a generic URL)
+      // unless we want to clear it when file is removed? 
+      // Actually, if we setAvatarFile(null), we might want to keep the preview if it was a generic one.
+      // But if we are switching from file to nothing, we rely on the selection handler.
       return;
     }
 
@@ -135,6 +149,11 @@ export default function SignupPage() {
       URL.revokeObjectURL(objectUrl);
     };
   }, [avatarFile]);
+
+  const handleGenericAvatarSelect = (url) => {
+    setAvatarPreview(url);
+    setAvatarFile(null);
+  };
 
   const isValidPhoneForCountry = (country, phoneRaw) => {
     const phone = phoneRaw.trim();
@@ -218,45 +237,45 @@ export default function SignupPage() {
       setError("Please add a short bio");
       return false;
     }
-    if (!avatarFile) {
-      setError("Please upload a profile picture");
+    if (!avatarFile && !avatarPreview) {
+      setError("Please upload a profile picture or select a generic one");
       return false;
     }
     return true;
   };
   const validateForm = () => {
     setError("");
-        // First & Last Name required
-        if (!formData.firstName.trim() || !formData.lastName.trim()) {
-          setError("Please enter your first and last name");
-          return false;
-        }
+    // First & Last Name required
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      setError("Please enter your first and last name");
+      return false;
+    }
 
-        if (!formData.country) {
-          setError("Please select your country");
-          return false;
-        }
+    if (!formData.country) {
+      setError("Please select your country");
+      return false;
+    }
 
-        // Phone required and must match selected country
-        const phone = formData.phone.trim();
-        const country = formData.country || "Ghana";
-        if (!isValidPhoneForCountry(country, phone)) {
-          const example = country === "Nigeria" ? "08012345678 or 2348012345678" : "0241234567 or 233241234567";
-          setError(`Please enter a valid ${country} phone number (e.g., ${example})`);
-          return false;
-        }
+    // Phone required and must match selected country
+    const phone = formData.phone.trim();
+    const country = formData.country || "Ghana";
+    if (!isValidPhoneForCountry(country, phone)) {
+      const example = country === "Nigeria" ? "08012345678 or 2348012345678" : "0241234567 or 233241234567";
+      setError(`Please enter a valid ${country} phone number (e.g., ${example})`);
+      return false;
+    }
 
-        // Bio required
-        if (!formData.bio.trim()) {
-          setError("Please add a short bio");
-          return false;
-        }
+    // Bio required
+    if (!formData.bio.trim()) {
+      setError("Please add a short bio");
+      return false;
+    }
 
-        // Avatar required
-        if (!avatarFile) {
-          setError("Please upload a profile picture");
-          return false;
-        }
+    // Avatar required
+    if (!avatarFile && !avatarPreview) {
+      setError("Please upload a profile picture or select a generic one");
+      return false;
+    }
     if (!formData.email || !authValidation.validateEmailFormat(formData.email)) {
       setError("Please enter a valid email address");
       return false;
@@ -321,29 +340,34 @@ export default function SignupPage() {
       });
 
       // Upload avatar to Cloudinary (same flow as profile edit)
-      try {
-        const formDataCloud = new FormData();
-        formDataCloud.append('file', avatarFile);
-        formDataCloud.append('upload_preset', 'raid_avatars');
-        formDataCloud.append('folder', 'avatars');
+      let avatarUrl = avatarPreview; // Default to the preview (generic url)
 
-        const cloudName = 'drgz6qqo5';
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-          method: 'POST',
-          body: formDataCloud
-        });
-        const data = await res.json();
-        if (!data.secure_url) throw new Error('Failed to upload avatar');
+      if (avatarFile) {
+        try {
+          const formDataCloud = new FormData();
+          formDataCloud.append('file', avatarFile);
+          formDataCloud.append('upload_preset', 'raid_avatars');
+          formDataCloud.append('folder', 'avatars');
 
-        // Save avatarUrl to user profile
-        const userRef = doc(db, 'users', user.uid);
-        await updateDoc(userRef, { avatarUrl: data.secure_url, updatedAt: new Date() });
-      } catch (uploadErr) {
-        console.error('Error uploading avatar:', uploadErr);
-        setError(uploadErr.message || 'Failed to upload avatar. Please try again.');
-        setIsLoading(false);
-        return;
+          const cloudName = 'drgz6qqo5';
+          const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+            method: 'POST',
+            body: formDataCloud
+          });
+          const data = await res.json();
+          if (!data.secure_url) throw new Error('Failed to upload avatar');
+          avatarUrl = data.secure_url;
+        } catch (uploadErr) {
+          console.error('Error uploading avatar:', uploadErr);
+          setError(uploadErr.message || 'Failed to upload avatar. Please try again.');
+          setIsLoading(false);
+          return;
+        }
       }
+
+      // Save avatarUrl to user profile
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, { avatarUrl, updatedAt: new Date() });
 
       await setDoc(doc(db, "userStats", user.uid), {
         tournamentsPlayed: 0,
@@ -375,7 +399,14 @@ export default function SignupPage() {
           <p className="text-gray-400">Join Ghana &amp; Nigeria's premier esports platform</p>
         </div>
 
-        <div className="bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-sm border border-white/10 rounded-2xl p-8">
+        <div className="bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-sm border border-white/10 rounded-2xl p-8 relative">
+          <button
+            onClick={() => router.back()}
+            className="absolute top-4 right-4 p-2 bg-white/5 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-all z-20"
+            aria-label="Close"
+          >
+            <X size={20} />
+          </button>
           <div className="flex items-center justify-between mb-6">
             <div className="flex-1 h-1 bg-gray-700 rounded">
               <div className="h-1 bg-orange-500 rounded transition-all" style={{ width: `${(currentStep / totalSteps) * 100}%` }} />
@@ -510,12 +541,28 @@ export default function SignupPage() {
                     onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
                     className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
                     disabled={isLoading}
-                    required
+                  // Not required because we can choose generic
                   />
+
+                  <div className="mt-4">
+                    <p className="block text-gray-300 text-sm font-medium mb-2">Or choose a generic avatar:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {GENERIC_AVATARS.map((url, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleGenericAvatarSelect(url)}
+                          className={`w-12 h-12 rounded-full overflow-hidden border-2 transition-all ${avatarPreview === url ? 'border-orange-500 scale-110 shadow-lg shadow-orange-500/20' : 'border-gray-700 hover:border-gray-500'}`}
+                        >
+                          <img src={url} alt={`Avatar ${idx + 1}`} className="w-full h-full object-cover bg-gray-800" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 <div className="flex justify-between items-center pt-2">
                   <button type="button" onClick={() => setCurrentStep(2)} className="px-5 py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-white">Back</button>
-                  <button type="submit" disabled={isLoading || emailChecking || usernameChecking || emailAvailable === false || usernameAvailable === false || !formData.firstName.trim() || !formData.lastName.trim() || !formData.country || !formData.phone.trim() || !formData.bio.trim() || !avatarFile} className="px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                  <button type="submit" disabled={isLoading || emailChecking || usernameChecking || emailAvailable === false || usernameAvailable === false || !formData.firstName.trim() || !formData.lastName.trim() || !formData.country || !formData.phone.trim() || !formData.bio.trim() || (!avatarFile && !avatarPreview)} className="px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
                     {isLoading ? (<div className="flex items-center justify-center"><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Creating Account...</div>) : ("Create Account")}
                   </button>
                 </div>

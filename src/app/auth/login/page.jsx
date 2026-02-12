@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { X } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 
 const raid1Logo = "/assets/raid1.svg";
@@ -14,6 +16,7 @@ export default function LoginPage() {
   });
   const [error, setError] = useState("");
   const { login, isLoading } = useAuth();
+  const router = useRouter();
 
   const handleInputChange = (field, value) => {
     setFormData({
@@ -55,7 +58,14 @@ export default function LoginPage() {
           <p className="text-gray-400">Sign in to your account</p>
         </div>
 
-        <div className="card-raid p-8 bg-gray-800/50 rounded-lg border border-gray-700">
+        <div className="card-raid p-8 bg-gray-800/50 rounded-lg border border-gray-700 relative">
+          <button
+            onClick={() => router.back()}
+            className="absolute top-4 right-4 p-2 bg-white/5 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-all z-20"
+            aria-label="Close"
+          >
+            <X size={20} />
+          </button>
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <div className="bg-red-600/10 border border-red-600/30 rounded-lg p-3">
@@ -96,9 +106,8 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition-colors ${
-                isLoading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition-colors ${isLoading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">

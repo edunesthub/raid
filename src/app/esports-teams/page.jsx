@@ -2,7 +2,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { getTeams } from "@/services/teamService";
-import { Users, Info, Trophy, UserCircle, Shield, Briefcase } from "lucide-react";
+import { Users, Info, Trophy, UserCircle, Shield, Briefcase, UserPlus } from "lucide-react";
 import { userService } from "@/services/userService";
 import Link from "next/link";
 import TeamDetailsModal from "@/components/TeamDetailsModal";
@@ -51,14 +51,25 @@ export default function EsportsTeamsPage() {
 
       <div className="max-w-7xl mx-auto relative">
         <div className="flex flex-col items-center mb-10 space-y-4 text-center">
-          <Link
-            href="/team-manager/login"
-            className="group/link flex items-center gap-2 px-4 py-2 bg-orange-500/10 border border-orange-500/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-orange-400 hover:text-orange-300 hover:border-orange-500/40 hover:bg-orange-500/20 transition-all mb-4 shadow-lg shadow-orange-500/5 hover:scale-105 active:scale-95"
-          >
-            <Briefcase size={14} className="animate-pulse" />
-            <span>Access Manager Portal</span>
-            <span className="group-hover/link:translate-x-1 transition-transform">→</span>
-          </Link>
+          <div className="flex flex-wrap justify-center gap-3 mb-4">
+            <Link
+              href="/team-manager/login"
+              className="group/link flex items-center gap-2 px-4 py-2 bg-orange-500/10 border border-orange-500/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-orange-400 hover:text-orange-300 hover:border-orange-500/40 hover:bg-orange-500/20 transition-all shadow-lg shadow-orange-500/5 hover:scale-105 active:scale-95"
+            >
+              <Briefcase size={14} className="animate-pulse" />
+              <span>Access Manager Portal</span>
+              <span className="group-hover/link:translate-x-1 transition-transform">→</span>
+            </Link>
+
+            <Link
+              href="/team-manager/signup"
+              className="group/link flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 hover:text-blue-300 hover:border-blue-500/40 hover:bg-blue-500/20 transition-all shadow-lg shadow-blue-500/5 hover:scale-105 active:scale-95"
+            >
+              <UserPlus size={14} className="animate-pulse" />
+              <span>Register Team</span>
+              <span className="group-hover/link:translate-x-1 transition-transform">→</span>
+            </Link>
+          </div>
           <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white">
             eSports <span className="text-orange-500">Teams</span>
           </h1>
