@@ -21,6 +21,7 @@ import {
 import useAdminAuth from "./hooks/useAdminAuth";
 import Dashboard from "./components/Dashboard";
 import TournamentManagement from "./components/TournamentManagement";
+import LeagueManagement from "./components/LeagueManagement";
 import UserManagement from "./components/UserManagement";
 import ResultsVerification from './components/ResultsVerification';
 import ResultsManagement from './components/ResultsManagement';
@@ -44,6 +45,7 @@ export default function AdminPortal() {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "tournaments", label: "Tournaments", icon: Trophy },
+    { id: "leagues", label: "Leagues", icon: Award },
     { id: "activity", label: "Activity", icon: ClipboardCheck },
     { id: "results-management", label: "Bracket Results", icon: Gamepad2 },
     { id: "non-bracket-results", label: "Battle Royale", icon: Award },
@@ -115,6 +117,7 @@ export default function AdminPortal() {
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
         {activeTab === "dashboard" && <Dashboard />}
         {activeTab === "tournaments" && <TournamentManagement />}
+        {activeTab === "leagues" && <LeagueManagement />}
         {activeTab === "activity" && <AdminActivity />}
         {activeTab === "results-management" && <ResultsManagement />}
         {activeTab === "non-bracket-results" && <NonBracketResults />}

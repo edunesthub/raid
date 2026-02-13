@@ -9,6 +9,7 @@ import {
     Play,
     Info,
     ChevronRight,
+    ChevronLeft,
     Gamepad2,
     Clock,
     TrendingUp,
@@ -18,8 +19,10 @@ import {
     FileText,
     ArrowRight
 } from 'lucide-react';
+import { db } from "@/lib/firebase";
+import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
 
-// --- Mock Data ---
+// --- Mock Data (Fallbacks) ---
 const mockLeagueStandings = [
     { id: 1, team: "Super Strikers", tag: "SS", country: "GH", p: 12, w: 9, d: 2, l: 1, gd: 15, pts: 29, form: ['W', 'W', 'W', 'D', 'W'] },
     { id: 2, team: "Cyber Warriors", tag: "CW", country: "NG", p: 12, w: 8, d: 3, l: 1, gd: 12, pts: 27, form: ['W', 'L', 'W', 'W', 'D'] },
@@ -45,11 +48,16 @@ const mockMatches = [
 // --- Sub-components ---
 
 const FlagEmoji = ({ countryCode }) => {
-    const codePoints = countryCode
-        .toUpperCase()
-        .split('')
-        .map(char => 127397 + char.charCodeAt(0));
-    return <span className="mr-1.5 md:mr-2 text-xs md:text-base">{String.fromCodePoint(...codePoints)}</span>;
+    if (!countryCode) return null;
+    try {
+        const codePoints = countryCode
+            .toUpperCase()
+            .split('')
+            .map(char => 127397 + char.charCodeAt(0));
+        return <span className="mr-1.5 md:mr-2 text-xs md:text-base">{String.fromCodePoint(...codePoints)}</span>;
+    } catch (e) {
+        return null;
+    }
 };
 
 const FormBadge = ({ result }) => {
@@ -66,8 +74,15 @@ const FormBadge = ({ result }) => {
 };
 
 export default function LeaguesPage() {
-    const [activeTab, setActiveTab] = useState('overview');
-    const [activeRound, setActiveRound] = useState('Round 13');
+    const [view, setView] = React.useState('list'); // 'list' or 'details'
+    const [activeTab, setActiveTab] = React.useState('overview');
+    const [activeRound, setActiveRound] = React.useState('Round 1');
+    const [leagueList, setLeagueList] = React.useState([]);
+    const [leagueInfo, setLeagueInfo] = React.useState(null);
+    const [standings, setStandings] = React.useState([]);
+    const [matches, setMatches] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [detailsLoading, setDetailsLoading] = React.useState(false);
 
     const tabs = [
         { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={18} /> },
@@ -76,18 +91,148 @@ export default function LeaguesPage() {
         { id: 'results', label: 'Results', icon: <History size={18} /> },
     ];
 
-    const rounds = ["Round 11", "Round 12", "Round 13", "Round 14"];
+    React.useEffect(() => {
+        const fetchLeagues = async () => {
+            try {
+                setLoading(true);
+                const q = query(collection(db, "league_seasons"), orderBy("created_at", "desc"));
+                const snapshot = await getDocs(q);
+                const leagues = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setLeagueList(leagues);
+            } catch (error) {
+                console.error("Error fetching leagues:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchLeagues();
+    }, []);
+
+    const handleSelectLeague = async (league) => {
+        try {
+            setDetailsLoading(true);
+            setLeagueInfo(league);
+            setView('details');
+            setActiveTab('overview');
+
+            // Fetch Standings
+            const standingsQ = query(collection(db, "league_standings"), where("league_id", "==", league.id), orderBy("pts", "desc"));
+            const standingsSnap = await getDocs(standingsQ);
+            setStandings(standingsSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+
+            // Fetch Matches
+            const matchesQ = query(collection(db, "league_matches"), where("league_id", "==", league.id), orderBy("time", "asc"));
+            const matchesSnap = await getDocs(matchesQ);
+            const matchesData = matchesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setMatches(matchesData);
+
+            if (matchesData.length > 0) {
+                const lastCompletedRound = matchesData.filter(m => m.completed).pop()?.round;
+                if (lastCompletedRound) setActiveRound(lastCompletedRound);
+                else setActiveRound(matchesData[0].round);
+            }
+        } catch (error) {
+            console.error("Error loading league details:", error);
+        } finally {
+            setDetailsLoading(false);
+        }
+    };
+
+    const allRounds = Array.from(new Set(matches.map(m => m.round))).sort((a, b) => {
+        const nrA = parseInt(a.replace(/\D/g, '')) || 0;
+        const nrB = parseInt(b.replace(/\D/g, '')) || 0;
+        return nrA - nrB;
+    });
+
+    const rounds = allRounds.length > 0 ? allRounds : ["Round 1"];
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center gap-4">
+                <div className="w-12 h-12 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin" />
+                <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] animate-pulse">Synchronizing Data</span>
+            </div>
+        );
+    }
+
+    if (view === 'list') {
+        return (
+            <div className="h-[100dvh] bg-[#050505] flex flex-col overflow-hidden">
+                <div className="flex-none pt-24 pb-8 px-6 bg-gradient-to-b from-orange-500/10 to-transparent">
+                    <h1 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter mb-4">
+                        All <span className="text-orange-500">Leagues</span>
+                    </h1>
+                    <p className="text-gray-500 text-sm md:text-base font-bold uppercase tracking-widest">Select a league to view standings, fixtures and results</p>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-6 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 scrollbar-hide">
+                    {leagueList.map((league) => (
+                        <div
+                            key={league.id}
+                            onClick={() => handleSelectLeague(league)}
+                            className="group relative bg-[#0a0a0a] border border-white/5 rounded-3xl p-6 hover:border-orange-500/50 transition-all cursor-pointer overflow-hidden"
+                        >
+                            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <Trophy size={80} className="text-orange-500" />
+                            </div>
+                            <div className="relative z-10 space-y-4">
+                                <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition-all">
+                                    <Trophy size={24} className="text-orange-500 group-hover:text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-white uppercase tracking-tight">{league.name}</h3>
+                                    <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">{league.season}</p>
+                                </div>
+                                <div className="pt-4 flex items-center justify-between border-t border-white/5">
+                                    <div className="flex flex-col">
+                                        <span className="text-[8px] font-black text-gray-600 uppercase">Prize Pool</span>
+                                        <span className="text-sm font-bold text-orange-500">{league.prize_pool}</span>
+                                    </div>
+                                    <div className="flex flex-col items-end text-right">
+                                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Entry Close</span>
+                                        <span className="text-[10px] font-bold text-white">{league.start_date}</span>
+                                    </div>
+                                </div>
+                                <div className="pt-2 flex items-center gap-2 text-[9px] font-black text-white/40 uppercase tracking-widest group-hover:text-orange-500 transition-colors">
+                                    View Details <ArrowRight size={12} />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    if (detailsLoading) {
+        return (
+            <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center gap-4">
+                <div className="w-12 h-12 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin" />
+                <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] animate-pulse">Fetching Details</span>
+            </div>
+        );
+    }
 
     return (
-        <div className="min-h-screen bg-[#050505] overflow-x-hidden">
-            {/* --- Expanded Hero Section --- */}
-            <div className="relative pt-6 md:pt-12 pb-8 md:pb-14 bg-gradient-to-b from-orange-500/10 to-transparent border-b border-white/5">
+        <div className="h-[100dvh] bg-[#050505] flex flex-col overflow-hidden">
+            {/* --- Back Button --- */}
+            <div className="fixed top-20 left-4 z-[60] md:left-8">
+                <button
+                    onClick={() => setView('list')}
+                    className="flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-full text-white font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all"
+                >
+                    <ChevronLeft size={16} /> Back
+                </button>
+            </div>
+
+            {/* --- Compact Hero Section --- */}
+            <div className="flex-none pt-20 pb-4 md:pb-8 bg-gradient-to-b from-orange-500/10 to-transparent border-b border-white/5 relative z-10">
                 <div className="px-4 md:px-8 max-w-full">
                     <div className="flex items-center gap-6 md:gap-16">
                         {/* Compact Poster Left */}
-                        <div className="relative w-28 h-36 md:w-56 md:h-72 flex-shrink-0">
-                            <div className="absolute inset-0 bg-orange-500/40 blur-3xl rounded-xl" />
-                            <div className="relative w-full h-full rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,140,0,0.2)]">
+                        <div className="relative w-20 h-28 md:w-40 md:h-52 flex-shrink-0">
+                            <div className="absolute inset-0 bg-orange-500/40 blur-2xl rounded-xl" />
+                            <div className="relative w-full h-full rounded-xl overflow-hidden border border-white/10 shadow-[0_0_30px_rgba(255,140,0,0.15)]">
                                 <Image
                                     src="/assets/league-banner.png"
                                     alt="League Banner"
@@ -98,30 +243,31 @@ export default function LeaguesPage() {
                             </div>
                         </div>
 
-                        {/* Titles Right */}
-                        <div className="flex flex-col gap-2 md:gap-6 flex-1 min-w-0 font-black">
-                            <div className="space-y-1">
-                                <span className="text-[10px] md:text-sm text-orange-500 uppercase tracking-[0.4em] font-black block">
-                                    Pro Series • Season 1
-                                </span>
-                                <h1 className="text-2xl md:text-8xl text-white leading-[0.95] uppercase tracking-tighter">
-                                    Elite African <br className="hidden md:block" />
-                                    <span className="text-orange-500">Pro Series</span>
-                                </h1>
+                        {/* Top Identity Info */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-4 md:mb-6">
+                                <div className="w-8 h-8 md:w-12 md:h-12 rounded-lg bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
+                                    <Trophy size={16} className="md:w-6 md:h-6" />
+                                </div>
+                                <div className="min-w-0">
+                                    <h1 className="text-xl md:text-5xl font-black text-white italic uppercase tracking-tighter leading-none truncate">
+                                        {leagueInfo?.name || "League"}
+                                    </h1>
+                                    <div className="flex items-center gap-1.5 mt-2 text-orange-500 font-black text-[10px] md:text-sm uppercase tracking-widest italic">
+                                        <Calendar size={12} />
+                                        <span>{leagueInfo?.season || "2026"}</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-4 md:gap-10">
-                                <div className="flex items-center gap-2 text-gray-400">
-                                    <Calendar className="w-4 h-4 text-orange-500" />
-                                    <span className="text-[10px] md:text-base uppercase tracking-widest font-black">Feb 10 - Mar 25</span>
+                            <div className="flex flex-wrap gap-3 md:gap-8 border-t border-white/5 pt-3 md:pt-6">
+                                <div className="flex items-center gap-1.5 text-gray-400">
+                                    <Trophy className="w-3 h-3 text-orange-500" />
+                                    <span className="text-[9px] md:text-base uppercase tracking-widest font-black">{leagueInfo?.prize_pool}</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-gray-400">
-                                    <Trophy className="w-4 h-4 text-orange-500" />
-                                    <span className="text-[10px] md:text-base uppercase tracking-widest font-black">₵50K Pool</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-gray-400">
-                                    <Users className="w-4 h-4 text-orange-500" />
-                                    <span className="text-[10px] md:text-base uppercase tracking-widest font-black">32 Teams</span>
+                                <div className="flex items-center gap-1.5 text-gray-400">
+                                    <Users className="w-3 h-3 text-orange-500" />
+                                    <span className="text-[9px] md:text-base uppercase tracking-widest font-black">{leagueInfo?.team_count} Teams</span>
                                 </div>
                             </div>
                         </div>
@@ -130,17 +276,17 @@ export default function LeaguesPage() {
             </div>
 
             {/* --- Navigation Tabs --- */}
-            <div className="sticky top-16 z-40 bg-[#050505] border-b border-white/5 mx-[-1px]">
+            <div className="flex-none bg-[#050505] border-b border-white/5">
                 <div className="w-full px-2">
-                    <div className="grid grid-cols-4 gap-1 md:gap-2 py-3">
+                    <div className="grid grid-cols-4 gap-1 py-3">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`
-                                    flex items-center justify-center px-1 py-2.5 md:py-3 rounded-full transition-all duration-300 font-black text-[9px] md:text-xs lg:text-sm uppercase tracking-tighter md:tracking-wider
+                                    flex items-center justify-center px-1 py-2.5 rounded-full transition-all duration-300 font-black text-[9px] uppercase tracking-tighter
                                     ${activeTab === tab.id
-                                        ? 'bg-orange-500 text-white'
+                                        ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/10'
                                         : 'bg-white/5 text-gray-500 hover:text-white'
                                     }
                                 `}
@@ -152,58 +298,49 @@ export default function LeaguesPage() {
                 </div>
             </div>
 
-            {/* --- Main Content Area --- */}
-            <div className="md:container-mobile pt-6 md:pt-0 md:mt-8">
+            {/* --- Scrollable Main Content Area --- */}
+            <div className="flex-1 overflow-y-auto md:container-mobile pb-24 pt-2">
 
-                {/* 1. STANDING VIEW */}
+                {/* 1. STANDINGS VIEW */}
                 {activeTab === 'standing' && (
                     <div className="animate-in fade-in duration-500">
-                        <div className="bg-[#0a0a0a] md:bg-gray-900/40 md:border md:border-white/5 md:rounded-3xl overflow-hidden">
+                        <div className="bg-[#0a0a0a] border-y border-white/5 overflow-hidden">
                             <table className="w-full text-left table-fixed">
                                 <thead>
                                     <tr className="bg-white/5 border-b border-white/5">
-                                        <th className="px-1 py-4 text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-tighter md:tracking-widest text-center w-[25px] md:w-[45px]">#</th>
-                                        <th className="px-1 py-4 text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-tighter md:tracking-widest">Team</th>
-                                        <th className="px-1 py-4 text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-tighter md:tracking-widest text-center w-[20px] md:w-16">P</th>
-                                        <th className="px-1 py-4 text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[35px] md:w-20">W-L</th>
-                                        <th className="px-1 py-4 text-[8px] md:text-[10px] font-black text-orange-500 uppercase tracking-widest text-center w-[24px] md:w-14">Pts</th>
-                                        <th className="px-1 py-4 text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[75px] md:w-[160px]">Form</th>
+                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[25px]">#</th>
+                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter">Team</th>
+                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[22px]">P</th>
+                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[38px]">W-L</th>
+                                        <th className="px-1 py-3 text-[8px] font-black text-orange-500 uppercase tracking-tighter text-center w-[25px]">Pts</th>
+                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[75px]">Form</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/[0.03]">
-                                    {mockLeagueStandings.map((team, idx) => (
-                                        <tr
-                                            key={team.id}
-                                            className="active:bg-white/10 transition-colors group"
-                                        >
-                                            <td className="px-1 py-4 text-center">
+                                    {standings.map((team, idx) => (
+                                        <tr key={team.id || idx} className="active:bg-white/10 transition-colors">
+                                            <td className="py-4 text-center">
                                                 <div className="flex items-center justify-center">
-                                                    <div className={`w-0.5 h-3 rounded-full mr-1 
-                                                            ${idx < 4 ? 'bg-orange-500' : idx >= mockLeagueStandings.length - 2 ? 'bg-red-500' : 'bg-transparent'}
-                                                        `} />
-                                                    <span className={`text-[10px] md:text-sm font-black 
-                                                            ${idx < 4 ? 'text-orange-500' : idx >= mockLeagueStandings.length - 2 ? 'text-red-400' : 'text-gray-500'}
-                                                        `}>
-                                                        {idx + 1}
-                                                    </span>
+                                                    <div className={`w-0.5 h-3 rounded-full mr-1 ${idx < 4 ? 'bg-orange-500' : idx >= mockLeagueStandings.length - 2 ? 'bg-red-500' : 'bg-transparent'}`} />
+                                                    <span className={`text-[10px] font-black ${idx < 4 ? 'text-orange-500' : idx >= mockLeagueStandings.length - 2 ? 'text-red-400' : 'text-gray-500'}`}>{idx + 1}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-1 py-4 min-w-0">
+                                            <td className="py-4 min-w-0 pr-1">
                                                 <div className="flex items-center gap-1 min-w-0">
                                                     <FlagEmoji countryCode={team.country} />
-                                                    <span className="font-bold text-white text-[11px] md:text-base truncate">
-                                                        {team.team}
-                                                    </span>
+                                                    <span className="font-bold text-white text-[11px] truncate tracking-tight uppercase">{team.team}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-1 py-4 text-center font-bold text-gray-400 text-[10px] md:text-sm">{team.p}</td>
-                                            <td className="px-1 py-4 text-center text-[10px] md:text-sm font-semibold text-gray-500">
-                                                {team.w}-{team.l}
-                                            </td>
-                                            <td className="px-1 py-4 text-center font-black text-white text-[10px] md:text-base bg-orange-500/[0.02]">{team.pts}</td>
-                                            <td className="px-1 py-4">
+                                            <td className="py-4 text-center font-bold text-gray-400 text-[10px]">{team.p}</td>
+                                            <td className="py-4 text-center text-[10px] font-semibold text-gray-500">{team.w}-{team.l}</td>
+                                            <td className="py-4 text-center font-black text-white text-[10px] bg-orange-500/[0.02]">{team.pts}</td>
+                                            <td className="py-4">
                                                 <div className="flex items-center justify-center gap-0.5">
-                                                    {team.form.map((res, i) => <FormBadge key={i} result={res} />)}
+                                                    {team.form && team.form.length > 0 ? (
+                                                        team.form.map((res, i) => <FormBadge key={i} result={res} />)
+                                                    ) : (
+                                                        <span className="text-[10px] font-bold text-gray-700">-</span>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
@@ -212,14 +349,14 @@ export default function LeaguesPage() {
                             </table>
                         </div>
 
-                        <div className="p-4 md:px-0 space-y-2">
+                        <div className="p-4 space-y-2">
                             <div className="flex items-center gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Seeds 1-4: Championship Qualifier</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
+                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Seeds 1-4: Championship Qualifier</span>
                             </div>
                             <div className="flex items-center gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Seeds 7-8: Relegation Zone</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Seeds 7-8: Relegation Zone</span>
                             </div>
                         </div>
                     </div>
@@ -228,20 +365,14 @@ export default function LeaguesPage() {
                 {/* 2. FIXTURES & RESULTS VIEW */}
                 {(activeTab === 'fixtures' || activeTab === 'results') && (
                     <div className="animate-in fade-in duration-500">
-                        {/* Round Switcher - Fixed Grid (Native App Feel) */}
-                        <div className="sticky top-[108px] z-30 bg-[#050505]/95 backdrop-blur-md border-b border-white/5">
+                        {/* Round Switcher */}
+                        <div className="relative z-30 bg-[#050505] border-b border-white/5">
                             <div className="grid grid-cols-4 gap-1 p-2">
                                 {rounds.map((round, idx) => (
                                     <button
                                         key={round}
                                         onClick={() => setActiveRound(round)}
-                                        className={`
-                                            py-2 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all border
-                                            ${activeRound === round
-                                                ? 'bg-white text-black border-white'
-                                                : 'bg-white/5 text-gray-500 border-transparent active:bg-white/10'
-                                            }
-                                        `}
+                                        className={`py-2 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all border ${activeRound === round ? 'bg-white text-black border-white' : 'bg-white/5 text-gray-500 border-transparent active:bg-white/10'}`}
                                     >
                                         R{idx + 1}
                                     </button>
@@ -249,60 +380,63 @@ export default function LeaguesPage() {
                             </div>
                         </div>
 
-                        {/* Matches List - High Density */}
                         <div className="py-2">
                             <div className="bg-[#0a0a0a] border-y border-white/5 divide-y divide-white/[0.03]">
-                                {mockMatches
+                                {matches
                                     .filter(m => m.round === activeRound && (activeTab === 'fixtures' ? !m.completed : m.completed))
-                                    .map(match => (
-                                        <div key={match.id} className="p-3 flex items-center gap-3 hover:bg-white/[0.02] active:bg-white/5 transition-all w-full min-w-0">
-                                            {/* Time Column */}
-                                            <div className="w-10 flex flex-col items-start justify-center flex-shrink-0">
-                                                <span className={`text-[10px] font-black uppercase ${match.completed ? 'text-gray-500' : 'text-orange-500'}`}>
-                                                    {match.completed ? 'FT' : match.time.split(',')[1]?.trim() || 'TBD'}
-                                                </span>
-                                                <span className="text-[7px] font-bold text-gray-600 uppercase tracking-tighter">
-                                                    {match.time.split(',')[0].slice(0, 3)}
-                                                </span>
-                                            </div>
+                                    .map(match => {
+                                        let displayTime = 'TBD';
+                                        let displayDay = 'TBD';
 
-                                            {/* Teams Column - Cramped with truncation */}
-                                            <div className="flex-1 min-w-0 border-l border-white/5 pl-3 space-y-1.5">
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <div className="flex items-center gap-2 min-w-0">
-                                                        <div className="w-4 h-4 rounded-[3px] bg-white/5 flex items-center justify-center text-[7px] font-black text-white border border-white/10 flex-shrink-0">
-                                                            {match.team1[0]}
-                                                        </div>
-                                                        <span className="text-[11px] font-extrabold text-white uppercase truncate tracking-tight">{match.team1}</span>
-                                                    </div>
-                                                    {match.completed && <span className="text-[11px] font-black text-white flex-shrink-0">{match.score1}</span>}
-                                                </div>
-                                                <div className="flex items-center justify-between gap-2 mt-0.5">
-                                                    <div className="flex items-center gap-2 min-w-0">
-                                                        <div className="w-4 h-4 rounded-[3px] bg-white/5 flex items-center justify-center text-[7px] font-black text-white border border-white/10 flex-shrink-0">
-                                                            {match.team2[0]}
-                                                        </div>
-                                                        <span className="text-[11px] font-extrabold text-white uppercase truncate tracking-tight">{match.team2}</span>
-                                                    </div>
-                                                    {match.completed && <span className="text-[11px] font-black text-white flex-shrink-0">{match.score2}</span>}
-                                                </div>
-                                            </div>
+                                        if (match.time && match.time !== 'TBD') {
+                                            // Handle potential ISO format or fallback to text
+                                            if (match.time.includes('T') && !match.time.includes(',') && !match.time.includes(' ')) {
+                                                try {
+                                                    const date = new Date(match.time);
+                                                    // Check if valid date
+                                                    if (!isNaN(date.getTime())) {
+                                                        displayTime = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'UTC' }) + ' GMT';
+                                                        displayDay = date.toLocaleDateString([], { month: 'short', day: 'numeric' }).toUpperCase();
+                                                    }
+                                                } catch (e) { /* ignore invalid dates */ }
+                                            } else {
+                                                // Old format: "Saturday, 14:00"
+                                                const parts = match.time.split(',');
+                                                if (parts.length > 1) {
+                                                    displayTime = parts[1]?.trim();
+                                                    displayDay = parts[0]?.slice(0, 3).toUpperCase();
+                                                }
+                                            }
+                                        }
 
-                                            {/* Action Visual */}
-                                            <div className="flex-shrink-0">
-                                                {!match.completed ? (
-                                                    <div className="w-7 h-5 rounded-[4px] bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
-                                                        <span className="text-[8px] font-black text-orange-500 italic">VS</span>
+                                        return (
+                                            <div key={match.id} className="p-3 flex items-center gap-3 active:bg-white/5 transition-all group">
+                                                <div className="w-10 flex flex-col items-center justify-center flex-shrink-0 text-center gap-0.5">
+                                                    <span className="text-[10px] font-black text-white uppercase tracking-tighter leading-none">{displayDay}</span>
+                                                    <span className={`text-[9px] font-bold uppercase tracking-wide leading-none ${match.completed ? 'text-gray-500' : 'text-orange-500'}`}>{match.completed ? 'FT' : displayTime}</span>
+                                                </div>
+                                                <div className="flex-1 min-w-0 border-l border-white/5 pl-3 space-y-1.5">
+                                                    <div className="flex items-center justify-between gap-2 overflow-hidden">
+                                                        <span className="text-[10px] font-bold text-gray-300 uppercase truncate tracking-tight group-hover:text-white transition-colors">{match.team1}</span>
+                                                        {match.completed && <span className="text-[10px] font-black text-white bg-white/5 px-1.5 rounded">{match.score1}</span>}
                                                     </div>
-                                                ) : (
-                                                    <ChevronRight size={12} className="text-gray-800" />
+                                                    <div className="flex items-center justify-between gap-2 overflow-hidden">
+                                                        <span className="text-[10px] font-bold text-gray-300 uppercase truncate tracking-tight group-hover:text-white transition-colors">{match.team2}</span>
+                                                        {match.completed && <span className="text-[10px] font-black text-white bg-white/5 px-1.5 rounded">{match.score2}</span>}
+                                                    </div>
+                                                </div>
+                                                {!match.completed && (
+                                                    <div className="flex-shrink-0 pl-2">
+                                                        <div className="w-6 h-6 rounded-full bg-orange-500/5 group-hover:bg-orange-500/10 border border-orange-500/10 group-hover:border-orange-500/30 flex items-center justify-center transition-all">
+                                                            <span className="text-[8px] font-black text-orange-500 group-hover:scale-110 transition-transform">VS</span>
+                                                        </div>
+                                                    </div>
                                                 )}
                                             </div>
-                                        </div>
-                                    ))}
-
-                                {mockMatches.filter(m => m.round === activeRound && (activeTab === 'fixtures' ? !m.completed : m.completed)).length === 0 && (
-                                    <div className="py-16 flex flex-col items-center justify-center text-gray-800 gap-2 opacity-30">
+                                        );
+                                    })}
+                                {matches.filter(m => m.round === activeRound && (activeTab === 'fixtures' ? !m.completed : m.completed)).length === 0 && (
+                                    <div className="py-16 flex flex-col items-center justify-center text-gray-800 opacity-30 gap-2">
                                         <Clock size={32} />
                                         <span className="text-[9px] font-black uppercase tracking-[0.2em]">No Schedule</span>
                                     </div>
@@ -312,12 +446,11 @@ export default function LeaguesPage() {
                     </div>
                 )}
 
-                {/* 3. OVERVIEW VIEW (LiveScore Style) */}
+                {/* 3. OVERVIEW VIEW */}
                 {activeTab === 'overview' && (
-                    <div className="animate-in fade-in duration-700 px-4 md:px-0 space-y-8 pb-0">
-
-                        {/* League Identity Section (Moved to Top) */}
-                        <div className="space-y-4">
+                    <div className="animate-in fade-in duration-700 space-y-8 pb-8">
+                        {/* League Identity */}
+                        <div className="px-4 space-y-4">
                             <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-1 italic">League Identity</h4>
                             <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4 shadow-2xl">
                                 <div className="flex items-center gap-4">
@@ -325,150 +458,155 @@ export default function LeaguesPage() {
                                         <Trophy className="text-orange-500" size={24} />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-black text-white uppercase tracking-tighter">Elite African Series</p>
-                                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Season 1 • 2026</p>
+                                        <p className="text-sm font-black text-white uppercase tracking-tighter">{leagueInfo?.name || "Elite African Series"}</p>
+                                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">{leagueInfo?.season || "Season 1 • 2026"}</p>
                                     </div>
                                 </div>
                                 <p className="text-xs md:text-sm text-gray-400 leading-relaxed font-medium">
-                                    The premier continental showdown where Africa's finest esports talent competes for professional dominance and a <span className="text-white font-bold">₵50,000</span> prize pool.
+                                    {leagueInfo?.description || "The premier continental showdown where Africa's talent competes for professional dominance."} <span className="text-white font-bold">{leagueInfo?.prize_pool || "₵50,000"}</span>.
                                 </p>
                             </div>
                         </div>
 
                         {/* Summary Grid */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
                             {/* Latest Results Summary */}
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between px-1">
-                                    <h3 className="text-xs md:text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
-                                        <History size={14} className="text-orange-500" /> Latest Results
-                                    </h3>
-                                    <button
-                                        onClick={() => setActiveTab('results')}
-                                        className="text-[10px] font-black text-orange-500 hover:text-white transition-colors flex items-center gap-1 uppercase tracking-widest"
-                                    >
-                                        See All <ChevronRight size={14} />
-                                    </button>
-                                </div>
-                                <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden divide-y divide-white/5">
-                                    {mockMatches.filter(m => m.completed).slice(0, 3).map(match => (
-                                        <div key={match.id} className="p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors">
-                                            <div className="w-12 text-[10px] font-black text-gray-500 uppercase leading-none">
-                                                FT <br />
-                                                <span className="text-[8px] opacity-60 font-medium">Feb 12</span>
-                                            </div>
-                                            <div className="flex-1 space-y-1.5">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs md:text-sm font-bold text-white">{match.team1}</span>
-                                                    <span className="text-xs md:text-sm font-black text-white">{match.score1}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs md:text-sm font-bold text-white">{match.team2}</span>
-                                                    <span className="text-xs md:text-sm font-black text-white">{match.score2}</span>
+                            {matches.some(m => m.completed) && (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between px-5">
+                                        <h3 className="text-xs md:text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+                                            <History size={14} className="text-orange-500" /> Latest
+                                        </h3>
+                                        <button onClick={() => setActiveTab('results')} className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center gap-1">All <ChevronRight size={14} /></button>
+                                    </div>
+                                    <div className="bg-[#0a0a0a] border-y border-white/5 divide-y divide-white/5">
+                                        {matches.filter(m => m.completed).slice(0, 3).map(match => (
+                                            <div key={match.id} className="p-4 flex items-center gap-4 active:bg-white/[0.02]">
+                                                <div className="w-8 text-[10px] font-black text-gray-500 uppercase leading-none">FT</div>
+                                                <div className="flex-1 space-y-1.5 border-l border-white/5 pl-4">
+                                                    <div className="flex items-center justify-between"><span className="text-xs font-bold text-white">{match.team1}</span><span className="text-xs font-black text-white">{match.score1}</span></div>
+                                                    <div className="flex items-center justify-between"><span className="text-xs font-bold text-white">{match.team2}</span><span className="text-xs font-black text-white">{match.score2}</span></div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {/* Upcoming Fixtures Summary */}
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between px-1">
-                                    <h3 className="text-xs md:text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
-                                        <Calendar size={14} className="text-orange-500" /> Upcoming Fixtures
-                                    </h3>
-                                    <button
-                                        onClick={() => setActiveTab('fixtures')}
-                                        className="text-[10px] font-black text-orange-500 hover:text-white transition-colors flex items-center gap-1 uppercase tracking-widest"
-                                    >
-                                        See All <ChevronRight size={14} />
-                                    </button>
-                                </div>
-                                <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden divide-y divide-white/5">
-                                    {mockMatches.filter(m => !m.completed).slice(0, 3).map(match => (
-                                        <div key={match.id} className="p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors">
-                                            <div className="w-12 text-[10px] font-black text-orange-500 leading-none">
-                                                {match.time.split(',')[1] || 'TBD'} <br />
-                                                <span className="text-[8px] text-gray-500 font-medium uppercase">{match.time.split(',')[0]}</span>
-                                            </div>
-                                            <div className="flex-1 space-y-1.5 border-l border-white/5 pl-4 ml-1">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs md:text-sm font-bold text-white/90">{match.team1}</span>
+                            {matches.some(m => !m.completed) && (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between px-5">
+                                        <h3 className="text-xs md:text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+                                            <Calendar size={14} className="text-orange-500" /> Upcoming
+                                        </h3>
+                                        <button onClick={() => setActiveTab('fixtures')} className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center gap-1">All <ChevronRight size={14} /></button>
+                                    </div>
+                                    <div className="bg-[#0a0a0a] border-y border-white/5 divide-y divide-white/5">
+                                        {matches.filter(m => !m.completed).slice(0, 3).map(match => {
+                                            let displayTime = 'TBD';
+                                            let displayDay = 'TBD';
+
+                                            if (match.time && match.time !== 'TBD') {
+                                                if (match.time.includes('T') && !match.time.includes(',') && !match.time.includes(' ')) {
+                                                    try {
+                                                        const date = new Date(match.time);
+                                                        if (!isNaN(date.getTime())) {
+                                                            displayTime = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'UTC' }) + ' GMT';
+                                                            displayDay = date.toLocaleDateString([], { month: 'short', day: 'numeric' }).toUpperCase();
+                                                        }
+                                                    } catch (e) { }
+                                                } else {
+                                                    const parts = match.time.split(',');
+                                                    if (parts.length > 1) {
+                                                        displayTime = parts[1]?.trim();
+                                                        displayDay = parts[0]?.slice(0, 3).toUpperCase();
+                                                    }
+                                                }
+                                            }
+
+                                            return (
+                                                <div key={match.id} className="p-4 flex items-center gap-4 active:bg-white/[0.02] group transition-colors">
+                                                    <div className="w-10 flex flex-col items-center justify-center flex-shrink-0 text-center gap-1">
+                                                        <span className="text-[10px] font-black text-white uppercase tracking-tighter leading-none">{displayDay}</span>
+                                                        <span className="text-[9px] font-bold text-orange-500 uppercase tracking-wide leading-none">{displayTime}</span>
+                                                    </div>
+                                                    <div className="flex-1 min-w-0 border-l border-white/5 pl-4 space-y-1.5">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[10px] font-bold text-gray-300 uppercase truncate tracking-tight group-hover:text-white transition-colors">{match.team1}</span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[10px] font-bold text-gray-300 uppercase truncate tracking-tight group-hover:text-white transition-colors">{match.team2}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex-shrink-0 pl-2">
+                                                        <div className="w-6 h-6 rounded-full bg-orange-500/5 group-hover:bg-orange-500/10 border border-orange-500/10 group-hover:border-orange-500/30 flex items-center justify-center transition-all">
+                                                            <span className="text-[8px] font-black text-orange-500 group-hover:scale-110 transition-transform">VS</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs md:text-sm font-bold text-white/90">{match.team2}</span>
-                                                </div>
-                                            </div>
-                                            <div className="text-[10px] font-black text-gray-600 bg-white/5 px-2 py-1 rounded">
-                                                VS
-                                            </div>
-                                        </div>
-                                    ))}
+                                            );
+                                        })}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {/* Standings Summary */}
-                            <div className="space-y-4 lg:col-span-2">
-                                <div className="flex items-center justify-between px-1">
-                                    <h3 className="text-xs md:text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
-                                        <ListOrdered size={14} className="text-orange-500" /> League Standings
-                                    </h3>
-                                    <button
-                                        onClick={() => setActiveTab('standing')}
-                                        className="text-[10px] font-black text-orange-500 hover:text-white transition-colors flex items-center gap-1 uppercase tracking-widest"
-                                    >
-                                        View Table <ChevronRight size={14} />
-                                    </button>
-                                </div>
-                                <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden">
-                                    <table className="w-full text-left table-fixed">
-                                        <thead>
-                                            <tr className="bg-white/5 text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-tighter">
-                                                <th className="px-2 py-3 w-[25px] text-center">#</th>
-                                                <th className="px-2 py-3">Team</th>
-                                                <th className="px-1 py-3 text-center w-[20px]">P</th>
-                                                <th className="px-1 py-3 text-center w-[20px]">GD</th>
-                                                <th className="px-2 py-3 text-center w-[30px] text-orange-500">Pts</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-white/5">
-                                            {mockLeagueStandings.slice(0, 4).map((team, idx) => (
-                                                <tr key={team.id} className="hover:bg-white/[0.02] transition-colors group">
-                                                    <td className="px-4 py-3 text-center">
-                                                        <div className="flex items-center justify-center">
-                                                            <div className="w-1 h-4 rounded-full mr-2 bg-orange-500" />
-                                                            <span className="text-[11px] md:text-sm font-black text-orange-500">{idx + 1}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-2 py-3">
-                                                        <div className="flex items-center gap-2">
-                                                            <FlagEmoji countryCode={team.country} />
-                                                            <span className="text-xs md:text-sm font-bold text-white truncate">{team.team}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-2 py-3 text-center text-[11px] md:text-sm font-bold text-gray-400">{team.p}</td>
-                                                    <td className="px-2 py-3 text-center text-[11px] md:text-sm font-bold text-gray-500">{team.gd}</td>
-                                                    <td className="px-2 py-3 text-center text-[10px] md:text-xs font-black text-white bg-orange-500/5">{team.pts}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div className="flex items-center justify-between px-1">
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none">Qualification Zone</span>
+                            {standings.length > 0 && (
+                                <div className="space-y-4 lg:col-span-2">
+                                    <div className="flex items-center justify-between px-5">
+                                        <h3 className="text-xs md:text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+                                            <ListOrdered size={14} className="text-orange-500" /> Standings
+                                        </h3>
+                                        <button onClick={() => setActiveTab('standing')} className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center gap-1">Full <ChevronRight size={14} /></button>
                                     </div>
-                                    <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest italic">Partial Table • Top 4</span>
+                                    <div className="bg-[#0a0a0a] border-y border-white/5">
+                                        <table className="w-full text-left table-fixed">
+                                            <thead>
+                                                <tr className="bg-white/5 text-[8px] font-black text-gray-500 uppercase tracking-tighter">
+                                                    <th className="px-2 py-3 w-[25px] text-center">#</th>
+                                                    <th className="px-2 py-3">Team</th>
+                                                    <th className="px-1 py-3 text-center w-[20px]">P</th>
+                                                    <th className="px-1 py-3 text-center w-[20px]">GD</th>
+                                                    <th className="px-2 py-3 text-center w-[30px] text-orange-500">Pts</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
+                                                {standings.slice(0, 4).map((team, idx) => (
+                                                    <tr key={team.id} className="active:bg-white/[0.02] transition-colors">
+                                                        <td className="text-center">
+                                                            <div className="flex items-center justify-center">
+                                                                <div className="w-0.5 h-3 rounded-full mr-1 bg-orange-500" />
+                                                                <span className="text-[10px] font-black text-orange-500">{idx + 1}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3">
+                                                            <div className="flex items-center gap-1.5 overflow-hidden pr-2">
+                                                                <FlagEmoji countryCode={team.country} />
+                                                                <span className="text-[11px] font-bold text-white truncate uppercase tracking-tight">{team.team}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="text-center text-[10px] font-bold text-gray-400">{team.p}</td>
+                                                        <td className="text-center text-[10px] font-bold text-gray-500">{team.gd}</td>
+                                                        <td className="text-center text-[10px] font-black text-white bg-orange-500/5">{team.pts}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="flex items-center justify-between px-5">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
+                                            <span className="text-[8px] font-bold text-gray-500 uppercase">Qualification Zone</span>
+                                        </div>
+                                        <span className="text-[8px] font-bold text-gray-600 uppercase italic">Partial Table • Top 4</span>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
-
                     </div>
                 )}
             </div>
-        </div >
+        </div>
     );
 }
