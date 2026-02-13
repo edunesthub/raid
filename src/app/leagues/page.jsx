@@ -159,65 +159,57 @@ export default function LeaguesPage() {
                 {activeTab === 'standing' && (
                     <div className="animate-in fade-in duration-500">
                         <div className="bg-[#0a0a0a] md:bg-gray-900/40 md:border md:border-white/5 md:rounded-3xl overflow-hidden">
-                            <div className="overflow-x-auto scrollbar-hide">
-                                <table className="w-full text-left table-fixed">
-                                    <thead>
-                                        <tr className="bg-white/5 border-b border-white/5">
-                                            <th className="px-1 py-4 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[30px] md:w-[45px]">#</th>
-                                            <th className="px-1 py-4 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest">Team</th>
-                                            <th className="px-1 py-4 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[25px] md:w-16">P</th>
-                                            <th className="px-1 py-4 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[40px] md:w-20">W-L</th>
-                                            <th className="px-1 py-4 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[30px] md:w-16 hidden md:table-cell">GD</th>
-                                            <th className="px-1 py-4 text-[9px] md:text-[10px] font-black text-orange-500 uppercase tracking-widest text-center w-[28px] md:w-14">Pts</th>
-                                            <th className="px-2 py-4 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[85px] md:w-[160px]">Form</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/[0.03]">
-                                        {mockLeagueStandings.map((team, idx) => (
-                                            <tr
-                                                key={team.id}
-                                                className="active:bg-white/10 transition-colors group"
-                                            >
-                                                <td className="px-3 md:px-4 py-4 text-center">
-                                                    <div className="flex items-center justify-center">
-                                                        <div className={`w-1 h-4 rounded-full mr-2 
+                            <table className="w-full text-left table-fixed">
+                                <thead>
+                                    <tr className="bg-white/5 border-b border-white/5">
+                                        <th className="px-1 py-4 text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-tighter md:tracking-widest text-center w-[25px] md:w-[45px]">#</th>
+                                        <th className="px-1 py-4 text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-tighter md:tracking-widest">Team</th>
+                                        <th className="px-1 py-4 text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-tighter md:tracking-widest text-center w-[20px] md:w-16">P</th>
+                                        <th className="px-1 py-4 text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[35px] md:w-20">W-L</th>
+                                        <th className="px-1 py-4 text-[8px] md:text-[10px] font-black text-orange-500 uppercase tracking-widest text-center w-[24px] md:w-14">Pts</th>
+                                        <th className="px-1 py-4 text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[75px] md:w-[160px]">Form</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/[0.03]">
+                                    {mockLeagueStandings.map((team, idx) => (
+                                        <tr
+                                            key={team.id}
+                                            className="active:bg-white/10 transition-colors group"
+                                        >
+                                            <td className="px-1 py-4 text-center">
+                                                <div className="flex items-center justify-center">
+                                                    <div className={`w-0.5 h-3 rounded-full mr-1 
                                                             ${idx < 4 ? 'bg-orange-500' : idx >= mockLeagueStandings.length - 2 ? 'bg-red-500' : 'bg-transparent'}
                                                         `} />
-                                                        <span className={`text-[11px] md:text-sm font-black 
+                                                    <span className={`text-[10px] md:text-sm font-black 
                                                             ${idx < 4 ? 'text-orange-500' : idx >= mockLeagueStandings.length - 2 ? 'text-red-400' : 'text-gray-500'}
                                                         `}>
-                                                            {idx + 1}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-1 md:px-4 py-4 overflow-hidden">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="flex flex-col min-w-0">
-                                                            <div className="flex items-center truncate">
-                                                                <FlagEmoji countryCode={team.country} />
-                                                                <span className="font-bold text-white text-[13px] md:text-base truncate">
-                                                                    {team.team}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-1 py-4 text-center font-bold text-gray-400 text-xs md:text-sm">{team.p}</td>
-                                                <td className="px-1 py-4 text-center text-[11px] md:text-sm font-semibold text-gray-500">
-                                                    {team.w}-{team.l}
-                                                </td>
-                                                <td className="px-1 py-4 text-center hidden md:table-cell font-bold text-gray-500 text-sm">{team.gd}</td>
-                                                <td className="px-1 py-4 text-center font-black text-white text-[12px] md:text-base bg-orange-500/[0.02]">{team.pts}</td>
-                                                <td className="px-3 md:px-4 py-4">
-                                                    <div className="flex items-center justify-center gap-0.5 md:gap-1">
-                                                        {team.form.map((res, i) => <FormBadge key={i} result={res} />)}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                                        {idx + 1}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-1 py-4 min-w-0">
+                                                <div className="flex items-center gap-1 min-w-0">
+                                                    <FlagEmoji countryCode={team.country} />
+                                                    <span className="font-bold text-white text-[11px] md:text-base truncate">
+                                                        {team.team}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-1 py-4 text-center font-bold text-gray-400 text-[10px] md:text-sm">{team.p}</td>
+                                            <td className="px-1 py-4 text-center text-[10px] md:text-sm font-semibold text-gray-500">
+                                                {team.w}-{team.l}
+                                            </td>
+                                            <td className="px-1 py-4 text-center font-black text-white text-[10px] md:text-base bg-orange-500/[0.02]">{team.pts}</td>
+                                            <td className="px-1 py-4">
+                                                <div className="flex items-center justify-center gap-0.5">
+                                                    {team.form.map((res, i) => <FormBadge key={i} result={res} />)}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
 
                         <div className="p-4 md:px-0 space-y-2">
@@ -235,77 +227,87 @@ export default function LeaguesPage() {
 
                 {/* 2. FIXTURES & RESULTS VIEW */}
                 {(activeTab === 'fixtures' || activeTab === 'results') && (
-                    <div className="animate-in fade-in duration-500 px-4 md:px-0 mt-4 md:mt-0">
-                        {/* Round switcher */}
-                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide mb-6 no-scrollbar">
-                            {rounds.map(round => (
-                                <button
-                                    key={round}
-                                    onClick={() => setActiveRound(round)}
-                                    className={`
-                                        px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all
-                                        ${activeRound === round
-                                            ? 'bg-orange-500 text-white'
-                                            : 'bg-white/5 text-gray-500 active:bg-white/10'
-                                        }
-                                    `}
-                                >
-                                    {round}
-                                </button>
-                            ))}
+                    <div className="animate-in fade-in duration-500">
+                        {/* Round Switcher - Fixed Grid (Native App Feel) */}
+                        <div className="sticky top-[108px] z-30 bg-[#050505]/95 backdrop-blur-md border-b border-white/5">
+                            <div className="grid grid-cols-4 gap-1 p-2">
+                                {rounds.map((round, idx) => (
+                                    <button
+                                        key={round}
+                                        onClick={() => setActiveRound(round)}
+                                        className={`
+                                            py-2 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all border
+                                            ${activeRound === round
+                                                ? 'bg-white text-black border-white'
+                                                : 'bg-white/5 text-gray-500 border-transparent active:bg-white/10'
+                                            }
+                                        `}
+                                    >
+                                        R{idx + 1}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                            {mockMatches
-                                .filter(m => m.round === activeRound && (activeTab === 'fixtures' ? !m.completed : m.completed))
-                                .map(match => (
-                                    <div key={match.id} className="bg-white/5 md:bg-gray-900/40 border border-white/5 rounded-2xl md:rounded-3xl p-5 md:p-6 active:bg-white/10 transition-all group">
-                                        <div className="flex items-center justify-between mb-4 md:mb-6">
-                                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${match.completed ? 'bg-gray-700/50 text-gray-400' : 'bg-green-500 text-white'}`}>
-                                                {match.completed ? 'Result' : 'Fixture'}
-                                            </span>
-                                            <span className="text-[9px] md:text-[10px] text-gray-500 font-black uppercase tracking-widest flex items-center gap-1">
-                                                {match.time}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center gap-4">
-                                            <div className="flex-1 flex flex-col items-center gap-2 min-w-0">
-                                                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-white/5 flex items-center justify-center font-black text-white text-sm md:text-xl border border-white/10">
-                                                    {match.team1.split(' ').map(n => n[0]).join('')}
-                                                </div>
-                                                <span className="font-bold text-white text-[11px] md:text-sm text-center truncate w-full">{match.team1}</span>
+                        {/* Matches List - High Density */}
+                        <div className="py-2">
+                            <div className="bg-[#0a0a0a] border-y border-white/5 divide-y divide-white/[0.03]">
+                                {mockMatches
+                                    .filter(m => m.round === activeRound && (activeTab === 'fixtures' ? !m.completed : m.completed))
+                                    .map(match => (
+                                        <div key={match.id} className="p-3 flex items-center gap-3 hover:bg-white/[0.02] active:bg-white/5 transition-all w-full min-w-0">
+                                            {/* Time Column */}
+                                            <div className="w-10 flex flex-col items-start justify-center flex-shrink-0">
+                                                <span className={`text-[10px] font-black uppercase ${match.completed ? 'text-gray-500' : 'text-orange-500'}`}>
+                                                    {match.completed ? 'FT' : match.time.split(',')[1]?.trim() || 'TBD'}
+                                                </span>
+                                                <span className="text-[7px] font-bold text-gray-600 uppercase tracking-tighter">
+                                                    {match.time.split(',')[0].slice(0, 3)}
+                                                </span>
                                             </div>
 
-                                            <div className="flex flex-col items-center justify-center px-4">
-                                                {match.completed ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-2xl md:text-4xl font-black text-white">{match.score1}</span>
-                                                        <span className="text-gray-700 font-black">-</span>
-                                                        <span className="text-2xl md:text-4xl font-black text-white">{match.score2}</span>
+                                            {/* Teams Column - Cramped with truncation */}
+                                            <div className="flex-1 min-w-0 border-l border-white/5 pl-3 space-y-1.5">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <div className="w-4 h-4 rounded-[3px] bg-white/5 flex items-center justify-center text-[7px] font-black text-white border border-white/10 flex-shrink-0">
+                                                            {match.team1[0]}
+                                                        </div>
+                                                        <span className="text-[11px] font-extrabold text-white uppercase truncate tracking-tight">{match.team1}</span>
+                                                    </div>
+                                                    {match.completed && <span className="text-[11px] font-black text-white flex-shrink-0">{match.score1}</span>}
+                                                </div>
+                                                <div className="flex items-center justify-between gap-2 mt-0.5">
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <div className="w-4 h-4 rounded-[3px] bg-white/5 flex items-center justify-center text-[7px] font-black text-white border border-white/10 flex-shrink-0">
+                                                            {match.team2[0]}
+                                                        </div>
+                                                        <span className="text-[11px] font-extrabold text-white uppercase truncate tracking-tight">{match.team2}</span>
+                                                    </div>
+                                                    {match.completed && <span className="text-[11px] font-black text-white flex-shrink-0">{match.score2}</span>}
+                                                </div>
+                                            </div>
+
+                                            {/* Action Visual */}
+                                            <div className="flex-shrink-0">
+                                                {!match.completed ? (
+                                                    <div className="w-7 h-5 rounded-[4px] bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+                                                        <span className="text-[8px] font-black text-orange-500 italic">VS</span>
                                                     </div>
                                                 ) : (
-                                                    <div className="bg-orange-500/10 border border-orange-500/20 px-3 py-1 rounded-md">
-                                                        <span className="text-[10px] font-black text-orange-500 italic">VS</span>
-                                                    </div>
+                                                    <ChevronRight size={12} className="text-gray-800" />
                                                 )}
                                             </div>
-
-                                            <div className="flex-1 flex flex-col items-center gap-2 min-w-0">
-                                                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-white/5 flex items-center justify-center font-black text-white text-sm md:text-xl border border-white/10">
-                                                    {match.team2.split(' ').map(n => n[0]).join('')}
-                                                </div>
-                                                <span className="font-bold text-white text-[11px] md:text-sm text-center truncate w-full">{match.team2}</span>
-                                            </div>
                                         </div>
+                                    ))}
+
+                                {mockMatches.filter(m => m.round === activeRound && (activeTab === 'fixtures' ? !m.completed : m.completed)).length === 0 && (
+                                    <div className="py-16 flex flex-col items-center justify-center text-gray-800 gap-2 opacity-30">
+                                        <Clock size={32} />
+                                        <span className="text-[9px] font-black uppercase tracking-[0.2em]">No Schedule</span>
                                     </div>
-                                ))}
-                            {mockMatches.filter(m => m.round === activeRound && (activeTab === 'fixtures' ? !m.completed : m.completed)).length === 0 && (
-                                <div className="md:col-span-2 py-20 flex flex-col items-center justify-center text-gray-600 gap-4 opacity-50">
-                                    <Clock size={40} />
-                                    <span className="text-xs font-black uppercase tracking-widest">No {activeTab} for this round</span>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -421,14 +423,14 @@ export default function LeaguesPage() {
                                     </button>
                                 </div>
                                 <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden">
-                                    <table className="w-full text-left">
+                                    <table className="w-full text-left table-fixed">
                                         <thead>
-                                            <tr className="bg-white/5 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                                                <th className="px-4 py-3 w-12 text-center">#</th>
+                                            <tr className="bg-white/5 text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-tighter">
+                                                <th className="px-2 py-3 w-[25px] text-center">#</th>
                                                 <th className="px-2 py-3">Team</th>
-                                                <th className="px-2 py-3 text-center w-12">P</th>
-                                                <th className="px-2 py-3 text-center w-12">GD</th>
-                                                <th className="px-2 py-3 text-center w-10 text-orange-500">Pts</th>
+                                                <th className="px-1 py-3 text-center w-[20px]">P</th>
+                                                <th className="px-1 py-3 text-center w-[20px]">GD</th>
+                                                <th className="px-2 py-3 text-center w-[30px] text-orange-500">Pts</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5">
@@ -467,6 +469,6 @@ export default function LeaguesPage() {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }
