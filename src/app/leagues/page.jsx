@@ -109,6 +109,9 @@ export default function LeaguesPage() {
     }, []);
 
     const handleSelectLeague = async (league) => {
+        // Scroll to top when opening league details
+        window.scrollTo(0, 0);
+
         try {
             setDetailsLoading(true);
             setLeagueInfo(league);
