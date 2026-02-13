@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Users, Linkedin, Instagram, Mail } from 'lucide-react';
+import { Users, Linkedin, Instagram, Mail, ExternalLink } from 'lucide-react';
 import { teamMembers } from '@/data/team';
 
 export default function TeamPage() {
@@ -28,8 +28,13 @@ export default function TeamPage() {
                         <Link
                             key={member.slug}
                             href={`/team/${member.slug}`}
-                            className="bg-gray-900/40 border border-gray-800 rounded-2xl overflow-hidden hover:border-orange-500/50 hover:bg-gray-900/60 transition-all group flex flex-col"
+                            className="bg-gray-900/40 border border-gray-800 rounded-2xl overflow-hidden hover:border-orange-500/50 hover:bg-gray-900/60 hover:-translate-y-2 transition-all duration-300 group flex flex-col relative cursor-pointer shadow-xl hover:shadow-orange-500/10"
                         >
+                            {/* Interactive Indicator */}
+                            <div className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-black/60 border border-white/20 flex items-center justify-center opacity-70 group-hover:opacity-100 group-hover:bg-orange-500 transition-all backdrop-blur-sm shadow-xl">
+                                <ExternalLink className="w-4 h-4 text-white" />
+                            </div>
+
                             {/* Image */}
                             <div className="aspect-square bg-gray-800 relative overflow-hidden">
                                 {member.image ? (
@@ -44,32 +49,34 @@ export default function TeamPage() {
                                     </div>
                                 )}
                                 {/* Overlay effect */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
-                                    <span className="text-white text-sm font-bold uppercase tracking-widest translate-y-4 group-hover:translate-y-0 transition-transform duration-300">View Profile</span>
+                                <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
+                                    <span className="text-white text-xs font-bold uppercase tracking-widest translate-y-4 group-hover:translate-y-0 transition-transform duration-300 bg-orange-500 px-4 py-1.5 rounded-full shadow-lg">View Profile</span>
                                 </div>
                             </div>
 
                             {/* Content */}
                             <div className="p-6 space-y-4 flex-grow">
                                 <div>
-                                    <h3 className="text-white font-bold text-xl mb-1 group-hover:text-orange-500 transition-colors">{member.name}</h3>
-                                    <p className="text-orange-500 font-medium text-sm">{member.role}</p>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <h3 className="text-white font-bold text-xl group-hover:text-orange-500 transition-colors uppercase tracking-tight">{member.name}</h3>
+                                    </div>
+                                    <p className="text-orange-500 font-medium text-xs uppercase tracking-widest">{member.role}</p>
                                 </div>
 
-                                <p className="text-gray-400 text-sm leading-relaxed">
+                                <p className="text-gray-400 text-sm leading-relaxed line-clamp-3">
                                     {member.bio}
                                 </p>
 
-                                {/* Social Links (prevent default to allow independent clicking if needed, but better to keep it clean) */}
-                                <div className="flex gap-3 pt-2" onClick={(e) => e.preventDefault()}>
+                                {/* Social Links - Using div to stop propagation if needed, but here simple layout */}
+                                <div className="flex gap-3 pt-2" onClick={(e) => e.stopPropagation()}>
                                     <div className="p-2 bg-gray-800 rounded-lg hover:bg-orange-500 transition-colors">
-                                        <Linkedin className="w-4 h-4" />
+                                        <Linkedin className="w-4 h-4 text-white" />
                                     </div>
                                     <div className="p-2 bg-gray-800 rounded-lg hover:bg-orange-500 transition-colors">
-                                        <Instagram className="w-4 h-4" />
+                                        <Instagram className="w-4 h-4 text-white" />
                                     </div>
                                     <div className="p-2 bg-gray-800 rounded-lg hover:bg-orange-500 transition-colors">
-                                        <Mail className="w-4 h-4" />
+                                        <Mail className="w-4 h-4 text-white" />
                                     </div>
                                 </div>
                             </div>
