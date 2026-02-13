@@ -28,7 +28,7 @@ export default function TeamPage() {
                         <Link
                             key={member.slug}
                             href={`/team/${member.slug}`}
-                            className="bg-gray-900/40 border border-gray-800 rounded-2xl overflow-hidden hover:border-orange-500/50 hover:bg-gray-900/60 hover:-translate-y-2 transition-all duration-300 group flex flex-col relative cursor-pointer shadow-xl hover:shadow-orange-500/10"
+                            className="bg-gray-900/40 border border-gray-800 rounded-2xl overflow-hidden hover:border-orange-500/50 hover:bg-gray-900/60 lg:hover:-translate-y-2 transition-transform duration-200 group flex flex-col relative cursor-pointer shadow-xl hover:shadow-orange-500/10 active:scale-[0.98]"
                         >
                             {/* Interactive Indicator */}
                             <div className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-black/60 border border-white/20 flex items-center justify-center opacity-70 group-hover:opacity-100 group-hover:bg-orange-500 transition-all backdrop-blur-sm shadow-xl">
@@ -41,16 +41,16 @@ export default function TeamPage() {
                                     <img
                                         src={member.image}
                                         alt={member.name}
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        className="w-full h-full object-cover transition-transform duration-500 lg:group-hover:scale-110"
                                     />
                                 ) : (
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <Users className="w-24 h-24 text-gray-700" />
                                     </div>
                                 )}
-                                {/* Overlay effect */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
-                                    <span className="text-white text-xs font-bold uppercase tracking-widest translate-y-4 group-hover:translate-y-0 transition-transform duration-300 bg-orange-500 px-4 py-1.5 rounded-full shadow-lg">View Profile</span>
+                                {/* Overlay effect - simplified for mobile to avoid blocking navigation */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 via-transparent to-transparent opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-6">
+                                    <span className="text-white text-xs font-bold uppercase tracking-widest translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-300 bg-orange-500 px-4 py-1.5 rounded-full shadow-lg">View Profile</span>
                                 </div>
                             </div>
 
