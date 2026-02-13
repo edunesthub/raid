@@ -181,10 +181,10 @@ export default function LeaguesPage() {
                                                 <td className="px-3 md:px-4 py-4 text-center">
                                                     <div className="flex items-center justify-center">
                                                         <div className={`w-1 h-4 rounded-full mr-2 
-                                                            ${idx < 3 ? 'bg-orange-500' : idx >= mockLeagueStandings.length - 2 ? 'bg-red-500' : 'bg-transparent'}
+                                                            ${idx < 4 ? 'bg-orange-500' : idx >= mockLeagueStandings.length - 2 ? 'bg-red-500' : 'bg-transparent'}
                                                         `} />
                                                         <span className={`text-[11px] md:text-sm font-black 
-                                                            ${idx < 3 ? 'text-white' : idx >= mockLeagueStandings.length - 2 ? 'text-red-400' : 'text-gray-500'}
+                                                            ${idx < 4 ? 'text-orange-500' : idx >= mockLeagueStandings.length - 2 ? 'text-red-400' : 'text-gray-500'}
                                                         `}>
                                                             {idx + 1}
                                                         </span>
@@ -223,7 +223,7 @@ export default function LeaguesPage() {
                         <div className="p-4 md:px-0 space-y-2">
                             <div className="flex items-center gap-3">
                                 <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Seeds 1-3: Championship Qualifier</span>
+                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Seeds 1-4: Championship Qualifier</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
@@ -432,16 +432,12 @@ export default function LeaguesPage() {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5">
-                                            {mockLeagueStandings.slice(0, 5).map((team, idx) => (
+                                            {mockLeagueStandings.slice(0, 4).map((team, idx) => (
                                                 <tr key={team.id} className="hover:bg-white/[0.02] transition-colors group">
                                                     <td className="px-4 py-3 text-center">
                                                         <div className="flex items-center justify-center">
-                                                            <div className={`w-1 h-4 rounded-full mr-2 
-                                                                ${idx < 3 ? 'bg-orange-500' : idx >= mockLeagueStandings.slice(0, 5).length - 1 ? 'bg-red-500' : 'bg-transparent'}
-                                                            `} />
-                                                            <span className={`text-[11px] md:text-sm font-black 
-                                                                ${idx < 3 ? 'text-white' : idx >= mockLeagueStandings.slice(0, 5).length - 1 ? 'text-red-400' : 'text-gray-500'}
-                                                            `}>{idx + 1}</span>
+                                                            <div className="w-1 h-4 rounded-full mr-2 bg-orange-500" />
+                                                            <span className="text-[11px] md:text-sm font-black text-orange-500">{idx + 1}</span>
                                                         </div>
                                                     </td>
                                                     <td className="px-2 py-3">
@@ -458,15 +454,12 @@ export default function LeaguesPage() {
                                         </tbody>
                                     </table>
                                 </div>
-                                <div className="flex flex-wrap items-center gap-6 px-1">
+                                <div className="flex items-center justify-between px-1">
                                     <div className="flex items-center gap-1.5">
                                         <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none">Qualification</span>
+                                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none">Qualification Zone</span>
                                     </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none">Relegation</span>
-                                    </div>
+                                    <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest italic">Partial Table • Top 4</span>
                                 </div>
                             </div>
                         </div>
