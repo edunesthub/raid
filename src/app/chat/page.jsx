@@ -222,7 +222,7 @@ export default function ChatPage() {
   return (
     <div className="min-h-screen bg-black pb-24 md:pb-0">
       {/* Header */}
-      <div className="bg-gradient-to-r from-black via-orange-900/10 to-black border-b border-orange-500/10 py-8 px-4">
+      <div className="bg-gradient-to-r from-black via-orange-900/10 to-black border-b border-orange-500/10 pt-8 pb-6 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center space-x-4">
@@ -260,7 +260,7 @@ export default function ChatPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 pt-4 pb-12">
         {loading ? (
           <div className="grid grid-cols-1 gap-4">
             {[1, 2, 3, 4].map((i) => (
