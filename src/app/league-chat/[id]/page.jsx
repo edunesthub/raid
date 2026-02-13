@@ -498,7 +498,7 @@ export default function LeagueChatPage({ params }) {
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type a message to the league..."
-                        className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 md:px-5 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500/50 transition-all outline-none"
+                        className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 md:px-5 py-3 text-base text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500/50 transition-all outline-none"
                     />
                     <button
                         type="submit"

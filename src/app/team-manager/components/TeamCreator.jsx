@@ -453,7 +453,7 @@ export default function TeamManagerTeamCreator({ managerEmail }) {
                     placeholder="Team Name (e.g. Team Alpha)"
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
-                    className="w-full bg-black/50 border border-gray-700 focus:border-orange-500 rounded-xl py-4 px-4 outline-none transition-all"
+                    className="w-full bg-black/50 border border-gray-700 focus:border-orange-500 rounded-xl py-4 px-4 text-base outline-none transition-all"
                     required
                   />
                   <button
@@ -570,7 +570,7 @@ export default function TeamManagerTeamCreator({ managerEmail }) {
                       value={editSlogan}
                       onChange={(e) => setEditSlogan(e.target.value)}
                       placeholder="Team Slogan"
-                      className="w-full bg-black border border-gray-700 rounded-lg p-2 text-center text-xs outline-none focus:border-orange-500"
+                      className="w-full bg-black border border-gray-700 rounded-lg p-2 text-center text-base outline-none focus:border-orange-500"
                     />
                     <div className="flex gap-2">
                       <button

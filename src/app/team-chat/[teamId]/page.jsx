@@ -410,7 +410,7 @@ export default function TeamChatPage({ params }) {
                         placeholder="Secure transmission..."
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
-                        className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 transition-all placeholder:text-gray-600 font-medium"
+                        className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-base text-white focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 transition-all placeholder:text-gray-600 font-medium"
                     />
                     <button
                         type="submit"
