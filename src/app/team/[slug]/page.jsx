@@ -26,9 +26,9 @@ export default function TeamMemberProfile() {
     }
 
     return (
-        <div className="min-h-screen bg-black text-gray-300 font-sans selection:bg-orange-500/30">
+        <div className="min-h-screen bg-black text-gray-300 font-sans selection:bg-orange-500/30 overflow-x-hidden">
             {/* Navigation Header */}
-            <div className="max-w-6xl mx-auto px-6 sm:px-12 py-8">
+            <div className="max-w-6xl mx-auto px-4 sm:px-12 py-6 sm:py-8">
                 <button
                     onClick={() => router.back()}
                     className="text-gray-400 hover:text-white transition-colors flex items-center gap-2 group"
@@ -38,7 +38,7 @@ export default function TeamMemberProfile() {
                 </button>
             </div>
 
-            <main className="max-w-6xl mx-auto px-6 sm:px-12 pb-24">
+            <main className="max-w-6xl mx-auto px-4 sm:px-12 pb-24">
                 <div className="grid lg:grid-cols-12 gap-12">
                     {/* Left Column - Image & Socials */}
                     <div className="lg:col-span-5 space-y-8">
@@ -78,8 +78,8 @@ export default function TeamMemberProfile() {
                             <div className="inline-block px-3 py-1 bg-orange-500/10 border border-orange-500/20 rounded-full text-orange-500 text-xs font-bold uppercase tracking-widest">
                                 raid Arena
                             </div>
-                            <h1 className="text-5xl sm:text-7xl font-black text-white uppercase tracking-tighter">
-                                {member.name.split(' ')[0]} <br />
+                            <h1 className="text-4xl sm:text-7xl font-black text-white uppercase tracking-tighter leading-tight sm:leading-none">
+                                {member.name.split(' ')[0]} <br className="hidden sm:block" />
                                 <span className="text-orange-500">{member.name.split(' ').slice(1).join(' ')}</span>
                             </h1>
                             <p className="text-2xl font-bold text-gray-400">{member.role}</p>

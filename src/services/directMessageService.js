@@ -1,10 +1,10 @@
 // src/services/directMessageService.js
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  orderBy, 
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  orderBy,
   onSnapshot,
   serverTimestamp,
   getDocs,
@@ -31,10 +31,10 @@ class DirectMessageService {
   /**
    * Send a direct message
    */
-  async sendDirectMessage(senderId, senderUsername, senderAvatar, recipientId, recipientUsername, message, tournamentId = null) {
+  async sendDirectMessage(senderId, senderUsername, senderAvatar, recipientId, recipientUsername, message, tournamentId = null, leagueId = null, teamId = null) {
     try {
       const conversationId = this.getConversationId(senderId, recipientId);
-      
+
       // Create or update conversation metadata
       const conversationRef = doc(db, 'conversations', conversationId);
       await setDoc(conversationRef, {
@@ -46,6 +46,8 @@ class DirectMessageService {
         lastMessage: message.substring(0, 100),
         lastMessageTime: serverTimestamp(),
         tournamentId: tournamentId || null,
+        leagueId: leagueId || null,
+        teamId: teamId || null,
         updatedAt: serverTimestamp()
       }, { merge: true });
 
@@ -93,7 +95,7 @@ class DirectMessageService {
             ...doc.data()
           });
         });
-        
+
         // Reverse to show oldest first
         callback(messages.reverse());
       }, (error) => {
@@ -102,7 +104,7 @@ class DirectMessageService {
       });
     } catch (error) {
       console.error('Error setting up direct message subscription:', error);
-      return () => {}; // Return empty unsubscribe function
+      return () => { }; // Return empty unsubscribe function
     }
   }
 
@@ -149,7 +151,7 @@ class DirectMessageService {
 
       const snapshot = await getDocs(q);
       const updatePromises = [];
-      
+
       snapshot.forEach((docSnapshot) => {
         updatePromises.push(
           setDoc(doc(db, 'directMessages', docSnapshot.id), { read: true }, { merge: true })

@@ -1,8 +1,12 @@
 "use client";
 import React, { useEffect } from 'react';
-import { X, Shield, Users, UserCircle, Trophy, Globe, Twitter, Instagram, Mail } from 'lucide-react';
+import { X, Shield, Users, UserCircle, Trophy, Globe, Twitter, Instagram, Mail, MessageSquare } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import Link from 'next/link';
 
 export default function TeamDetailsModal({ isOpen, onClose, team, memberDetails }) {
+    const { user } = useAuth();
+
     // Prevent background scroll when modal is open
     useEffect(() => {
         if (isOpen) {
@@ -17,18 +21,20 @@ export default function TeamDetailsModal({ isOpen, onClose, team, memberDetails 
 
     if (!isOpen || !team) return null;
 
-    return (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center bg-black animate-fade-in overflow-y-auto">
-            {/* Background elements */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-600/10 rounded-full blur-[120px] pointer-events-none" />
+    const isManager = team.manager === user?.email;
+    const isMember = team.members?.includes(user?.email);
+    const isAdmin = user?.role === 'admin' || user?.adminRole || user?.email === 'admin@raidarena.com';
+    const canChat = isManager || isMember || isAdmin;
 
-            <div className="relative w-full min-h-screen bg-zinc-950 overflow-hidden flex flex-col">
+    return (
+        <div className="fixed inset-0 z-[100] bg-zinc-950 animate-fade-in overflow-hidden">
+            <div className="h-[100dvh] w-full bg-zinc-950 overflow-y-auto custom-scrollbar flex flex-col relative">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="fixed top-6 right-6 z-[120] p-4 bg-zinc-900/80 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-all backdrop-blur-xl border border-white/10 shadow-2xl"
+                    className="fixed top-4 right-4 z-[120] p-3 bg-zinc-900/90 hover:bg-white/10 rounded-full text-white/70 hover:text-white transition-all backdrop-blur-xl border border-white/10 shadow-2xl active:scale-90"
                 >
-                    <X size={24} />
+                    <X size={20} />
                 </button>
 
                 {/* Header/Cover Image Section */}
@@ -39,26 +45,26 @@ export default function TeamDetailsModal({ isOpen, onClose, team, memberDetails 
                 </div>
 
                 {/* Team Profile Section */}
-                <div className="relative flex-1 px-6 sm:px-12 md:px-24 pb-20 -mt-12 sm:-mt-16 max-w-7xl mx-auto w-full">
-                    <div className="flex flex-col sm:flex-row sm:items-end gap-6 sm:gap-10 mb-12">
+                <div className="relative flex-1 px-4 sm:px-12 md:px-24 pb-20 -mt-10 sm:-mt-16 max-w-7xl mx-auto w-full">
+                    <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-10 mb-8 sm:mb-12">
                         <div className="relative self-start sm:self-auto">
-                            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl bg-zinc-900 border-4 border-zinc-950 shadow-2xl flex items-center justify-center overflow-hidden">
+                            <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl bg-zinc-900 border-4 border-zinc-950 shadow-2xl flex items-center justify-center overflow-hidden">
                                 {team.avatarUrl ? (
                                     <img src={team.avatarUrl} alt={team.name} className="w-full h-full object-cover" />
                                 ) : (
-                                    <Shield className="text-orange-500" size={48} />
+                                    <Shield className="text-orange-500" size={32} />
                                 )}
                             </div>
                             <div className="absolute -bottom-1 -right-1 bg-green-500 w-5 h-5 rounded-full border-4 border-zinc-950 shadow-lg" title="Active" />
                         </div>
 
                         <div className="flex-1 min-w-0">
-                            <h2 className="text-2xl sm:text-4xl font-black text-white uppercase tracking-tighter mb-1 truncate">{team.name}</h2>
-                            <p className="text-orange-500 font-bold text-xs sm:text-sm tracking-widest uppercase mb-4 flex items-center gap-2">
+                            <h2 className="text-xl sm:text-4xl font-black text-white uppercase tracking-tighter mb-1 truncate">{team.name}</h2>
+                            <p className="text-orange-500 font-bold text-[10px] sm:text-sm tracking-[0.2em] uppercase mb-4 flex items-center gap-2">
                                 {team.slogan || "RAID Arena Competitor"}
                             </p>
 
-                            <div className="flex flex-wrap gap-3">
+                            <div className="flex flex-wrap items-center gap-3">
                                 <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/5 rounded-full text-[10px] sm:text-xs font-bold text-gray-300">
                                     <Users size={12} className="text-orange-500" />
                                     <span>{team.members?.length || 0} Members</span>
@@ -68,6 +74,15 @@ export default function TeamDetailsModal({ isOpen, onClose, team, memberDetails 
                                         <Trophy size={12} className="text-orange-500" />
                                         <span>Established {new Date(team.createdAt).getFullYear()}</span>
                                     </div>
+                                )}
+                                {canChat && (
+                                    <Link
+                                        href={`/team-chat/${team.id}`}
+                                        className="flex items-center gap-2 px-4 py-1.5 bg-orange-600 hover:bg-orange-500 text-white rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-600/20 active:scale-95"
+                                    >
+                                        <MessageSquare size={12} />
+                                        <span>Chat with Squad</span>
+                                    </Link>
                                 )}
                             </div>
                         </div>

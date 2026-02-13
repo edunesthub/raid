@@ -23,8 +23,15 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export default function RootLayout({ children }) {
   const pathname = usePathname();
 
-  // Pages that should hide navigation and footer completely
-  const hideLayout = ["/welcome", "/auth/login", "/auth/signup", "/auth/onboarding", "/admin/login"].includes(pathname) || pathname.startsWith("/admin") || pathname.includes("/tournament/") && pathname.endsWith("/chat");
+  // Pages that should hide navigation completely
+  const hideNav = ["/welcome", "/auth/login", "/auth/signup", "/auth/onboarding", "/admin/login"].includes(pathname) ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/team-chat") ||
+    pathname.startsWith("/league-chat") ||
+    (pathname.includes("/tournament/") && pathname.endsWith("/chat"));
+
+  // Pages that should hide footer
+  const hideFooter = hideNav;
   return (
     <html lang="en" className="h-full">
       <head>
@@ -53,12 +60,12 @@ export default function RootLayout({ children }) {
         <AppProviders>
           <div className="flex flex-col h-full min-h-screen">
             {/* Navigation - only show on regular pages */}
-            {!hideLayout && <Navigation />}
+            {!hideNav && <Navigation />}
 
             {/* Main Content Area */}
-            <div className={`flex flex-1 ${!hideLayout ? 'pt-16' : ''}`}>
+            <div className={`flex flex-1 ${!hideNav ? 'pt-16' : ''}`}>
               {/* Desktop Sidebar - Persistent Navigation */}
-              {!hideLayout && (
+              {!hideNav && (
                 <aside className="hidden lg:block w-64 fixed left-0 top-16 bottom-0 border-r border-gray-800 bg-black/50 backdrop-blur-xl overflow-y-auto z-30">
                   <nav className="p-4 flex flex-col space-y-2">
                     {/* The navigation items are imported and shared, but for desktop sidebar we might want a specific list */}
@@ -87,10 +94,10 @@ export default function RootLayout({ children }) {
                 </aside>
               )}
               <main
-                className={`flex-1 ${!hideLayout ? 'lg:pl-64' : ''} ${!hideLayout ? 'pb-24 md:pb-4' : ''}`}
+                className={`flex-1 ${!hideNav ? 'lg:pl-64' : ''} ${!hideNav ? 'pb-24 md:pb-4' : ''}`}
                 style={{
-                  paddingTop: hideLayout ? '0' : undefined,
-                  paddingBottom: hideLayout ? '0' : undefined,
+                  paddingTop: hideNav ? '0' : undefined,
+                  paddingBottom: hideNav ? '0' : undefined,
                 }}
               >
                 <div className="max-w-7xl mx-auto">
@@ -100,9 +107,9 @@ export default function RootLayout({ children }) {
             </div>
 
             {/* Footer and Bottom Nav - only show on regular pages */}
-            {!hideLayout && (
+            {!hideFooter && (
               <>
-                <div className={`${!hideLayout ? 'lg:pl-64' : ''}`}>
+                <div className={`${!hideNav ? 'lg:pl-64' : ''}`}>
                   <Footer />
                 </div>
                 <div className="md:hidden">
@@ -114,7 +121,7 @@ export default function RootLayout({ children }) {
 
           {/* <PWAInstallPrompt /> */}
           <UpdatePrompt />
-          {!hideLayout && <ProfileCompletionPrompt hide={hideLayout} />}
+          {!hideNav && <ProfileCompletionPrompt hide={hideNav} />}
           <OfflineLoader />
         </AppProviders>
 

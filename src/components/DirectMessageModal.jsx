@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { directMessageService } from '@/services/directMessageService';
 import Image from 'next/image';
 
-export default function DirectMessageModal({ recipient, tournamentId, isOpen, onClose }) {
+export default function DirectMessageModal({ recipient, tournamentId, leagueId, teamId, isOpen, onClose }) {
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -51,10 +51,10 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
           const firstUnread = unreadMsgs[0];
           setLastReadTimestamp(firstUnread.timestamp);
         }
-        
+
         setMessages(newMessages);
         setLoading(false);
-        
+
         // Mark messages as read
         if (newMessages.length > 0) {
           const conversationId = directMessageService.getConversationId(user.id, recipient.id);
@@ -75,7 +75,9 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
         recipient.id,
         recipient.username,
         messageText,
-        tournamentId
+        tournamentId,
+        leagueId,
+        teamId
       );
       setPendingMessages((prev) => prev.filter((msg) => msg.id !== tempId));
     } catch (err) {
@@ -116,7 +118,7 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
 
   const handleDeleteMessage = async (messageId) => {
     if (!window.confirm('Delete this message?')) return;
-    
+
     try {
       setDeletingMessageId(messageId);
       await directMessageService.deleteDirectMessage(messageId);
@@ -130,26 +132,26 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
 
   const formatTime = (timestamp) => {
     if (!timestamp) return '';
-    
+
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     const now = new Date();
     const diff = now - date;
-    
+
     // Less than 1 minute
     if (diff < 60000) return 'Just now';
-    
+
     // Less than 1 hour
     if (diff < 3600000) {
       const mins = Math.floor(diff / 60000);
       return `${mins}m ago`;
     }
-    
+
     // Less than 24 hours
     if (diff < 86400000) {
       const hours = Math.floor(diff / 3600000);
       return `${hours}h ago`;
     }
-    
+
     // Show date
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
@@ -166,7 +168,7 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        
+
         <div className="flex items-center gap-3 flex-1">
           {/* Recipient Avatar */}
           {recipient?.avatarUrl ? (
@@ -185,7 +187,7 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
               </span>
             </div>
           )}
-          
+
           <div className="flex-1">
             <h3 className="text-white font-bold">{recipient?.username || 'User'}</h3>
             <p className="text-gray-400 text-xs">Direct Message</p>
@@ -231,115 +233,114 @@ export default function DirectMessageModal({ recipient, tournamentId, isOpen, on
                 return aTime - bTime;
               })
               .map((msg, index, array) => {
-              const isOwn = msg.senderId === user?.id;
-              
-              // Check if this is the first unread message from recipient
-              const msgTime = msg.timestamp?.toMillis ? msg.timestamp.toMillis() : new Date(msg.timestamp).getTime();
-              const lastReadTime = lastReadTimestamp?.toMillis ? lastReadTimestamp.toMillis() : (lastReadTimestamp ? new Date(lastReadTimestamp).getTime() : 0);
-              
-              let isFirstUnread = false;
-              if (!isOwn && lastReadTime && msgTime >= lastReadTime) {
-                if (index === 0) {
-                  isFirstUnread = true;
-                } else {
-                  const prevMsg = array[index - 1];
-                  const prevTime = prevMsg.timestamp?.toMillis ? prevMsg.timestamp.toMillis() : new Date(prevMsg.timestamp).getTime();
-                  isFirstUnread = prevTime < lastReadTime;
+                const isOwn = msg.senderId === user?.id;
+
+                // Check if this is the first unread message from recipient
+                const msgTime = msg.timestamp?.toMillis ? msg.timestamp.toMillis() : new Date(msg.timestamp).getTime();
+                const lastReadTime = lastReadTimestamp?.toMillis ? lastReadTimestamp.toMillis() : (lastReadTimestamp ? new Date(lastReadTimestamp).getTime() : 0);
+
+                let isFirstUnread = false;
+                if (!isOwn && lastReadTime && msgTime >= lastReadTime) {
+                  if (index === 0) {
+                    isFirstUnread = true;
+                  } else {
+                    const prevMsg = array[index - 1];
+                    const prevTime = prevMsg.timestamp?.toMillis ? prevMsg.timestamp.toMillis() : new Date(prevMsg.timestamp).getTime();
+                    isFirstUnread = prevTime < lastReadTime;
+                  }
                 }
-              }
-              
-              return (
-                <div key={msg.id}>
-                  {isFirstUnread && (
-                    <div ref={unreadSeparatorRef} className="flex items-center gap-3 my-4">
-                      <div className="flex-1 h-px bg-blue-500/50"></div>
-                      <span className="text-xs font-semibold text-blue-400 px-2 py-1 bg-blue-500/10 rounded-full border border-blue-500/30">New Messages</span>
-                      <div className="flex-1 h-px bg-blue-500/50"></div>
-                    </div>
-                  )}
-                <div
-                  key={msg.id}
-                  className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
-                >
-                  {/* Avatar */}
-                  <div className="flex-shrink-0">
-                    {(isOwn ? user?.avatarUrl : recipient?.avatarUrl) ? (
-                      <div className="relative w-9 h-9 rounded-full overflow-hidden border-2 border-gray-700">
-                        <Image
-                          src={isOwn ? user.avatarUrl : recipient.avatarUrl}
-                          alt={isOwn ? user.username : recipient.username}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-700 to-gray-600 flex items-center justify-center border-2 border-gray-700">
-                        <span className="text-white text-sm font-bold">
-                          {(isOwn ? user?.username : recipient?.username)?.charAt(0)?.toUpperCase() || '?'}
-                        </span>
+
+                return (
+                  <div key={msg.id}>
+                    {isFirstUnread && (
+                      <div ref={unreadSeparatorRef} className="flex items-center gap-3 my-4">
+                        <div className="flex-1 h-px bg-blue-500/50"></div>
+                        <span className="text-xs font-semibold text-blue-400 px-2 py-1 bg-blue-500/10 rounded-full border border-blue-500/30">New Messages</span>
+                        <div className="flex-1 h-px bg-blue-500/50"></div>
                       </div>
                     )}
-                  </div>
-
-                  {/* Message */}
-                  <div className={`flex-1 ${isOwn ? 'text-right' : 'text-left'}`}>
-                    <div className={`inline-flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
-                      <div className={`inline-flex items-center gap-2 group relative ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-                        <div
-                          className={`px-4 py-2 rounded-2xl max-w-[100%] sm:max-w-[92%] ${
-                            isOwn
-                              ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
-                              : 'bg-gray-800 text-white'
-                          }`}
-                          style={{ 
-                            wordBreak: 'break-word',
-                            overflowWrap: 'break-word',
-                            hyphens: 'none'
-                          }}
-                        >
-                          <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
-                        </div>
-                        {isOwn && (
-                          <button
-                            onClick={() => handleDeleteMessage(msg.id)}
-                            disabled={deletingMessageId === msg.id}
-                            className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1.5 hover:bg-red-500/20 rounded-lg"
-                            title="Delete message"
-                          >
-                            {deletingMessageId === msg.id ? (
-                              <Loader className="w-4 h-4 text-gray-400 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-400" />
-                            )}
-                          </button>
+                    <div
+                      key={msg.id}
+                      className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
+                    >
+                      {/* Avatar */}
+                      <div className="flex-shrink-0">
+                        {(isOwn ? user?.avatarUrl : recipient?.avatarUrl) ? (
+                          <div className="relative w-9 h-9 rounded-full overflow-hidden border-2 border-gray-700">
+                            <Image
+                              src={isOwn ? user.avatarUrl : recipient.avatarUrl}
+                              alt={isOwn ? user.username : recipient.username}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-700 to-gray-600 flex items-center justify-center border-2 border-gray-700">
+                            <span className="text-white text-sm font-bold">
+                              {(isOwn ? user?.username : recipient?.username)?.charAt(0)?.toUpperCase() || '?'}
+                            </span>
+                          </div>
                         )}
                       </div>
-                      <span className="text-xs text-gray-500 mt-1">
-                        {formatTime(msg.timestamp)}
-                        {msg.status === 'sending' && (
-                          <span className="ml-2 inline-flex items-center gap-1 text-blue-400">
-                            <Loader className="w-3 h-3 animate-spin" />
-                            Sending...
-                          </span>
-                        )}
-                        {msg.status === 'error' && (
-                          <span className="ml-2 inline-flex items-center gap-1 text-red-400">
-                            <AlertCircle className="w-3 h-3" />
-                            <button
-                              className="underline text-red-300"
-                              onClick={() => handleRetryPending(msg)}
+
+                      {/* Message */}
+                      <div className={`flex-1 ${isOwn ? 'text-right' : 'text-left'}`}>
+                        <div className={`inline-flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+                          <div className={`inline-flex items-center gap-2 group relative ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+                            <div
+                              className={`px-4 py-2 rounded-2xl max-w-[100%] sm:max-w-[92%] ${isOwn
+                                ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
+                                : 'bg-gray-800 text-white'
+                                }`}
+                              style={{
+                                wordBreak: 'break-word',
+                                overflowWrap: 'break-word',
+                                hyphens: 'none'
+                              }}
                             >
-                              Retry
-                            </button>
+                              <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                            </div>
+                            {isOwn && (
+                              <button
+                                onClick={() => handleDeleteMessage(msg.id)}
+                                disabled={deletingMessageId === msg.id}
+                                className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1.5 hover:bg-red-500/20 rounded-lg"
+                                title="Delete message"
+                              >
+                                {deletingMessageId === msg.id ? (
+                                  <Loader className="w-4 h-4 text-gray-400 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-400" />
+                                )}
+                              </button>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-500 mt-1">
+                            {formatTime(msg.timestamp)}
+                            {msg.status === 'sending' && (
+                              <span className="ml-2 inline-flex items-center gap-1 text-blue-400">
+                                <Loader className="w-3 h-3 animate-spin" />
+                                Sending...
+                              </span>
+                            )}
+                            {msg.status === 'error' && (
+                              <span className="ml-2 inline-flex items-center gap-1 text-red-400">
+                                <AlertCircle className="w-3 h-3" />
+                                <button
+                                  className="underline text-red-300"
+                                  onClick={() => handleRetryPending(msg)}
+                                >
+                                  Retry
+                                </button>
+                              </span>
+                            )}
                           </span>
-                        )}
-                      </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                </div>
-              );
-            })}
+                );
+              })}
             <div ref={messagesEndRef} />
           </>
         )}

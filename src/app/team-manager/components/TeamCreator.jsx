@@ -6,6 +6,7 @@ import { userService } from "@/services/userService";
 import UserSearchBar from "@/components/UserSearchBar";
 import { db } from "@/lib/firebase";
 import { collection, query, getDocs, limit, where, doc, updateDoc, arrayUnion, arrayRemove, increment, deleteField } from "firebase/firestore";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function TeamManagerTeamCreator({ managerEmail }) {
@@ -619,6 +620,16 @@ export default function TeamManagerTeamCreator({ managerEmail }) {
                     <p className="text-2xl font-bold text-white">0</p>
                     <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Wins</p>
                   </div>
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-gray-800">
+                  <Link
+                    href={`/team-chat/${createdTeam.id}`}
+                    className="w-full flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg shadow-blue-600/20 active:scale-95 group"
+                  >
+                    <MessageSquare size={16} className="group-hover:rotate-12 transition-transform" />
+                    Chat with Squad
+                  </Link>
                 </div>
               </div>
 

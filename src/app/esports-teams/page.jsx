@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getTeams } from "@/services/teamService";
 import { Users, Info, Trophy, UserCircle, Shield, Briefcase, UserPlus } from "lucide-react";
 import { userService } from "@/services/userService";
+import { useAuth } from "@/app/contexts/AuthContext";
 import Link from "next/link";
 import TeamDetailsModal from "@/components/TeamDetailsModal";
 
@@ -11,6 +12,7 @@ export default function EsportsTeamsPage() {
   const [teams, setTeams] = useState([]);
   const [memberDetails, setMemberDetails] = useState({});
   const [loading, setLoading] = useState(true);
+  const { user: currentUser } = useAuth();
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -18,7 +20,17 @@ export default function EsportsTeamsPage() {
     async function fetchData() {
       try {
         const teamsData = await getTeams();
-        setTeams(teamsData);
+
+        // Sort teams: if user is logged in, show their teams first
+        const sortedTeams = currentUser ? [...teamsData].sort((a, b) => {
+          const aIsMember = a.manager === currentUser.email || a.members?.includes(currentUser.email);
+          const bIsMember = b.manager === currentUser.email || b.members?.includes(currentUser.email);
+          if (aIsMember && !bIsMember) return -1;
+          if (!aIsMember && bIsMember) return 1;
+          return 0;
+        }) : teamsData;
+
+        setTeams(sortedTeams);
 
         const allEmails = new Set();
         teamsData.forEach(team => {
@@ -41,7 +53,7 @@ export default function EsportsTeamsPage() {
       }
     }
     fetchData();
-  }, []);
+  }, [currentUser]);
 
   return (
     <div className="min-h-screen bg-black text-white pt-8 pb-16 px-4 md:px-12 relative overflow-hidden">
@@ -113,7 +125,10 @@ export default function EsportsTeamsPage() {
                         <Shield className="text-orange-500" size={32} />
                       )}
                     </div>
-                    <div className="flex flex-col items-end">
+                    <div className="flex flex-col items-end gap-1.5">
+                      {(team.manager === currentUser?.email || team.members?.includes(currentUser?.email)) && (
+                        <span className="px-2.5 py-1 bg-orange-500/10 text-orange-500 text-[10px] rounded-full font-black border border-orange-500/20 uppercase tracking-widest">My Squad</span>
+                      )}
                       <span className="px-2.5 py-1 bg-green-500/10 text-green-500 text-[10px] rounded-full font-bold border border-green-500/20">Active</span>
                     </div>
                   </div>

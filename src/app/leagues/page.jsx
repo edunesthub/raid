@@ -22,28 +22,7 @@ import {
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
 
-// --- Mock Data (Fallbacks) ---
-const mockLeagueStandings = [
-    { id: 1, team: "Super Strikers", tag: "SS", country: "GH", p: 12, w: 9, d: 2, l: 1, gd: 15, pts: 29, form: ['W', 'W', 'W', 'D', 'W'] },
-    { id: 2, team: "Cyber Warriors", tag: "CW", country: "NG", p: 12, w: 8, d: 3, l: 1, gd: 12, pts: 27, form: ['W', 'L', 'W', 'W', 'D'] },
-    { id: 3, team: "Elite Gamers", tag: "EG", country: "KE", p: 12, w: 8, d: 2, l: 2, gd: 8, pts: 26, form: ['L', 'W', 'W', 'D', 'W'] },
-    { id: 4, team: "Raid Masters", tag: "RM", country: "GH", p: 12, w: 7, d: 3, l: 2, gd: 5, pts: 24, form: ['W', 'D', 'D', 'W', 'L'] },
-    { id: 5, team: "Alpha Squad", tag: "AS", country: "NG", p: 12, w: 6, d: 2, l: 4, gd: 0, pts: 20, form: ['L', 'L', 'W', 'W', 'D'] },
-    { id: 6, team: "Delta Force", tag: "DF", country: "GH", p: 12, w: 5, d: 3, l: 4, gd: -3, pts: 18, form: ['W', 'L', 'L', 'D', 'L'] },
-    { id: 7, team: "Titan Kings", tag: "TK", country: "ZA", p: 12, w: 4, d: 2, l: 6, gd: -7, pts: 14, form: ['L', 'D', 'L', 'L', 'W'] },
-    { id: 8, team: "Shadow Ninjas", tag: "SN", country: "NG", p: 12, w: 3, d: 2, l: 7, gd: -12, pts: 11, form: ['L', 'L', 'W', 'L', 'L'] },
-];
-
-const mockMatches = [
-    { id: 101, team1: "Super Strikers", team2: "Cyber Warriors", score1: 3, score2: 1, time: "Yesterday", round: "Round 12", completed: true },
-    { id: 102, team1: "Elite Gamers", team2: "Raid Masters", score1: 1, score2: 1, time: "Yesterday", round: "Round 12", completed: true },
-    { id: 103, team1: "Alpha Squad", team2: "Delta Force", score1: 0, score2: 2, time: "Yesterday", round: "Round 12", completed: true },
-    { id: 104, team1: "Titan Kings", team2: "Shadow Ninjas", score1: 1, score2: 0, time: "Yesterday", round: "Round 12", completed: true },
-    { id: 201, team1: "Super Strikers", team2: "Elite Gamers", score1: null, score2: null, time: "Sat, 14:00", round: "Round 13", completed: false },
-    { id: 202, team1: "Cyber Warriors", team2: "Raid Masters", score1: null, score2: null, time: "Sat, 16:00", round: "Round 13", completed: false },
-    { id: 203, team1: "Alpha Squad", team2: "Titan Kings", score1: null, score2: null, time: "Sun, 12:00", round: "Round 13", completed: false },
-    { id: 204, team1: "Delta Force", team2: "Shadow Ninjas", score1: null, score2: null, time: "Sun, 18:00", round: "Round 13", completed: false },
-];
+// Flag and Badge components remain...
 
 // --- Sub-components ---
 
@@ -315,7 +294,7 @@ export default function LeaguesPage() {
             </div>
 
             {/* --- Scrollable Main Content Area --- */}
-            <div className="flex-1 overflow-y-auto md:container-mobile pb-24 pt-2">
+            <div className="flex-1 overflow-y-auto md:container-mobile pb-8 pt-2">
 
                 {/* 1. STANDINGS VIEW */}
                 {activeTab === 'standing' && (
@@ -329,7 +308,7 @@ export default function LeaguesPage() {
                                         <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[22px]">P</th>
                                         <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[38px]">W-L</th>
                                         <th className="px-1 py-3 text-[8px] font-black text-orange-500 uppercase tracking-tighter text-center w-[25px]">Pts</th>
-                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[75px]">Form</th>
+                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[90px]">Form</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/[0.03]">
@@ -337,8 +316,8 @@ export default function LeaguesPage() {
                                         <tr key={team.id || idx} className="active:bg-white/10 transition-colors">
                                             <td className="py-4 text-center">
                                                 <div className="flex items-center justify-center">
-                                                    <div className={`w-0.5 h-3 rounded-full mr-1 ${idx < 4 ? 'bg-orange-500' : idx >= mockLeagueStandings.length - 2 ? 'bg-red-500' : 'bg-transparent'}`} />
-                                                    <span className={`text-[10px] font-black ${idx < 4 ? 'text-orange-500' : idx >= mockLeagueStandings.length - 2 ? 'text-red-400' : 'text-gray-500'}`}>{idx + 1}</span>
+                                                    <div className={`w-0.5 h-3 rounded-full mr-1 ${idx < 4 ? 'bg-orange-500' : standings.length > 6 && idx >= standings.length - 2 ? 'bg-red-500' : 'bg-transparent'}`} />
+                                                    <span className={`text-[10px] font-black ${idx < 4 ? 'text-orange-500' : standings.length > 6 && idx >= standings.length - 2 ? 'text-red-400' : 'text-gray-500'}`}>{idx + 1}</span>
                                                 </div>
                                             </td>
                                             <td className="py-4 min-w-0 pr-1">
@@ -370,10 +349,12 @@ export default function LeaguesPage() {
                                 <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
                                 <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Seeds 1-4: Championship Qualifier</span>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
-                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Seeds 7-8: Relegation Zone</span>
-                            </div>
+                            {standings.length > 6 && (
+                                <div className="flex items-center gap-3">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Seeds {standings.length - 1}-{standings.length}: Relegation Zone</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
