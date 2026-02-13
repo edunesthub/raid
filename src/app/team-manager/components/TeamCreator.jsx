@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Plus, Search, Users, UserPlus, CheckCircle2, Shield, Loader2, Trophy, Trash2, X, AlertCircle, ArrowLeft, ChevronRight, LayoutGrid, Edit2, Camera, Save, LogOut } from "lucide-react";
 import { createTeam, getTeams, addMemberToTeam, removeMemberFromTeam, deleteTeam, updateTeam } from "@/services/teamService";
 import { userService } from "@/services/userService";
+import UserSearchBar from "@/components/UserSearchBar";
 import { db } from "@/lib/firebase";
 import { collection, query, getDocs, limit, where, doc, updateDoc, arrayUnion, arrayRemove, increment, deleteField } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -343,54 +344,7 @@ export default function TeamManagerTeamCreator({ managerEmail }) {
     }
   };
 
-  const handleUserSearch = async (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-
-    if (value.length < 2) {
-      setSearchResults([]);
-      setShowSearchResults(false);
-      return;
-    }
-
-    setSearchLoading(true);
-    setShowSearchResults(true);
-
-    try {
-      // Advanced search logic mirroring UserSearchBar.jsx
-      const usersRef = collection(db, 'users');
-      const searchLower = value.toLowerCase();
-
-      // Optimistic fetch - get a batch and filter client side for better UX on fields not indexed for text search
-      const allUsersQuery = query(usersRef, limit(100));
-      const allUsersDocs = await getDocs(allUsersQuery);
-
-      const results = [];
-      allUsersDocs.docs.forEach(doc => {
-        const userData = doc.data();
-        const username = (userData.username || '').toLowerCase();
-        const email = (userData.email || '').toLowerCase();
-        const firstName = (userData.firstName || '').toLowerCase();
-        const lastName = (userData.lastName || '').toLowerCase();
-
-        if (
-          username.includes(searchLower) ||
-          email.includes(searchLower) ||
-          firstName.includes(searchLower) ||
-          lastName.includes(searchLower)
-        ) {
-          results.push({ id: doc.id, ...userData });
-        }
-      });
-
-      setSearchResults(results.slice(0, 10));
-    } catch (err) {
-      console.error("Search error:", err);
-      setSearchResults([]);
-    } finally {
-      setSearchLoading(false);
-    }
-  };
+  // Removed manual search logic in favor of UserSearchBar component
 
   const handleAddMember = async (userEmail) => {
     if (!createdTeam) return;
@@ -681,58 +635,17 @@ export default function TeamManagerTeamCreator({ managerEmail }) {
                   <h3 className="font-bold text-lg">Add Members</h3>
                 </div>
 
-                <div className="relative z-20" ref={searchRef}>
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                  <input
-                    type="text"
-                    placeholder="Search usernames, names or emails..."
-                    value={searchTerm}
-                    onChange={handleUserSearch}
-                    className="w-full bg-black border border-gray-700 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 rounded-xl py-4 pl-12 pr-4 outline-none transition-all placeholder:text-gray-600"
+                <div className="relative z-20">
+                  <UserSearchBar
+                    onUserClick={(user) => handleAddMember(user.email)}
+                    containerClassName="!max-w-none !mb-0"
+                    resultIcon={({ user }) => {
+                      const isMember = createdTeam.members?.includes(user.email);
+                      return isMember ?
+                        <CheckCircle2 size={18} className="text-green-500" /> :
+                        <Plus size={18} className="text-orange-500" />;
+                    }}
                   />
-
-                  {/* DROPDOWN RESULTS */}
-                  {showSearchResults && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl max-h-80 overflow-y-auto animate-fade-in">
-                      {searchLoading ? (
-                        <div className="p-8 text-center text-gray-500">
-                          <Loader2 className="animate-spin mx-auto mb-2" size={24} />
-                          <p className="text-xs">Scanning...</p>
-                        </div>
-                      ) : searchResults.length > 0 ? (
-                        <div className="divide-y divide-gray-800">
-                          {searchResults.map((user) => (
-                            <button
-                              key={user.id}
-                              onClick={() => handleAddMember(user.email)}
-                              className="w-full px-5 py-3 flex items-center justify-between hover:bg-white/5 transition-colors text-left group"
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center font-bold text-gray-300 group-hover:bg-orange-500 group-hover:text-white transition-colors overflow-hidden">
-                                  {user.avatarUrl ? (
-                                    <img src={user.avatarUrl} alt={user.username} className="w-full h-full object-cover" />
-                                  ) : (
-                                    user.username?.charAt(0).toUpperCase()
-                                  )}
-                                </div>
-                                <div>
-                                  <p className="font-bold text-sm text-gray-200">{user.username}</p>
-                                  <p className="text-xs text-gray-500">{user.firstName} {user.lastName}</p>
-                                </div>
-                              </div>
-                              <div className="text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                {createdTeam.members?.includes(user.email) ? <CheckCircle2 size={18} /> : <Plus size={18} />}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="p-6 text-center text-gray-500">
-                          <p className="text-sm">No matches found.</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
 

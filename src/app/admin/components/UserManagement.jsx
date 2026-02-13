@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, query, orderBy } from 'firebase/firestore';
-import { Eye, X } from 'lucide-react';
+import { Eye, X, Search } from 'lucide-react';
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -74,13 +74,16 @@ export default function UserManagement() {
       <h2 className="text-3xl font-bold mb-6 text-orange-400">User Management</h2>
 
       {/* Search Input */}
-      <div className="mb-6">
+      <div className="mb-8 relative max-w-xl">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2">
+          <Search className="w-5 h-5 text-gray-400" />
+        </div>
         <input
           type="text"
           placeholder="Search users by username or email..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
-          className="w-full max-w-lg bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-400 transition"
+          className="w-full bg-gray-800/50 border border-gray-700 rounded-xl pl-12 pr-4 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all font-medium"
         />
       </div>
 
