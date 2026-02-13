@@ -79,7 +79,7 @@ export default function LeaguesPage() {
     const rounds = ["Round 11", "Round 12", "Round 13", "Round 14"];
 
     return (
-        <div className="min-h-screen bg-[#050505] pb-20 overflow-x-hidden">
+        <div className="min-h-screen bg-[#050505] overflow-x-hidden">
             {/* --- Compact Hero Section --- */}
             <div className="relative pt-4 md:pt-10 pb-6 md:pb-10 bg-gradient-to-b from-orange-500/10 to-transparent border-b border-white/5">
                 <div className="container-mobile px-4">
@@ -309,7 +309,27 @@ export default function LeaguesPage() {
 
                 {/* 3. OVERVIEW VIEW (LiveScore Style) */}
                 {activeTab === 'overview' && (
-                    <div className="animate-in fade-in duration-700 px-4 md:px-0 space-y-8 pb-20">
+                    <div className="animate-in fade-in duration-700 px-4 md:px-0 space-y-8 pb-0">
+
+                        {/* League Identity Section (Moved to Top) */}
+                        <div className="space-y-4">
+                            <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-1 italic">League Identity</h4>
+                            <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4 shadow-2xl">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
+                                        <Trophy className="text-orange-500" size={24} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-black text-white uppercase tracking-tighter">Elite African Series</p>
+                                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Season 1 • 2026</p>
+                                    </div>
+                                </div>
+                                <p className="text-xs md:text-sm text-gray-400 leading-relaxed font-medium">
+                                    The premier continental showdown where Africa's finest esports talent competes for professional dominance and a <span className="text-white font-bold">₵50,000</span> prize pool.
+                                </p>
+                            </div>
+                        </div>
+
                         {/* Summary Grid */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
@@ -440,64 +460,6 @@ export default function LeaguesPage() {
                             </div>
                         </div>
 
-                        {/* Secondary Info Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
-                            {/* League Info Section */}
-                            <div className="space-y-4">
-                                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-1 italic">League Identity</h4>
-                                <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4 shadow-2xl">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
-                                            <Trophy className="text-orange-500" size={24} />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-black text-white uppercase tracking-tighter">Elite African Series</p>
-                                            <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Season 1 • 2026</p>
-                                        </div>
-                                    </div>
-                                    <p className="text-xs md:text-sm text-gray-400 leading-relaxed font-medium">
-                                        The premier continental showdown where Africa's finest esports talent competes for professional dominance and a <span className="text-white font-bold">₵50,000</span> prize pool.
-                                    </p>
-                                    <div className="pt-2 flex items-center gap-4">
-                                        <div className="px-4 py-2 bg-white/5 rounded-lg border border-white/5 flex-1">
-                                            <p className="text-[8px] text-gray-500 uppercase font-black tracking-widest mb-1">Server</p>
-                                            <p className="text-white text-xs font-bold">EU West / AF</p>
-                                        </div>
-                                        <div className="px-4 py-2 bg-white/5 rounded-lg border border-white/5 flex-1">
-                                            <p className="text-[8px] text-gray-500 uppercase font-black tracking-widest mb-1">Rulebook</p>
-                                            <p className="text-orange-500 text-xs font-bold flex items-center gap-1 cursor-pointer hover:underline">Download PDF <ChevronRight size={12} /></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Milestones / Phases Section */}
-                            <div className="space-y-4">
-                                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-1 italic">Road to Finals</h4>
-                                <div className="space-y-3">
-                                    <div className="bg-[#0a0a0a] border border-orange-500/30 p-4 rounded-xl flex items-center justify-between shadow-lg shadow-orange-500/5">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center font-black text-white text-[10px]">01</div>
-                                            <div>
-                                                <p className="text-xs font-bold text-white uppercase tracking-tighter">Group Phase</p>
-                                                <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest">Ends Feb 20</p>
-                                            </div>
-                                        </div>
-                                        <span className="text-[9px] font-black text-black bg-orange-500 px-2 py-0.5 rounded uppercase tracking-widest">Active</span>
-                                    </div>
-                                    <div className="bg-[#0a0a0a] border border-white/5 p-4 rounded-xl flex items-center justify-between opacity-50 grayscale">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-black text-white text-[10px]">02</div>
-                                            <div>
-                                                <p className="text-xs font-bold text-white uppercase tracking-tighter">Playoffs</p>
-                                                <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest">Starts Mar 01</p>
-                                            </div>
-                                        </div>
-                                        <Clock size={14} className="text-gray-500" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 )}
             </div>
