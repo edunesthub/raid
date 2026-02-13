@@ -39,9 +39,9 @@ export const teamMembers = [
         email: "danielotioda@gmail.com"
     },
     {
-        id: "david",
-        slug: "david",
-        name: "David",
+        id: "david-stewart",
+        slug: "david-stewart",
+        name: "David Stewart",
         role: "Chief Operating Officer (COO)",
         image: "/team/david.png",
         bio: "I oversee the operational structure and strategic execution of our tournaments, ensuring that every event is organized, fair, and professionally managed.",
