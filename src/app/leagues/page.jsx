@@ -168,16 +168,16 @@ export default function LeaguesPage() {
                     <p className="text-gray-500 text-sm md:text-base font-bold uppercase tracking-widest">Select a league to view standings, fixtures and results</p>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-6 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 scrollbar-hide">
+                <div className="flex-1 overflow-y-auto px-6 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start content-start scrollbar-hide">
                     {leagueList.map((league) => (
                         <div
                             key={league.id}
                             onClick={() => handleSelectLeague(league)}
                             className="group relative bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden hover:border-orange-500/50 transition-all cursor-pointer"
                         >
-                            <div className="flex items-center gap-4 p-4">
+                            <div className="flex items-stretch gap-3 p-0">
                                 {/* League Image/Icon */}
-                                <div className="relative w-16 h-16 md:w-20 md:h-20 flex-shrink-0 rounded-xl overflow-hidden border border-white/10 bg-orange-500/10">
+                                <div className="relative w-20 md:w-24 flex-shrink-0 overflow-hidden bg-orange-500/10">
                                     {league.league_flyer ? (
                                         <Image
                                             src={league.league_flyer}
@@ -187,35 +187,35 @@ export default function LeaguesPage() {
                                         />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
-                                            <Trophy size={32} className="text-orange-500" />
+                                            <Trophy size={36} className="text-orange-500" />
                                         </div>
                                     )}
                                 </div>
 
                                 {/* League Info */}
-                                <div className="flex-1 min-w-0 space-y-1">
+                                <div className="flex-1 min-w-0 py-3 pr-3">
                                     <h3 className="text-sm md:text-base font-black text-white uppercase tracking-tight truncate group-hover:text-orange-500 transition-colors">
                                         {league.name}
                                     </h3>
-                                    <p className="text-[9px] md:text-[10px] text-gray-500 uppercase font-bold tracking-widest">
+                                    <p className="text-[9px] md:text-[10px] text-gray-400 uppercase font-bold tracking-widest mt-0.5">
                                         {league.season}
                                     </p>
-                                    <div className="flex items-center gap-3 pt-1">
+                                    <div className="flex items-center gap-3 mt-1.5">
                                         <div className="flex items-center gap-1">
                                             <Trophy className="w-3 h-3 text-orange-500/60" />
                                             <span className="text-[10px] font-bold text-orange-500">{league.prize_pool}</span>
                                         </div>
                                         <div className="w-px h-3 bg-white/10" />
                                         <div className="flex items-center gap-1">
-                                            <Calendar className="w-3 h-3 text-gray-600" />
-                                            <span className="text-[9px] font-bold text-gray-500">{league.start_date}</span>
+                                            <Calendar className="w-3 h-3 text-gray-500" />
+                                            <span className="text-[9px] font-bold text-gray-400">{league.start_date}</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Arrow Icon */}
-                                <div className="flex-shrink-0">
-                                    <ChevronRight className="w-5 h-5 text-gray-700 group-hover:text-orange-500 transition-colors" />
+                                <div className="flex items-center pr-3">
+                                    <ChevronRight className="w-5 h-5 text-gray-600 group-hover:text-orange-500 transition-colors" />
                                 </div>
                             </div>
                         </div>
