@@ -211,7 +211,7 @@ export default function LeagueManagement() {
                                     }}
                                     className="flex-1 flex items-center justify-center gap-2 py-3 md:py-2 text-[10px] md:text-xs font-black text-gray-400 hover:text-white transition-colors uppercase tracking-widest"
                                 >
-                                    <Edit size={14} /> Identity
+                                    <Edit size={14} /> Edit
                                 </button>
                                 <div className="w-px h-4 bg-gray-700" />
                                 <button

@@ -51,7 +51,7 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                     <div className="flex items-center gap-3">
                         <Trophy className="text-orange-500" />
                         <h3 className="text-xl font-bold text-white">
-                            {league ? "Edit League Identity" : "Create New Season"}
+                            {league ? "Edit League " : "Create New Season"}
                         </h3>
                     </div>
                     <button onClick={onClose} className="p-2 text-gray-400 hover:text-white transition-colors">
@@ -145,7 +145,7 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                             className="flex-[2] md:flex-3 py-3 md:py-4 px-6 md:px-10 bg-orange-600 hover:bg-orange-500 disabled:bg-orange-900 text-white font-bold rounded-xl md:rounded-2xl transition shadow-lg flex items-center justify-center gap-2 text-sm md:text-base"
                         >
                             <Save size={18} className="md:w-5 md:h-5" />
-                            {loading ? "Saving..." : "Save Identity"}
+                            {loading ? "Saving..." : "Save "}
                         </button>
                     </div>
                 </form>

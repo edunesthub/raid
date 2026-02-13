@@ -245,18 +245,13 @@ export default function LeaguesPage() {
 
                         {/* Top Identity Info */}
                         <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3 mb-4 md:mb-6">
-                                <div className="w-8 h-8 md:w-12 md:h-12 rounded-lg bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
-                                    <Trophy size={16} className="md:w-6 md:h-6" />
-                                </div>
-                                <div className="min-w-0">
-                                    <h1 className="text-xl md:text-5xl font-black text-white italic uppercase tracking-tighter leading-none truncate">
-                                        {leagueInfo?.name || "League"}
-                                    </h1>
-                                    <div className="flex items-center gap-1.5 mt-2 text-orange-500 font-black text-[10px] md:text-sm uppercase tracking-widest italic">
-                                        <Calendar size={12} />
-                                        <span>{leagueInfo?.season || "2026"}</span>
-                                    </div>
+                            <div className="flex flex-col justify-center min-w-0 mb-4 md:mb-6">
+                                <h1 className="text-xl md:text-5xl font-black text-white italic uppercase tracking-tighter leading-none truncate">
+                                    {leagueInfo?.name || "League"}
+                                </h1>
+                                <div className="flex items-center gap-1.5 mt-2 text-orange-500 font-black text-[10px] md:text-sm uppercase tracking-widest italic">
+                                    <Calendar size={12} />
+                                    <span>{leagueInfo?.season || "2026"}</span>
                                 </div>
                             </div>
 
@@ -451,7 +446,7 @@ export default function LeaguesPage() {
                     <div className="animate-in fade-in duration-700 space-y-8 pb-8">
                         {/* League Identity */}
                         <div className="px-4 space-y-4">
-                            <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-1 italic">League Identity</h4>
+                            <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-1 italic">League Details</h4>
                             <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4 shadow-2xl">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
@@ -463,7 +458,7 @@ export default function LeaguesPage() {
                                     </div>
                                 </div>
                                 <p className="text-xs md:text-sm text-gray-400 leading-relaxed font-medium">
-                                    {leagueInfo?.description || "The premier continental showdown where Africa's talent competes for professional dominance."} <span className="text-white font-bold">{leagueInfo?.prize_pool || "₵50,000"}</span>.
+                                    {leagueInfo?.description || "The premier continental showdown where Africa's talent competes for professional dominance."}
                                 </p>
                             </div>
                         </div>
