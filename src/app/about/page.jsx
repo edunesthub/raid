@@ -25,6 +25,24 @@ export default function AboutPage() {
       {/* Main Content */}
       <div className="max-w-5xl mx-auto px-6 sm:px-12 py-16 space-y-24">
 
+        {/* Meet Our Team Section */}
+        <section className="text-center">
+          <div className="flex items-center justify-center gap-3 text-orange-500 mb-2">
+            <Users size={24} />
+            <h2 className="text-xl font-bold uppercase tracking-wide">Our Team</h2>
+          </div>
+          <h3 className="text-3xl font-bold text-white mb-4">The People Behind RAID</h3>
+          <p className="text-gray-400 max-w-2xl mx-auto mb-8">
+            Meet the passionate individuals working to revolutionize esports in Africa and build the future of competitive gaming.
+          </p>
+          <Link
+            href="/team"
+            className="inline-block bg-orange-500 text-black px-8 py-3 rounded-full font-bold uppercase tracking-wider text-sm hover:bg-orange-600 hover:scale-105 transition-all"
+          >
+            Meet the Team
+          </Link>
+        </section>
+
         {/* Mission Statement */}
         <section className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
@@ -113,6 +131,7 @@ export default function AboutPage() {
           </div>
           <p className="text-center text-gray-500 mt-6 italic font-medium">...and more</p>
         </section>
+
 
         {/* Closing / CTA */}
         <section className="bg-orange-500 text-black rounded-3xl p-12 text-center relative overflow-hidden">
