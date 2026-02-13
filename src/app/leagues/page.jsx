@@ -80,44 +80,48 @@ export default function LeaguesPage() {
 
     return (
         <div className="min-h-screen bg-[#050505] overflow-x-hidden">
-            {/* --- Compact Hero Section --- */}
-            <div className="relative pt-4 md:pt-10 pb-6 md:pb-10 bg-gradient-to-b from-orange-500/10 to-transparent border-b border-white/5">
-                <div className="container-mobile px-4">
-                    <div className="flex items-center gap-4 md:gap-12">
+            {/* --- Expanded Hero Section --- */}
+            <div className="relative pt-6 md:pt-12 pb-8 md:pb-14 bg-gradient-to-b from-orange-500/10 to-transparent border-b border-white/5">
+                <div className="px-4 md:px-8 max-w-full">
+                    <div className="flex items-center gap-6 md:gap-16">
                         {/* Compact Poster Left */}
-                        <div className="relative w-24 h-32 md:w-44 md:h-60 flex-shrink-0">
-                            <div className="absolute inset-0 bg-orange-500/30 blur-2xl rounded-xl" />
-                            <div className="relative w-full h-full rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                        <div className="relative w-28 h-36 md:w-56 md:h-72 flex-shrink-0">
+                            <div className="absolute inset-0 bg-orange-500/40 blur-3xl rounded-xl" />
+                            <div className="relative w-full h-full rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,140,0,0.2)]">
                                 <Image
                                     src="/assets/league-banner.png"
                                     alt="League Banner"
                                     fill
-                                    className="object-cover"
+                                    className="object-cover scale-105"
                                     priority
                                 />
                             </div>
                         </div>
 
                         {/* Titles Right */}
-                        <div className="flex flex-col gap-1 md:gap-4 flex-1 min-w-0 font-black">
-                            <div>
-                                <span className="text-[10px] md:text-xs text-orange-500 uppercase tracking-[0.3em] block mb-1">
-                                    Pro Series • S1
+                        <div className="flex flex-col gap-2 md:gap-6 flex-1 min-w-0 font-black">
+                            <div className="space-y-1">
+                                <span className="text-[10px] md:text-sm text-orange-500 uppercase tracking-[0.4em] font-black block">
+                                    Pro Series • Season 1
                                 </span>
-                                <h1 className="text-xl md:text-6xl text-white leading-[1.1] uppercase tracking-tighter">
+                                <h1 className="text-2xl md:text-8xl text-white leading-[0.95] uppercase tracking-tighter">
                                     Elite African <br className="hidden md:block" />
                                     <span className="text-orange-500">Pro Series</span>
                                 </h1>
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-3 md:gap-8 mt-1">
-                                <div className="flex items-center gap-1.5 text-gray-400">
-                                    <Trophy className="w-3.5 h-3.5 text-orange-500" />
-                                    <span className="text-[10px] md:text-sm uppercase tracking-widest">₵50K Pool</span>
+                            <div className="flex flex-wrap items-center gap-4 md:gap-10">
+                                <div className="flex items-center gap-2 text-gray-400">
+                                    <Calendar className="w-3 h-3 md:w-4 md:h-4 text-orange-500" />
+                                    <span className="text-[9px] md:text-base uppercase tracking-widest font-black">Feb 10 - Mar 25</span>
                                 </div>
-                                <div className="flex items-center gap-1.5 text-gray-400">
-                                    <Users className="w-3.5 h-3.5 text-orange-500" />
-                                    <span className="text-[10px] md:text-sm uppercase tracking-widest">32 Teams</span>
+                                <div className="flex items-center gap-2 text-gray-400">
+                                    <Trophy className="w-3 h-3 md:w-4 md:h-4 text-orange-500" />
+                                    <span className="text-[9px] md:text-base uppercase tracking-widest font-black">₵50K Pool</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-gray-400">
+                                    <Users className="w-3 h-3 md:w-4 md:h-4 text-orange-500" />
+                                    <span className="text-[9px] md:text-base uppercase tracking-widest font-black">32 Teams</span>
                                 </div>
                             </div>
                         </div>
@@ -421,11 +425,11 @@ export default function LeaguesPage() {
                                     <table className="w-full text-left">
                                         <thead>
                                             <tr className="bg-white/5 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                                                <th className="px-4 py-3 w-12 text-center">#</th>
-                                                <th className="px-2 py-3">Team</th>
-                                                <th className="px-2 py-3 text-center w-12">P</th>
-                                                <th className="px-2 py-3 text-center w-12">GD</th>
-                                                <th className="px-4 py-3 text-center w-16 text-orange-500">Pts</th>
+                                                <th className="px-3 py-3 w-10 text-center">#</th>
+                                                <th className="px-1 py-3">Team</th>
+                                                <th className="px-1 py-3 text-center w-10">P</th>
+                                                <th className="px-1 py-3 text-center w-10 hidden sm:table-cell">GD</th>
+                                                <th className="px-3 py-3 text-center w-14 text-orange-500">Pts</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5">
@@ -443,9 +447,9 @@ export default function LeaguesPage() {
                                                             <span className="text-xs md:text-sm font-bold text-white truncate">{team.team}</span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-2 py-3 text-center text-[11px] md:text-sm font-bold text-gray-400">{team.p}</td>
-                                                    <td className="px-2 py-3 text-center text-[11px] md:text-sm font-bold text-gray-500">{team.gd}</td>
-                                                    <td className="px-4 py-3 text-center text-[11px] md:text-sm font-black text-white bg-orange-500/5">{team.pts}</td>
+                                                    <td className="px-1 py-3 text-center text-[11px] md:text-sm font-bold text-gray-400">{team.p}</td>
+                                                    <td className="px-1 py-3 text-center text-[11px] md:text-sm font-bold text-gray-500 hidden sm:table-cell">{team.gd}</td>
+                                                    <td className="px-3 py-3 text-center text-[11px] md:text-sm font-black text-white bg-orange-500/5">{team.pts}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
