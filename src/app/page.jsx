@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import TournamentCard from "@/components/TournamentCard.jsx";
 import LoadingSpinner from "@/components/LoadingSpinner.jsx";
 import UserSearchBar from "@/components/UserSearchBar.jsx";
 import { useFeaturedTournaments } from "@/hooks/useTournaments";
 import { useAuth } from "@/app/contexts/AuthContext";
-import { useEffect, useRef } from "react";
 
 export default function Home() {
   const { user, isLoading: authLoading } = useAuth();
@@ -16,48 +14,7 @@ export default function Home() {
   // Show loading spinner while auth is initializing
   const loading = authLoading || tournamentsLoading;
 
-  const adsRef = useRef(null);
-  const scrollTimeout = useRef(null);   // ✅ place here
 
-  useEffect(() => {
-    const el = adsRef.current;
-    if (!el) return;
-
-    const stopAnimation = () => {
-      el.classList.add("stop-animation");
-
-      if (scrollTimeout.current)
-        clearTimeout(scrollTimeout.current);
-
-      scrollTimeout.current = setTimeout(() => {
-        el.classList.remove("stop-animation");
-      }, 1200);
-    };
-
-    el.addEventListener("scroll", stopAnimation, { passive: true });
-
-    return () => {
-      el.removeEventListener("scroll", stopAnimation);
-    };
-  }, []);
-
-
-  const assets = [
-    "/assets/8ball.jpg",
-    "/assets/amongus.jpg",
-    "/assets/brawlhalla.jpg",
-    "/assets/chess.jpg",
-    "/assets/cod.jpg",
-    "/assets/dream.jpg",
-    "/assets/efootball.jpg",
-    "/assets/fifa.jpg",
-    "/assets/freefire.jpg",
-    "/assets/mortal.jpg",
-    "/assets/pubg-mobile.jpg",
-    "/assets/raid1.svg",
-    "/assets/shawdow.jpg",
-    "/assets/2kmbile.jpg",
-  ];
 
   return (
     <div
@@ -78,34 +35,6 @@ export default function Home() {
         </div>
 
         <UserSearchBar />
-
-        {/* 🟧 Ads Ticker */}
-        <section className="mb-8">
-          <h2 className="text-xl font-bold text-white mb-4">Ads</h2>
-
-          <div
-            ref={adsRef}
-            className="relative overflow-x-auto overflow-y-hidden w-full group scrollbar-hide"
-          >
-            <div className="ads-track gap-4 whitespace-nowrap animate-scroll-slow group-hover:pause-scroll">
-              {[...assets, ...assets].map((src, idx) => (
-                <Link
-                  key={idx}
-                  href={`/ads/${idx % assets.length}`}
-                  className="shrink-0 w-64 h-40 relative rounded-lg overflow-hidden border border-gray-700"
-                >
-                  <Image
-                    src={src}
-                    alt={`ad-${idx}`}
-                    fill
-                    className="object-cover"
-                  />
-                </Link>
-              ))}
-            </div>
-          </div>
-
-        </section>
 
         {/* Rest of your page unchanged */}
         <section className="pb-6">

@@ -18,6 +18,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
+import LeagueSection from "@/components/LeagueSection";
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -27,9 +28,8 @@ export default function Navigation() {
 
   const navItems = [
     { href: "/", label: "Home", icon: <Home className="w-5 h-5" /> },
-    { href: "/tournament", label: "Tournaments", icon: <Trophy className="w-5 h-5" /> },
+    { href: "/leagues", label: "Leagues", icon: <Trophy className="w-5 h-5" /> },
     { href: "/esports-teams", label: "Esports Teams", icon: <Users className="w-5 h-5" /> },
-    { href: "/chat", label: "Chat", icon: <MessageCircle className="w-5 h-5" /> },
     { href: "/leaderboard", label: "Leaderboard", icon: <BarChart2 className="w-5 h-5" /> },
     { href: "/about", label: "About", icon: <FileText className="w-5 h-5" /> },
     { href: "/contact", label: "Contact", icon: <Phone className="w-5 h-5" /> },
@@ -73,8 +73,8 @@ export default function Navigation() {
                   key={item.href}
                   href={item.href}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${pathname === item.href
-                      ? "bg-orange-500 text-white"
-                      : "text-gray-300 hover:text-white hover:bg-gray-800"
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-300 hover:text-white hover:bg-gray-800"
                     }`}
                 >
                   {item.icon}
@@ -212,8 +212,8 @@ export default function Navigation() {
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
                   className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${isActive
-                      ? "bg-orange-500/20 border-orange-500 text-orange-400"
-                      : "bg-white/5 border-transparent text-gray-300 hover:bg-white/10 hover:text-orange-400"
+                    ? "bg-orange-500/20 border-orange-500 text-orange-400"
+                    : "bg-white/5 border-transparent text-gray-300 hover:bg-white/10 hover:text-orange-400"
                     }`}
                 >
                   <div className="flex items-center space-x-3">
@@ -228,26 +228,6 @@ export default function Navigation() {
               );
             })}
 
-            {/* ✅ Add Notifications Link for Mobile */}
-            {isAuthenticated && (
-              <Link
-                href="/notifications"
-                onClick={() => setIsMenuOpen(false)}
-                className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${pathname === "/notifications"
-                    ? "bg-orange-500/20 border-orange-500 text-orange-400"
-                    : "bg-white/5 border-transparent text-gray-300 hover:bg-white/10 hover:text-orange-400"
-                  }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <Bell className="w-5 h-5" />
-                  <span className="font-medium text-sm">Notifications</span>
-                </div>
-                <ChevronRight
-                  className={`h-4 w-4 ${pathname === "/notifications" ? "text-orange-400" : "text-gray-500"
-                    }`}
-                />
-              </Link>
-            )}
 
             {/* Footer Links */}
             <div className="border-t border-white/10 mt-6 pt-4 flex flex-col space-y-2">
@@ -257,14 +237,15 @@ export default function Navigation() {
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
                   className={`px-4 py-2 rounded-lg text-sm transition-all ${pathname === item.href
-                      ? "bg-orange-500/20 text-orange-400"
-                      : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+                    ? "bg-orange-500/20 text-orange-400"
+                    : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
                     }`}
                 >
                   {item.label}
                 </Link>
               ))}
             </div>
+
           </div>
         </div>
 
