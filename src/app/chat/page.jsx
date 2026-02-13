@@ -10,6 +10,23 @@ import { MessageCircle, Users, Trophy } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
+const ChatSkeleton = () => (
+  <div className="group relative bg-white/5 border border-white/5 rounded-3xl p-4 md:p-5 overflow-hidden animate-pulse">
+    <div className="flex items-center gap-3 md:gap-5 relative z-10">
+      <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-white/5 flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        <div className="w-16 h-4 bg-white/5 rounded-full mb-2" />
+        <div className="w-48 h-6 bg-white/5 rounded-lg mb-2" />
+        <div className="flex gap-2">
+          <div className="w-12 h-3 bg-white/5 rounded-full" />
+          <div className="w-12 h-3 bg-white/5 rounded-full" />
+        </div>
+      </div>
+      <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-white/5" />
+    </div>
+  </div>
+);
+
 export default function ChatPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
@@ -194,7 +211,7 @@ export default function ChatPage() {
     fetchChatData();
   }, [user, isAuthenticated, authLoading, router]);
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <LoadingSpinner />
@@ -244,7 +261,13 @@ export default function ChatPage() {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {activeTab === 'tournaments' ? (
+        {loading ? (
+          <div className="grid grid-cols-1 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <ChatSkeleton key={i} />
+            ))}
+          </div>
+        ) : activeTab === 'tournaments' ? (
           tournaments.length === 0 ? (
             <div className="bg-white/5 border border-white/5 rounded-[2rem] p-8 md:p-12 text-center">
               <Trophy className="w-12 md:w-16 h-12 md:h-16 text-gray-800 mx-auto mb-4 md:mb-6" />
