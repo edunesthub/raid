@@ -28,7 +28,7 @@ export default function TeamDetailsModal({ isOpen, onClose, team, memberDetails 
 
     return (
         <div className="fixed inset-0 z-[100] bg-zinc-950 animate-fade-in overflow-hidden">
-            <div className="h-[100dvh] w-full bg-zinc-950 overflow-y-auto custom-scrollbar flex flex-col relative">
+            <div className="h-[100dvh] w-full bg-zinc-950 overflow-y-auto custom-scrollbar flex flex-col relative pt-[env(safe-area-inset-top,0px)]">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
