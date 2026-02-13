@@ -66,7 +66,7 @@ const FormBadge = ({ result }) => {
 };
 
 export default function LeaguesPage() {
-    const [activeTab, setActiveTab] = useState('standing');
+    const [activeTab, setActiveTab] = useState('overview');
     const [activeRound, setActiveRound] = useState('Round 13');
 
     const tabs = [
@@ -112,16 +112,16 @@ export default function LeaguesPage() {
 
                             <div className="flex flex-wrap items-center gap-4 md:gap-10">
                                 <div className="flex items-center gap-2 text-gray-400">
-                                    <Calendar className="w-3 h-3 md:w-4 md:h-4 text-orange-500" />
-                                    <span className="text-[9px] md:text-base uppercase tracking-widest font-black">Feb 10 - Mar 25</span>
+                                    <Calendar className="w-4 h-4 text-orange-500" />
+                                    <span className="text-[10px] md:text-base uppercase tracking-widest font-black">Feb 10 - Mar 25</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-gray-400">
-                                    <Trophy className="w-3 h-3 md:w-4 md:h-4 text-orange-500" />
-                                    <span className="text-[9px] md:text-base uppercase tracking-widest font-black">₵50K Pool</span>
+                                    <Trophy className="w-4 h-4 text-orange-500" />
+                                    <span className="text-[10px] md:text-base uppercase tracking-widest font-black">₵50K Pool</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-gray-400">
-                                    <Users className="w-3 h-3 md:w-4 md:h-4 text-orange-500" />
-                                    <span className="text-[9px] md:text-base uppercase tracking-widest font-black">32 Teams</span>
+                                    <Users className="w-4 h-4 text-orange-500" />
+                                    <span className="text-[10px] md:text-base uppercase tracking-widest font-black">32 Teams</span>
                                 </div>
                             </div>
                         </div>
@@ -130,15 +130,15 @@ export default function LeaguesPage() {
             </div>
 
             {/* --- Navigation Tabs --- */}
-            <div className="sticky top-16 z-40 bg-[#050505] border-b border-white/5">
-                <div className="md:container-mobile px-2 md:px-0">
-                    <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-3">
+            <div className="sticky top-16 z-40 bg-[#050505] border-b border-white/5 mx-[-1px]">
+                <div className="w-full px-2">
+                    <div className="grid grid-cols-4 gap-1 md:gap-2 py-3">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`
-                                    flex items-center gap-2 px-6 md:px-8 py-2.5 md:py-3 rounded-full whitespace-nowrap transition-all duration-300 font-black text-[11px] md:text-sm uppercase tracking-wider
+                                    flex items-center justify-center px-1 py-2.5 md:py-3 rounded-full transition-all duration-300 font-black text-[9px] md:text-xs lg:text-sm uppercase tracking-tighter md:tracking-wider
                                     ${activeTab === tab.id
                                         ? 'bg-orange-500 text-white'
                                         : 'bg-white/5 text-gray-500 hover:text-white'
@@ -163,31 +163,32 @@ export default function LeaguesPage() {
                                 <table className="w-full text-left table-fixed">
                                     <thead>
                                         <tr className="bg-white/5 border-b border-white/5">
-                                            <th className="px-3 md:px-4 py-4 md:py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[45px]">#</th>
-                                            <th className="px-1 md:px-4 py-4 md:py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest flex-1">Team</th>
-                                            <th className="px-1 py-4 md:py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[35px] md:w-16">P</th>
-                                            <th className="px-1 py-4 md:py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[50px] md:w-20">W-L</th>
-                                            <th className="px-1 py-4 md:py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[35px] md:w-16 hidden md:table-cell">GD</th>
-                                            <th className="px-1 py-4 md:py-5 text-[10px] font-black text-orange-500 uppercase tracking-widest text-center w-[45px] md:w-20">Pts</th>
-                                            <th className="px-3 md:px-4 py-4 md:py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[100px] md:w-[160px]">Form</th>
+                                            <th className="px-1 py-4 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[30px] md:w-[45px]">#</th>
+                                            <th className="px-1 py-4 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest">Team</th>
+                                            <th className="px-1 py-4 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[25px] md:w-16">P</th>
+                                            <th className="px-1 py-4 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[40px] md:w-20">W-L</th>
+                                            <th className="px-1 py-4 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[30px] md:w-16 hidden md:table-cell">GD</th>
+                                            <th className="px-1 py-4 text-[9px] md:text-[10px] font-black text-orange-500 uppercase tracking-widest text-center w-[28px] md:w-14">Pts</th>
+                                            <th className="px-2 py-4 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center w-[85px] md:w-[160px]">Form</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/[0.03]">
                                         {mockLeagueStandings.map((team, idx) => (
                                             <tr
                                                 key={team.id}
-                                                className={`
-                                                    active:bg-white/10 transition-colors group
-                                                    ${idx < 4 ? 'bg-orange-500/[0.04]' : ''}
-                                                `}
+                                                className="active:bg-white/10 transition-colors group"
                                             >
                                                 <td className="px-3 md:px-4 py-4 text-center">
-                                                    <span className={`
-                                                        inline-flex items-center justify-center w-6 h-6 rounded-md font-black text-[11px]
-                                                        ${idx < 3 ? 'bg-orange-500 text-white shadow-[0_0_10px_rgba(255,140,0,0.3)]' : 'bg-white/10 text-gray-500'}
-                                                    `}>
-                                                        {idx + 1}
-                                                    </span>
+                                                    <div className="flex items-center justify-center">
+                                                        <div className={`w-1 h-4 rounded-full mr-2 
+                                                            ${idx < 3 ? 'bg-orange-500' : idx >= mockLeagueStandings.length - 2 ? 'bg-red-500' : 'bg-transparent'}
+                                                        `} />
+                                                        <span className={`text-[11px] md:text-sm font-black 
+                                                            ${idx < 3 ? 'text-white' : idx >= mockLeagueStandings.length - 2 ? 'text-red-400' : 'text-gray-500'}
+                                                        `}>
+                                                            {idx + 1}
+                                                        </span>
+                                                    </div>
                                                 </td>
                                                 <td className="px-1 md:px-4 py-4 overflow-hidden">
                                                     <div className="flex items-center gap-2">
@@ -198,7 +199,6 @@ export default function LeaguesPage() {
                                                                     {team.team}
                                                                 </span>
                                                             </div>
-                                                            <span className="text-[8px] md:text-[10px] text-gray-500 font-bold uppercase tracking-tighter truncate md:hidden">DIV 1 PRO</span>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -207,7 +207,7 @@ export default function LeaguesPage() {
                                                     {team.w}-{team.l}
                                                 </td>
                                                 <td className="px-1 py-4 text-center hidden md:table-cell font-bold text-gray-500 text-sm">{team.gd}</td>
-                                                <td className="px-1 py-4 text-center font-black text-white text-sm md:text-lg bg-orange-500/[0.02]">{team.pts}</td>
+                                                <td className="px-1 py-4 text-center font-black text-white text-[12px] md:text-base bg-orange-500/[0.02]">{team.pts}</td>
                                                 <td className="px-3 md:px-4 py-4">
                                                     <div className="flex items-center justify-center gap-0.5 md:gap-1">
                                                         {team.form.map((res, i) => <FormBadge key={i} result={res} />)}
@@ -220,15 +220,14 @@ export default function LeaguesPage() {
                             </div>
                         </div>
 
-                        {/* Legend section */}
                         <div className="p-4 md:px-0 space-y-2">
                             <div className="flex items-center gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-orange-500 glow-orange" />
-                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Seeds 1-4: Championship Bracket</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Seeds 1-3: Championship Qualifier</span>
                             </div>
                             <div className="flex items-center gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-gray-700" />
-                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Seeds 5-8: Consolation Bracket</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Seeds 7-8: Relegation Zone</span>
                             </div>
                         </div>
                     </div>
@@ -425,11 +424,11 @@ export default function LeaguesPage() {
                                     <table className="w-full text-left">
                                         <thead>
                                             <tr className="bg-white/5 text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                                                <th className="px-3 py-3 w-10 text-center">#</th>
-                                                <th className="px-1 py-3">Team</th>
-                                                <th className="px-1 py-3 text-center w-10">P</th>
-                                                <th className="px-1 py-3 text-center w-10 hidden sm:table-cell">GD</th>
-                                                <th className="px-3 py-3 text-center w-14 text-orange-500">Pts</th>
+                                                <th className="px-4 py-3 w-12 text-center">#</th>
+                                                <th className="px-2 py-3">Team</th>
+                                                <th className="px-2 py-3 text-center w-12">P</th>
+                                                <th className="px-2 py-3 text-center w-12">GD</th>
+                                                <th className="px-2 py-3 text-center w-10 text-orange-500">Pts</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5">
@@ -437,8 +436,12 @@ export default function LeaguesPage() {
                                                 <tr key={team.id} className="hover:bg-white/[0.02] transition-colors group">
                                                     <td className="px-4 py-3 text-center">
                                                         <div className="flex items-center justify-center">
-                                                            <div className={`w-1 h-4 rounded-full mr-2 ${idx < 3 ? 'bg-orange-500' : 'bg-transparent'}`} />
-                                                            <span className={`text-[11px] md:text-sm font-black ${idx < 3 ? 'text-white' : 'text-gray-500'}`}>{idx + 1}</span>
+                                                            <div className={`w-1 h-4 rounded-full mr-2 
+                                                                ${idx < 3 ? 'bg-orange-500' : idx >= mockLeagueStandings.slice(0, 5).length - 1 ? 'bg-red-500' : 'bg-transparent'}
+                                                            `} />
+                                                            <span className={`text-[11px] md:text-sm font-black 
+                                                                ${idx < 3 ? 'text-white' : idx >= mockLeagueStandings.slice(0, 5).length - 1 ? 'text-red-400' : 'text-gray-500'}
+                                                            `}>{idx + 1}</span>
                                                         </div>
                                                     </td>
                                                     <td className="px-2 py-3">
@@ -447,18 +450,22 @@ export default function LeaguesPage() {
                                                             <span className="text-xs md:text-sm font-bold text-white truncate">{team.team}</span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-1 py-3 text-center text-[11px] md:text-sm font-bold text-gray-400">{team.p}</td>
-                                                    <td className="px-1 py-3 text-center text-[11px] md:text-sm font-bold text-gray-500 hidden sm:table-cell">{team.gd}</td>
-                                                    <td className="px-3 py-3 text-center text-[11px] md:text-sm font-black text-white bg-orange-500/5">{team.pts}</td>
+                                                    <td className="px-2 py-3 text-center text-[11px] md:text-sm font-bold text-gray-400">{team.p}</td>
+                                                    <td className="px-2 py-3 text-center text-[11px] md:text-sm font-bold text-gray-500">{team.gd}</td>
+                                                    <td className="px-2 py-3 text-center text-[10px] md:text-xs font-black text-white bg-orange-500/5">{team.pts}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
                                 </div>
-                                <div className="flex items-center gap-4 px-1">
+                                <div className="flex flex-wrap items-center gap-6 px-1">
                                     <div className="flex items-center gap-1.5">
                                         <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none">Qualification Zone</span>
+                                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none">Qualification</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none">Relegation</span>
                                     </div>
                                 </div>
                             </div>
