@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Plus, Search, Users, UserPlus, CheckCircle2, Shield, Loader2, Trophy, Trash2, X, AlertCircle, ArrowLeft, ChevronRight, LayoutGrid, Edit2, Camera, Save, LogOut } from "lucide-react";
+import { Plus, Search, Users, UserPlus, CheckCircle2, Shield, Loader2, Trophy, Trash2, X, AlertCircle, ArrowLeft, ChevronRight, LayoutGrid, Edit2, Camera, Save, LogOut, MessageSquare } from "lucide-react";
 import { createTeam, getTeams, addMemberToTeam, removeMemberFromTeam, deleteTeam, updateTeam } from "@/services/teamService";
 import { userService } from "@/services/userService";
 import UserSearchBar from "@/components/UserSearchBar";
