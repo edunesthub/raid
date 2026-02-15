@@ -29,6 +29,7 @@ export default function Navigation() {
   const navItems = [
     { href: "/", label: "Home", icon: <Home className="w-5 h-5" /> },
     { href: "/leagues", label: "Leagues", icon: <Trophy className="w-5 h-5" /> },
+    { href: "/players", label: "Players", icon: <Users className="w-5 h-5" /> },
     { href: "/esports-teams", label: "Esports Teams", icon: <Users className="w-5 h-5" /> },
     { href: "/leaderboard", label: "Leaderboard", icon: <BarChart2 className="w-5 h-5" /> },
     { href: "/about", label: "About", icon: <FileText className="w-5 h-5" /> },

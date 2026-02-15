@@ -13,7 +13,7 @@ export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [metric, setMetric] = useState("totalEarnings");
+  const [metric, setMetric] = useState("tournamentsWon");
 
   useEffect(() => {
     loadLeaderboard();
@@ -34,11 +34,7 @@ export default function LeaderboardPage() {
   };
 
   const formatMetricValue = (player) => {
-    const userCountry = user?.country || 'Ghana';
     switch (metric) {
-      case "totalEarnings":
-        const symbol = userCountry === 'Nigeria' ? '₦' : '₵';
-        return `${symbol}${player.totalEarnings?.toLocaleString() || 0}`;
       case "tournamentsWon":
         return player.tournamentsWon || 0;
       case "winRate":
@@ -59,21 +55,12 @@ export default function LeaderboardPage() {
 
         {/* Filter Tabs */}
         <div className="card-raid p-2 mb-6">
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => setMetric("totalEarnings")}
-              className={`py-3 px-4 rounded-lg font-semibold transition-colors ${metric === "totalEarnings"
-                  ? "bg-orange-500 text-white"
-                  : "bg-gray-800 text-gray-400 hover:text-white"
-                }`}
-            >
-              💰 Earnings
-            </button>
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setMetric("tournamentsWon")}
               className={`py-3 px-4 rounded-lg font-semibold transition-colors ${metric === "tournamentsWon"
-                  ? "bg-orange-500 text-white"
-                  : "bg-gray-800 text-gray-400 hover:text-white"
+                ? "bg-orange-500 text-white"
+                : "bg-gray-800 text-gray-400 hover:text-white"
                 }`}
             >
               🏅 Wins
@@ -81,8 +68,8 @@ export default function LeaderboardPage() {
             <button
               onClick={() => setMetric("winRate")}
               className={`py-3 px-4 rounded-lg font-semibold transition-colors ${metric === "winRate"
-                  ? "bg-orange-500 text-white"
-                  : "bg-gray-800 text-gray-400 hover:text-white"
+                ? "bg-orange-500 text-white"
+                : "bg-gray-800 text-gray-400 hover:text-white"
                 }`}
             >
               📊 Win Rate

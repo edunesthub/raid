@@ -157,7 +157,7 @@ class UserService {
    * @param {number} limitCount - Number of users to return
    * @returns {Promise<Array>} Array of top users
    */
-  async getLeaderboard(metric = 'totalEarnings', limitCount = 50) {
+  async getLeaderboard(metric = 'tournamentsWon', limitCount = 50) {
     try {
       const statsRef = collection(db, USER_STATS_COLLECTION);
       const q = query(
