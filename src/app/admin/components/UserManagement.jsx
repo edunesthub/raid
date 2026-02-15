@@ -112,6 +112,18 @@ export default function UserManagement() {
                   </p>
                 )}
                 <p className="text-gray-400 text-sm">{user.email}</p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {user.country && (
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold uppercase">
+                      {user.country}
+                    </span>
+                  )}
+                  {(user.contact || user.phone) && (
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-green-500/10 border border-green-500/20 text-green-400 font-bold uppercase">
+                      {user.contact || user.phone}
+                    </span>
+                  )}
+                </div>
                 {user.createdAt && (
                   <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
                     Joined: {new Date(user.createdAt?.seconds * 1000).toLocaleDateString()}
@@ -139,52 +151,53 @@ export default function UserManagement() {
             >
               <X size={20} />
             </button>
-
             <h3 className="text-2xl font-bold text-orange-400 mb-4">{selectedUser.username}</h3>
-            <div className="space-y-3 text-sm text-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-200">
               <p><span className="font-medium text-white">Full Name:</span> {selectedUser.firstName} {selectedUser.lastName}</p>
               <p><span className="font-medium text-white">Email:</span> {selectedUser.email}</p>
-              <p><span className="font-medium text-white">Contact:</span> {selectedUser.contact || 'N/A'}</p>
+              <p><span className="font-medium text-white">Country:</span> {selectedUser.country || 'N/A'}</p>
+              <p><span className="font-medium text-white">Contact:</span> {selectedUser.contact || selectedUser.phone || 'N/A'}</p>
               <p><span className="font-medium text-white">Bio:</span> {selectedUser.bio || 'N/A'}</p>
-              {/* Add more fields if needed */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                <div>
-                  <label className="block text-gray-400 mb-1">Role</label>
-                  <select
-                    value={roleEditing.role}
-                    onChange={(e) => setRoleEditing((r) => ({ ...r, role: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white"
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gray-400 mb-1">Admin Group</label>
-                  <select
-                    value={roleEditing.adminRole}
-                    onChange={(e) => setRoleEditing((r) => ({ ...r, adminRole: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white"
-                  >
-                    <option value="A">Admin A</option>
-                    <option value="B">Admin B</option>
-                    <option value="C">Admin C</option>
-                  </select>
-                  <p className="text-xs text-gray-500 mt-1">Use A/B/C to divide admins into 3 groups.</p>
-                </div>
+              <p><span className="font-medium text-white">DOB:</span> {selectedUser.dateOfBirth || 'N/A'}</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+              <div>
+                <label className="block text-gray-400 mb-1">Role</label>
+                <select
+                  value={roleEditing.role}
+                  onChange={(e) => setRoleEditing((r) => ({ ...r, role: e.target.value }))}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white"
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-400 mb-1">Admin Group</label>
+                <select
+                  value={roleEditing.adminRole}
+                  onChange={(e) => setRoleEditing((r) => ({ ...r, adminRole: e.target.value }))}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white"
+                >
+                  <option value="A">Admin A</option>
+                  <option value="B">Admin B</option>
+                  <option value="C">Admin C</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">Use A/B/C to divide admins into 3 groups.</p>
               </div>
             </div>
 
-            <div className="mt-6 flex gap-3">
+            <div className="mt-8 flex gap-3">
               <button
                 onClick={saveUserRoles}
-                className="flex-1 bg-orange-600 hover:bg-orange-500 py-2 rounded-xl text-white font-medium transition"
+                className="flex-1 bg-orange-600 hover:bg-orange-500 py-3 rounded-xl text-white font-bold transition shadow-lg shadow-orange-600/20"
               >
-                Save
+                Save Changes
               </button>
               <button
                 onClick={() => setModalOpen(false)}
-                className="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-xl text-white font-medium transition"
+                className="flex-1 bg-gray-800 hover:bg-gray-700 py-3 rounded-xl text-white font-bold transition border border-gray-700"
               >
                 Close
               </button>

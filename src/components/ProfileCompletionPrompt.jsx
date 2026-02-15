@@ -5,6 +5,8 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { COUNTRIES } from "@/utils/countries";
+import { authValidation } from "@/services/authValidation";
+import { usernameService } from "@/services/usernameService";
 
 const GENERIC_AVATARS = [
   "https://api.dicebear.com/9.x/adventurer/svg?seed=Felix",
@@ -128,6 +130,31 @@ export default function ProfileCompletionPrompt({ hide }) {
 
     try {
       setSaving(true);
+
+      // ✅ 1. Check Username Availability (if changed)
+      const currentUsername = (user.username || '').toLowerCase().trim();
+      const incomingUsername = form.username.toLowerCase().trim();
+      if (incomingUsername !== currentUsername) {
+        const isUserAvailable = await usernameService.isUsernameAvailable(form.username, user.id);
+        if (!isUserAvailable) {
+          setError("Username is already taken");
+          setSaving(false);
+          return;
+        }
+      }
+
+      // ✅ 2. Check Phone Availability (if changed)
+      const currentPhone = (user.phone || user.contact || '').trim();
+      const incomingPhone = formattedPhone.trim();
+      if (incomingPhone !== currentPhone) {
+        const isPhoneAvailable = await authValidation.isPhoneAvailable(incomingPhone);
+        if (!isPhoneAvailable) {
+          setError("This phone number is already registered to another account");
+          setSaving(false);
+          return;
+        }
+      }
+
       let avatarUrl = avatarPreview || null;
 
       if (avatarFile) {
@@ -150,6 +177,7 @@ export default function ProfileCompletionPrompt({ hide }) {
       const userRef = doc(db, "users", user.id);
       await updateDoc(userRef, {
         username: form.username.trim(),
+        username_lowercase: form.username.toLowerCase().trim(),
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         country: form.country,

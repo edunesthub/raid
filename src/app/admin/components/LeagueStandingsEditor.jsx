@@ -254,13 +254,33 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-[8px] font-black text-gray-500 uppercase mb-1">Team Tag</label>
-                                <input
-                                    placeholder="TAG"
-                                    value={team.tag}
-                                    onChange={(e) => updateTeam(idx, 'tag', e.target.value.toUpperCase())}
-                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-[10px] text-gray-400 font-black"
-                                />
+                                <label className="block text-[8px] font-black text-gray-500 uppercase mb-1">Form (Last 5)</label>
+                                <div className="flex gap-1.5">
+                                    {[0, 1, 2, 3, 4].map(fIdx => {
+                                        const status = team.form?.[fIdx];
+                                        return (
+                                            <button
+                                                key={fIdx}
+                                                type="button"
+                                                onClick={() => {
+                                                    const newForm = [...(team.form || [])];
+                                                    if (!status) newForm[fIdx] = 'W';
+                                                    else if (status === 'W') newForm[fIdx] = 'D';
+                                                    else if (status === 'D') newForm[fIdx] = 'L';
+                                                    else delete newForm[fIdx];
+                                                    updateTeam(idx, 'form', newForm.filter(f => f));
+                                                }}
+                                                className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black transition-all border ${status === 'W' ? 'bg-green-500/20 border-green-500/40 text-green-500' :
+                                                    status === 'D' ? 'bg-gray-500/20 border-gray-500/40 text-gray-400' :
+                                                        status === 'L' ? 'bg-red-500/20 border-red-500/40 text-red-500' :
+                                                            'bg-gray-800 border-white/5 text-gray-600 hover:border-white/10'
+                                                    }`}
+                                            >
+                                                {status || "-"}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
                         <div className="grid grid-cols-5 gap-1.5 items-end pt-2 border-t border-white/[0.03]">
@@ -360,12 +380,32 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                                                 onChange={(e) => updateTeam(idx, 'team', e.target.value)}
                                                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 md:px-3 py-1 text-xs md:text-sm text-white font-bold"
                                             />
-                                            <input
-                                                placeholder="TAG"
-                                                value={team.tag}
-                                                onChange={(e) => updateTeam(idx, 'tag', e.target.value.toUpperCase())}
-                                                className="bg-gray-800 border border-gray-700 rounded-lg px-2 py-0.5 text-[9px] text-gray-400 font-black"
-                                            />
+                                            <div className="flex gap-1 pt-1">
+                                                {[0, 1, 2, 3, 4].map(fIdx => {
+                                                    const status = team.form?.[fIdx];
+                                                    return (
+                                                        <button
+                                                            key={fIdx}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const newForm = [...(team.form || [])];
+                                                                if (!status) newForm[fIdx] = 'W';
+                                                                else if (status === 'W') newForm[fIdx] = 'D';
+                                                                else if (status === 'D') newForm[fIdx] = 'L';
+                                                                else delete newForm[fIdx];
+                                                                updateTeam(idx, 'form', newForm.filter(f => f));
+                                                            }}
+                                                            className={`w-6 h-6 rounded flex items-center justify-center text-[9px] font-black transition-all border ${status === 'W' ? 'bg-green-500/20 border-green-500/40 text-green-500' :
+                                                                status === 'D' ? 'bg-gray-500/20 border-gray-500/40 text-gray-400' :
+                                                                    status === 'L' ? 'bg-red-500/20 border-red-500/40 text-red-500' :
+                                                                        'bg-gray-800 border-white/5 text-gray-600 hover:border-white/10'
+                                                                }`}
+                                                        >
+                                                            {status || "-"}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
                                     </div>
                                 </td>

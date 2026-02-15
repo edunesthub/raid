@@ -8,13 +8,34 @@ export const authValidation = {
    */
   async isEmailAvailable(email) {
     try {
+      const normalized = email.toLowerCase().trim();
+      if (!normalized) return false;
       const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('email', '==', email.toLowerCase().trim()));
+      const q = query(usersRef, where('email', '==', normalized));
       const snapshot = await getDocs(q);
       return snapshot.empty; // true if available, false if taken
     } catch (error) {
       console.error('Error checking email availability:', error);
       throw new Error('Failed to validate email');
+    }
+  },
+
+  /**
+   * Check if phone number is already registered
+   */
+  async isPhoneAvailable(phone) {
+    try {
+      const normalized = phone.trim();
+      if (!normalized) return false;
+      const usersRef = collection(db, 'users');
+      const q1 = query(usersRef, where('phone', '==', normalized));
+      const q2 = query(usersRef, where('contact', '==', normalized));
+
+      const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+      return snap1.empty && snap2.empty; // true if available, false if taken
+    } catch (error) {
+      console.error('Error checking phone availability:', error);
+      throw new Error('Failed to validate phone number');
     }
   },
 
@@ -31,27 +52,27 @@ export const authValidation = {
    */
   validatePassword(password) {
     const errors = [];
-    
+
     if (password.length < 8) {
       errors.push('Password must be at least 8 characters');
     }
-    
+
     if (!/[A-Z]/.test(password)) {
       errors.push('Password must contain at least one uppercase letter');
     }
-    
+
     if (!/[a-z]/.test(password)) {
       errors.push('Password must contain at least one lowercase letter');
     }
-    
+
     if (!/\d/.test(password)) {
       errors.push('Password must contain at least one number');
     }
-    
+
     if (!/[^a-zA-Z0-9]/.test(password)) {
       errors.push('Password must contain at least one special character');
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors,
@@ -100,17 +121,34 @@ export const authValidation = {
       if (!normalized) throw new Error('Username cannot be empty');
 
       const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('username', '==', normalized));
+      // We check both 'username' and 'username_lowercase' for backward compatibility
+      // and future-proofing. Firestore doesn't support 'OR' queries well across different fields 
+      // with '==' in older SDKs, but we can do two queries or check username_lowercase.
+      const q = query(usersRef, where('username_lowercase', '==', normalized));
       const snapshot = await getDocs(q);
 
-      if (snapshot.empty) return true;
-
-      if (excludeUserId) {
-        const others = snapshot.docs.filter(doc => doc.id !== excludeUserId);
-        return others.length === 0;
+      if (!snapshot.empty) {
+        if (excludeUserId) {
+          const others = snapshot.docs.filter(doc => doc.id !== excludeUserId);
+          if (others.length > 0) return false;
+        } else {
+          return false;
+        }
       }
 
-      return false;
+      // Also check against literal username for older records
+      const q2 = query(usersRef, where('username', '==', username.trim()));
+      const snapshot2 = await getDocs(q2);
+
+      if (!snapshot2.empty) {
+        if (excludeUserId) {
+          const others = snapshot2.docs.filter(doc => doc.id !== excludeUserId);
+          return others.length === 0;
+        }
+        return false;
+      }
+
+      return true;
     } catch (error) {
       console.error('Error checking username availability:', error);
       throw new Error('Failed to check username availability');
@@ -133,9 +171,9 @@ export const authValidation = {
 
     const validPattern = /^[a-zA-Z0-9_-]+$/;
     if (!validPattern.test(trimmed)) {
-      return { 
-        isValid: false, 
-        error: 'Username can only contain letters, numbers, underscores, and hyphens' 
+      return {
+        isValid: false,
+        error: 'Username can only contain letters, numbers, underscores, and hyphens'
       };
     }
 

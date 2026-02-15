@@ -7,6 +7,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Image from "next/image";
 import { usernameService } from '@/services/usernameService';
+import { authValidation } from '@/services/authValidation';
 
 
 const raid1Logo = "/assets/raid1.svg";
@@ -34,7 +35,7 @@ export default function OnboardingPage() {
       return;
     }
 
-      // ✅ Validate username format
+    // ✅ Validate username format
     const formatValidation = usernameService.validateUsernameFormat(formData.username);
     if (!formatValidation.isValid) {
       setError(formatValidation.error);
@@ -50,11 +51,11 @@ export default function OnboardingPage() {
         return;
       }
 
-            // ✅ Check if username is available
+      // ✅ Check if username is available
       const isAvailable = await usernameService.isUsernameAvailable(formData.username);
       if (!isAvailable) {
         setError("Username is already taken. Please choose another one.");
-        
+
         // Generate suggestions
         const suggestions = await usernameService.generateSuggestions(formData.username);
         if (suggestions.length > 0) {
@@ -63,12 +64,20 @@ export default function OnboardingPage() {
         return;
       }
 
+      // ✅ Check if contact is available
+      const isContactAvailable = await authValidation.isPhoneAvailable(formData.contact);
+      if (!isContactAvailable) {
+        setError("This contact number is already registered to another account.");
+        return;
+      }
+
       // Save to Firestore
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         email: user.email,
-        username: formData.username,
-        contact: formData.contact,
+        username: formData.username.trim(),
+        username_lowercase: formData.username.toLowerCase().trim(),
+        contact: formData.contact.trim(),
         avatarUrl: user.photoURL || null,
         firstName: user.displayName?.split(' ')[0] || '',
         lastName: user.displayName?.split(' ')[1] || '',
@@ -143,9 +152,8 @@ export default function OnboardingPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition-colors ${
-                isLoading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition-colors ${isLoading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">

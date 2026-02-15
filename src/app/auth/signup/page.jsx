@@ -43,6 +43,9 @@ export default function SignupPage() {
   const [usernameAvailable, setUsernameAvailable] = useState(null);
   const [usernameError, setUsernameError] = useState("");
 
+  const [phoneChecking, setPhoneChecking] = useState(false);
+  const [phoneAvailable, setPhoneAvailable] = useState(null);
+
   // ======================
   // Email Handling
   // ======================
@@ -102,6 +105,30 @@ export default function SignupPage() {
         setUsernameError("Failed to check username availability");
       } finally {
         setUsernameChecking(false);
+      }
+    }, 800);
+  };
+
+  // ======================
+  // Phone Handling
+  // ======================
+  const handlePhoneChange = (phone) => {
+    setFormData({ ...formData, phone });
+    setPhoneAvailable(null);
+
+    if (window.phoneCheckTimeout) clearTimeout(window.phoneCheckTimeout);
+
+    window.phoneCheckTimeout = setTimeout(async () => {
+      if (!phone || !isValidPhoneForCountry(formData.country || "Ghana", phone)) return;
+
+      setPhoneChecking(true);
+      try {
+        const available = await authValidation.isPhoneAvailable(phone);
+        setPhoneAvailable(available);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setPhoneChecking(false);
       }
     }, 800);
   };
@@ -236,6 +263,10 @@ export default function SignupPage() {
       setError(`Please enter a valid ${country} phone number (e.g., ${example})`);
       return false;
     }
+    if (phoneAvailable === false) {
+      setError("This phone number is already registered. Please use a different number.");
+      return false;
+    }
     return true;
   };
 
@@ -270,6 +301,10 @@ export default function SignupPage() {
     if (!isValidPhoneForCountry(country, phone)) {
       const example = country === "Nigeria" ? "08012345678 or 2348012345678" : "0241234567 or 233241234567";
       setError(`Please enter a valid ${country} phone number (e.g., ${example})`);
+      return false;
+    }
+    if (phoneAvailable === false) {
+      setError("This phone number is already registered.");
       return false;
     }
 
@@ -332,6 +367,28 @@ export default function SignupPage() {
 
     setIsLoading(true);
     try {
+      // Forceful Final Verification to prevent race conditions
+      const [emailOk, userOk, phoneOk] = await Promise.all([
+        authValidation.isEmailAvailable(formData.email),
+        authValidation.isUsernameAvailable(formData.username),
+        authValidation.isPhoneAvailable(formData.phone)
+      ]);
+
+      if (!emailOk) {
+        setError("Email was just taken. Please use another.");
+        setIsLoading(false);
+        return;
+      }
+      if (!userOk) {
+        setError("Username was just taken. Please use another.");
+        setIsLoading(false);
+        return;
+      }
+      if (!phoneOk) {
+        setError("Phone number was just taken. Please use another.");
+        setIsLoading(false);
+        return;
+      }
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       const user = userCredential.user;
 
@@ -364,6 +421,7 @@ export default function SignupPage() {
       await setDoc(doc(db, "users", user.uid), {
         email: formData.email.toLowerCase().trim(),
         username: formData.username.trim(),
+        username_lowercase: formData.username.toLowerCase().trim(),
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         phone: formData.phone.trim(),
@@ -522,15 +580,20 @@ export default function SignupPage() {
                 </div>
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2">Phone Number (SMS-enabled) *</label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder={formData.country === "Nigeria" ? "e.g., 08012345678 or 2348012345678" : "e.g., 0241234567 or 233241234567"}
-                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
-                    disabled={isLoading}
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handlePhoneChange(e.target.value)}
+                      placeholder={formData.country === "Nigeria" ? "e.g., 08012345678 or 2348012345678" : "e.g., 0241234567 or 233241234567"}
+                      className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
+                      disabled={isLoading}
+                      required
+                    />
+                    {phoneChecking && (<div className="absolute right-4 top-1/2 -translate-y-1/2"><div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" /></div>)}
+                    {!phoneChecking && phoneAvailable === true && (<CheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-400" />)}
+                    {!phoneChecking && phoneAvailable === false && (<AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400" />)}
+                  </div>
                   <p className="text-xs text-gray-500 mt-1">Use a number that can receive SMS in {formData.country}.</p>
                 </div>
                 <div className="flex justify-between pt-2">

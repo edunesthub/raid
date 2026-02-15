@@ -1,8 +1,8 @@
 // src/services/usernameService.js
-import { 
-  collection, 
-  query, 
-  where, 
+import {
+  collection,
+  query,
+  where,
   getDocs,
   doc,
   getDoc
@@ -19,28 +19,29 @@ class UsernameService {
   async isUsernameAvailable(username, excludeUserId = null) {
     try {
       const normalizedUsername = username.toLowerCase().trim();
-      
+
       if (!normalizedUsername) {
         throw new Error('Username cannot be empty');
       }
 
       // Query for exact match (case-insensitive)
       const usersRef = collection(db, 'users');
-      const q = query(
-        usersRef,
-        where('username', '==', normalizedUsername)
-      );
+      // Check both fields for robust verification
+      const q = query(usersRef, where('username_lowercase', '==', normalizedUsername));
+      const q2 = query(usersRef, where('username', '==', normalizedUsername));
 
-      const snapshot = await getDocs(q);
-      
+      const [snap, snap2] = await Promise.all([getDocs(q), getDocs(q2)]);
+
+      const allDocs = [...snap.docs, ...snap2.docs];
+
       // If no results, username is available
-      if (snapshot.empty) {
+      if (allDocs.length === 0) {
         return true;
       }
 
       // If updating own profile, exclude current user
       if (excludeUserId) {
-        const otherUsers = snapshot.docs.filter(doc => doc.id !== excludeUserId);
+        const otherUsers = allDocs.filter(doc => doc.id !== excludeUserId);
         return otherUsers.length === 0;
       }
 
@@ -72,9 +73,9 @@ class UsernameService {
     // Check for valid characters (alphanumeric, underscore, hyphen)
     const validPattern = /^[a-zA-Z0-9_-]+$/;
     if (!validPattern.test(trimmed)) {
-      return { 
-        isValid: false, 
-        error: 'Username can only contain letters, numbers, underscores, and hyphens' 
+      return {
+        isValid: false,
+        error: 'Username can only contain letters, numbers, underscores, and hyphens'
       };
     }
 
@@ -100,7 +101,7 @@ class UsernameService {
   async generateSuggestions(baseUsername) {
     const suggestions = [];
     const base = baseUsername.toLowerCase().trim();
-    
+
     // Generate variations
     const variations = [
       `${base}${Math.floor(Math.random() * 99)}`,

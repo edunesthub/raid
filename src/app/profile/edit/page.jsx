@@ -7,6 +7,7 @@ import { db } from "../../../lib/firebase";
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { usernameService } from '@/services/usernameService';
+import { authValidation } from '@/services/authValidation';
 import { COUNTRIES } from '@/utils/countries';
 import { GENERIC_AVATARS, getDefaultAvatar } from '@/utils/avatars';
 import UserAvatar from '@/components/UserAvatar';
@@ -198,6 +199,19 @@ export default function EditProfilePage() {
           if (suggestions.length > 0) {
             setError(`Username is taken. Try: ${suggestions.join(', ')}`);
           }
+          setSaving(false);
+          return;
+        }
+      }
+
+      // ✅ Only validate phone if it actually changed
+      const currentPhone = (user.phone || user.contact || '').trim();
+      const incomingPhone = safeFormData.contact.trim();
+      if (incomingPhone && incomingPhone !== currentPhone) {
+        const isPhoneAvailable = await authValidation.isPhoneAvailable(incomingPhone);
+        if (!isPhoneAvailable) {
+          setError("This phone number is already registered to another account.");
+          setSaving(false);
           return;
         }
       }
@@ -206,6 +220,7 @@ export default function EditProfilePage() {
 
       await updateDoc(userRef, {
         username: safeFormData.username.trim(),
+        username_lowercase: safeFormData.username.toLowerCase().trim(),
         firstName: safeFormData.firstName.trim(),
         lastName: safeFormData.lastName.trim(),
         contact: safeFormData.contact.trim(),
