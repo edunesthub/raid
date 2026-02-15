@@ -17,33 +17,17 @@ import {
     ChevronLeft,
     Plus,
     Trash2,
-    Save,
-    RefreshCcw,
-    Flag
+    Save
 } from "lucide-react";
 import { COUNTRIES } from "@/utils/countries";
 
 export default function LeagueStandingsEditor({ leagueId, onBack }) {
     const [standings, setStandings] = useState([]);
-    const [availableTeams, setAvailableTeams] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-
     useEffect(() => {
         loadStandings();
-        loadAvailableTeams();
     }, [leagueId]);
-
-    const loadAvailableTeams = async () => {
-        try {
-            const q = query(collection(db, `league_seasons/${leagueId}/teams`), orderBy("name", "asc"));
-            const snapshot = await getDocs(q);
-            const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            setAvailableTeams(data);
-        } catch (error) {
-            console.error("Error loading available teams:", error);
-        }
-    };
 
     const loadStandings = async () => {
         try {
@@ -91,19 +75,7 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
     const updateTeam = (index, field, value) => {
         const newStandings = [...standings];
 
-        if (field === 'team_id') {
-            const selected = availableTeams.find(t => t.id === value);
-            if (selected) {
-                newStandings[index] = {
-                    ...newStandings[index],
-                    team: selected.name,
-                    tag: selected.tag,
-                    country: selected.country,
-                };
-            }
-        } else {
-            newStandings[index][field] = value;
-        }
+        newStandings[index][field] = value;
 
         // Auto-calculate points
         if (field === 'w' || field === 'd' || field === 'l') {
@@ -112,29 +84,6 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
             newStandings[index].pts = (w * 3) + (d * 1);
             newStandings[index].p = w + d + (parseInt(newStandings[index].l) || 0);
         }
-
-        setStandings(newStandings);
-    };
-
-    const importAllTeams = () => {
-        if (standings.length > 0 && !confirm("This will add all managed teams to the standings. Continue?")) return;
-
-        const existingTeamNames = new Set(standings.map(s => s.team));
-        const teamsToImport = availableTeams.filter(t => !existingTeamNames.has(t.name));
-
-        const newStandings = [...standings, ...teamsToImport.map(t => ({
-            team: t.name,
-            tag: t.tag,
-            country: t.country,
-            p: 0,
-            w: 0,
-            d: 0,
-            l: 0,
-            gd: 0,
-            pts: 0,
-            form: [],
-            league_id: leagueId
-        }))];
 
         setStandings(newStandings);
     };
@@ -179,12 +128,6 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                 </button>
                 <div className="flex flex-wrap items-center gap-2 md:gap-3">
                     <button
-                        onClick={importAllTeams}
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600/10 hover:bg-blue-600 text-blue-500 hover:text-white px-3 md:px-4 py-2.5 md:py-2 rounded-xl border border-blue-500/20 text-xs md:text-sm font-bold transition-all"
-                    >
-                        <RefreshCcw size={16} /> Import Teams
-                    </button>
-                    <button
                         onClick={addTeam}
                         className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white px-3 md:px-4 py-2.5 md:py-2 rounded-xl border border-white/5 text-xs md:text-sm font-bold transition-all"
                     >
@@ -210,15 +153,6 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                                     {COUNTRIES.find(c => c.code === team.country)?.flag || "🏳️"}
                                 </div>
                                 <div className="flex-1 space-y-2">
-                                    <select
-                                        onChange={(e) => updateTeam(idx, 'team_id', e.target.value)}
-                                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-[10px] text-gray-400 font-black uppercase"
-                                    >
-                                        <option value="">Choose Managed Team</option>
-                                        {availableTeams.map(t => (
-                                            <option key={t.id} value={t.id}>{t.name}</option>
-                                        ))}
-                                    </select>
                                     <input
                                         placeholder="Team Name"
                                         value={team.team}
@@ -365,15 +299,6 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                                             </select>
                                         </div>
                                         <div className="flex-1 space-y-1">
-                                            <select
-                                                onChange={(e) => updateTeam(idx, 'team_id', e.target.value)}
-                                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1 text-[9px] text-gray-500 font-black uppercase"
-                                            >
-                                                <option value="">Quick Select Team</option>
-                                                {availableTeams.map(t => (
-                                                    <option key={t.id} value={t.id}>{t.name}</option>
-                                                ))}
-                                            </select>
                                             <input
                                                 placeholder="Team Name"
                                                 value={team.team}
