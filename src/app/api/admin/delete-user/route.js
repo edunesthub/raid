@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebaseAdmin';
+import { getAdminAuth, getAdminDb } from '@/lib/firebaseAdmin';
 
 export async function POST(request) {
     try {
         const { userId, adminId } = await request.json();
+        const adminDb = getAdminDb();
+        const adminAuth = getAdminAuth();
+
+        if (!adminDb || !adminAuth) {
+            return NextResponse.json({ error: 'Firebase Admin not initialized. Check server environment variables.' }, { status: 500 });
+        }
 
         if (!userId) {
             return NextResponse.json({ error: 'User ID is required' }, { status: 400 });

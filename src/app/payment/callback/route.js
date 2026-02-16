@@ -1,11 +1,12 @@
 // Always redirect to success; client page finalizes join
 export const runtime = 'nodejs';
 import { redirect } from 'next/navigation';
-import { adminDb } from '@/lib/firebaseAdmin';
+import { getAdminDb } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 export async function GET(request) {
   try {
+    const adminDb = getAdminDb();
     const { searchParams } = new URL(request.url);
 
     const reference = searchParams.get('reference') || searchParams.get('trxref') || '';

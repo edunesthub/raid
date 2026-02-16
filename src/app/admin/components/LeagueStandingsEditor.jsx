@@ -190,34 +190,30 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                             <div>
                                 <label className="block text-[8px] font-black text-gray-500 uppercase mb-1">Form (Last 5)</label>
                                 <div className="flex gap-1.5">
-                                    {[0, 1, 2, 3, 4].map(fIdx => {
-                                        const status = team.form?.[fIdx];
-                                        return (
-                                            <button
-                                                key={fIdx}
-                                                type="button"
-                                                onClick={() => {
-                                                    const newForm = [...(team.form || [])];
-                                                    if (!status) newForm[fIdx] = 'W';
-                                                    else if (status === 'W') newForm[fIdx] = 'D';
-                                                    else if (status === 'D') newForm[fIdx] = 'L';
-                                                    else delete newForm[fIdx];
-                                                    updateTeam(idx, 'form', newForm.filter(f => f));
-                                                }}
-                                                className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black transition-all border ${status === 'W' ? 'bg-green-500/20 border-green-500/40 text-green-500' :
-                                                    status === 'D' ? 'bg-gray-500/20 border-gray-500/40 text-gray-400' :
-                                                        status === 'L' ? 'bg-red-500/20 border-red-500/40 text-red-500' :
-                                                            'bg-gray-800 border-white/5 text-gray-600 hover:border-white/10'
-                                                    }`}
-                                            >
-                                                {status || "-"}
-                                            </button>
-                                        );
-                                    })}
+                                    <input
+                                        type="text"
+                                        maxLength={5}
+                                        placeholder="WWDLW"
+                                        value={team.form?.join('') || ''}
+                                        onChange={(e) => {
+                                            const val = e.target.value.toUpperCase().replace(/[^WDL]/g, '');
+                                            updateTeam(idx, 'form', val.split(''));
+                                        }}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white font-bold tracking-widest uppercase"
+                                    />
                                 </div>
                             </div>
                         </div>
-                        <div className="grid grid-cols-5 gap-1.5 items-end pt-2 border-t border-white/[0.03]">
+                        <div className="grid grid-cols-6 gap-1.5 items-end pt-2 border-t border-white/[0.03]">
+                            <div>
+                                <label className="block text-center text-[8px] font-black text-gray-500 uppercase mb-1">P</label>
+                                <input
+                                    type="number"
+                                    value={team.p}
+                                    onChange={(e) => updateTeam(idx, 'p', e.target.value)}
+                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg py-1 text-center text-white text-[10px]"
+                                />
+                            </div>
                             <div>
                                 <label className="block text-center text-[8px] font-black text-gray-500 uppercase mb-1">W</label>
                                 <input
@@ -256,7 +252,12 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                             </div>
                             <div className="bg-orange-500/10 rounded-lg border border-orange-500/20 py-1 flex flex-col items-center justify-center">
                                 <label className="block text-center text-[8px] font-black text-orange-500 uppercase">Pts</label>
-                                <span className="text-orange-500 font-black text-[10px]">{team.pts}</span>
+                                <input
+                                    type="number"
+                                    value={team.pts}
+                                    onChange={(e) => updateTeam(idx, 'pts', e.target.value)}
+                                    className="w-full bg-transparent text-center text-orange-500 font-black text-[10px] focus:outline-none p-0"
+                                />
                             </div>
                         </div>
                     </div>
@@ -305,31 +306,18 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                                                 onChange={(e) => updateTeam(idx, 'team', e.target.value)}
                                                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 md:px-3 py-1 text-xs md:text-sm text-white font-bold"
                                             />
-                                            <div className="flex gap-1 pt-1">
-                                                {[0, 1, 2, 3, 4].map(fIdx => {
-                                                    const status = team.form?.[fIdx];
-                                                    return (
-                                                        <button
-                                                            key={fIdx}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const newForm = [...(team.form || [])];
-                                                                if (!status) newForm[fIdx] = 'W';
-                                                                else if (status === 'W') newForm[fIdx] = 'D';
-                                                                else if (status === 'D') newForm[fIdx] = 'L';
-                                                                else delete newForm[fIdx];
-                                                                updateTeam(idx, 'form', newForm.filter(f => f));
-                                                            }}
-                                                            className={`w-6 h-6 rounded flex items-center justify-center text-[9px] font-black transition-all border ${status === 'W' ? 'bg-green-500/20 border-green-500/40 text-green-500' :
-                                                                status === 'D' ? 'bg-gray-500/20 border-gray-500/40 text-gray-400' :
-                                                                    status === 'L' ? 'bg-red-500/20 border-red-500/40 text-red-500' :
-                                                                        'bg-gray-800 border-white/5 text-gray-600 hover:border-white/10'
-                                                                }`}
-                                                        >
-                                                            {status || "-"}
-                                                        </button>
-                                                    );
-                                                })}
+                                            <div className="pt-1">
+                                                <input
+                                                    type="text"
+                                                    maxLength={5}
+                                                    placeholder="WWDLW"
+                                                    value={team.form?.join('') || ''}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.toUpperCase().replace(/[^WDL]/g, '');
+                                                        updateTeam(idx, 'form', val.split(''));
+                                                    }}
+                                                    className="w-24 bg-gray-800 border-2 border-dashed border-gray-700 rounded-lg px-2 py-1 text-xs text-white font-black tracking-widest uppercase hover:border-orange-500/50 focus:border-orange-500 focus:outline-none"
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -338,8 +326,8 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                                     <input
                                         type="number"
                                         value={team.p}
-                                        disabled
-                                        className="w-full bg-transparent text-center text-gray-500 font-bold text-xs"
+                                        onChange={(e) => updateTeam(idx, 'p', e.target.value)}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg py-1 text-center text-white text-xs"
                                     />
                                 </td>
                                 <td className="p-3 md:p-4">
@@ -375,9 +363,12 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                                     />
                                 </td>
                                 <td className="p-3 md:p-4">
-                                    <div className="w-full text-center text-orange-500 font-black text-sm md:text-lg">
-                                        {team.pts}
-                                    </div>
+                                    <input
+                                        type="number"
+                                        value={team.pts}
+                                        onChange={(e) => updateTeam(idx, 'pts', e.target.value)}
+                                        className="w-full bg-gray-800 border-2 border-orange-500/30 rounded-lg py-1 text-center text-orange-500 font-black text-sm md:text-lg focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+                                    />
                                 </td>
                                 <td className="p-3 md:p-4 text-right">
                                     <button
