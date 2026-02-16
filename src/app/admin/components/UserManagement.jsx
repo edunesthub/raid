@@ -2,36 +2,40 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, query, orderBy } from 'firebase/firestore';
-import { Eye, X, Search } from 'lucide-react';
+import { Eye, X, Search, Trash2, AlertTriangle } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function UserManagement() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [roleEditing, setRoleEditing] = useState({ role: 'user', adminRole: 'A' });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        setLoading(true);
-        const usersRef = collection(db, 'users');
-        const q = query(usersRef, orderBy('createdAt', 'desc'));
-        const snapshot = await getDocs(q);
-        const userData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setUsers(userData);
-      } catch (err) {
-        console.error('Error loading users:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     loadUsers();
   }, []);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      const userData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setUsers(userData);
+    } catch (err) {
+      console.error('Error loading users:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredUsers = users.filter(u =>
     (u.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -68,6 +72,40 @@ export default function UserManagement() {
       alert('Failed to update roles');
     }
   };
+
+  const deleteUser = async (userId) => {
+    if (!confirm('Are you absolutely sure? This will delete the user account from Firebase Auth AND all their Firestore data permanently. This action CANNOT be undone.')) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      const response = await fetch('/api/admin/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          adminId: currentUser?.id
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('User has been purged from the system.');
+        setUsers(prev => prev.filter(u => u.id !== userId));
+        setModalOpen(false);
+      } else {
+        throw new Error(data.error || 'Failed to delete user');
+      }
+    } catch (err) {
+      console.error('Deletion error:', err);
+      alert('CRITICAL ERROR: ' + err.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
 
   return (
     <div className="p-6 text-white min-h-screen bg-gray-900">
@@ -188,19 +226,40 @@ export default function UserManagement() {
               </div>
             </div>
 
-            <div className="mt-8 flex gap-3">
-              <button
-                onClick={saveUserRoles}
-                className="flex-1 bg-orange-600 hover:bg-orange-500 py-3 rounded-xl text-white font-bold transition shadow-lg shadow-orange-600/20"
-              >
-                Save Changes
-              </button>
-              <button
-                onClick={() => setModalOpen(false)}
-                className="flex-1 bg-gray-800 hover:bg-gray-700 py-3 rounded-xl text-white font-bold transition border border-gray-700"
-              >
-                Close
-              </button>
+            <div className="mt-8 pt-6 border-t border-gray-800 space-y-4">
+              <div className="flex gap-3">
+                <button
+                  onClick={saveUserRoles}
+                  className="flex-1 bg-orange-600 hover:bg-orange-500 py-3 rounded-xl text-white font-bold transition shadow-lg shadow-orange-600/20"
+                >
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => setModalOpen(false)}
+                  className="flex-1 bg-gray-800 hover:bg-gray-700 py-3 rounded-xl text-white font-bold transition border border-gray-700"
+                >
+                  Close
+                </button>
+              </div>
+
+              {/* Danger Zone */}
+              <div className="bg-red-950/20 border border-red-500/20 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <AlertTriangle className="w-4 h-4 text-red-500" />
+                  <p className="text-red-400 font-bold text-xs uppercase tracking-widest">Danger Zone</p>
+                </div>
+                <button
+                  onClick={() => deleteUser(selectedUser.id)}
+                  disabled={isDeleting}
+                  className="w-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 border border-red-500/20 disabled:opacity-50"
+                >
+                  <Trash2 size={18} />
+                  {isDeleting ? 'PURGING USER...' : 'PERMANENTLY DELETE USER'}
+                </button>
+                <p className="text-[10px] text-gray-500 mt-2 text-center uppercase font-black">
+                  This deletes the Firebase Auth account & all Firestore data.
+                </p>
+              </div>
             </div>
           </div>
         </div>

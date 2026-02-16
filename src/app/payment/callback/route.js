@@ -1,30 +1,13 @@
 // Always redirect to success; client page finalizes join
 export const runtime = 'nodejs';
 import { redirect } from 'next/navigation';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-
-// Initialize Firebase Admin
-if (!getApps().length) {
-  try {
-    initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
-  } catch (error) {
-    console.error('[FIREBASE ADMIN] Init error:', error);
-  }
-}
-
-const adminDb = getApps().length > 0 ? getFirestore() : null;
+import { adminDb } from '@/lib/firebaseAdmin';
+import { FieldValue } from 'firebase-admin/firestore';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    
+
     const reference = searchParams.get('reference') || searchParams.get('trxref') || '';
     const userId = searchParams.get('userId') || '';
     const tournamentId = searchParams.get('tournamentId') || '';
@@ -58,7 +41,7 @@ export async function GET(request) {
 
     // 2. Attempt join tournament using Firebase Admin (if available)
     console.log('[CALLBACK] Attempting join...');
-    
+
     const tournamentRef = adminDb.collection('tournaments').doc(tournamentId);
     const participantRef = adminDb.collection('tournament_participants').doc(`${tournamentId}_${userId}`);
 
@@ -66,7 +49,7 @@ export async function GET(request) {
       if (!adminDb) throw new Error('admin_unavailable');
       await adminDb.runTransaction(async (transaction) => {
         const tournamentDoc = await transaction.get(tournamentRef);
-        
+
         if (!tournamentDoc.exists) {
           throw new Error('Tournament not found');
         }
@@ -102,7 +85,7 @@ export async function GET(request) {
       });
 
       console.log('[CALLBACK] Successfully joined tournament!');
-      
+
       // 3. Add notification
       await adminDb.collection('notifications').add({
         userId,
