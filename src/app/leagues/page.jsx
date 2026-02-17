@@ -213,7 +213,7 @@ export default function LeaguesPage() {
     }
 
     return (
-        <div className="h-[100dvh] bg-[#050505] flex flex-col overflow-hidden">
+        <div className="min-h-screen bg-[#050505] pb-24">
             {/* --- Back Button --- */}
             <div className="fixed top-24 left-4 z-[60] md:left-8">
                 <button
@@ -270,7 +270,7 @@ export default function LeaguesPage() {
             </div>
 
             {/* --- Navigation Tabs --- */}
-            <div className="flex-none bg-[#050505] border-b border-white/5">
+            <div className="sticky top-16 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 z-50">
                 <div className="w-full px-2">
                     <div className="grid grid-cols-4 gap-1 py-3">
                         {tabs.map((tab) => (
@@ -292,8 +292,8 @@ export default function LeaguesPage() {
                 </div>
             </div>
 
-            {/* --- Scrollable Main Content Area --- */}
-            <div className="flex-1 overflow-y-auto md:container-mobile pb-8 pt-2">
+            {/* --- Main Content Area --- */}
+            <div className="md:container-mobile pb-8 pt-4">
 
                 {/* 1. STANDINGS VIEW */}
                 {activeTab === 'standing' && (
@@ -370,107 +370,115 @@ export default function LeaguesPage() {
 
                 {/* 2. FIXTURES & RESULTS VIEW */}
                 {activeTab === 'matches' && (
-                    <div className="animate-in fade-in duration-500">
-                        {/* Round Switcher */}
-                        <div className="relative z-30 bg-[#050505] border-b border-white/5">
-                            <div className="grid grid-cols-4 gap-1 p-2">
-                                {rounds.map((round, idx) => (
-                                    <button
-                                        key={round}
-                                        onClick={() => setActiveRound(round)}
-                                        className={`py-2 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all border ${activeRound === round ? 'bg-white text-black border-white' : 'bg-white/5 text-gray-500 border-transparent active:bg-white/10'}`}
-                                    >
-                                        R{idx + 1}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                    <div className="animate-in fade-in duration-500 space-y-10">
+                        {rounds.map((round) => {
+                            const roundMatches = matches.filter(m => m.round === round);
+                            if (roundMatches.length === 0) return null;
 
-                        <div className="py-2">
-                            <div className="bg-[#0a0a0a] border-y border-white/5 divide-y divide-white/[0.03]">
-                                {matches
-                                    .filter(m => m.round === activeRound)
-                                    .map(match => {
-                                        let displayTime = 'TBD';
-                                        let displayDay = 'TBD';
+                            return (
+                                <div key={round} className="space-y-4">
+                                    {/* Round Header */}
+                                    <div className="px-5 flex items-center gap-3">
+                                        <div className="h-px flex-1 bg-white/5" />
+                                        <h3 className="text-[10px] font-black text-orange-500 uppercase tracking-[0.4em]">{round}</h3>
+                                        <div className="h-px flex-1 bg-white/5" />
+                                    </div>
 
-                                        if (match.time && match.time !== 'TBD') {
-                                            // Handle potential ISO format or fallback to text
-                                            if (match.time.includes('T') && !match.time.includes(',') && !match.time.includes(' ')) {
-                                                try {
-                                                    const date = new Date(match.time);
-                                                    // Check if valid date
-                                                    if (!isNaN(date.getTime())) {
-                                                        displayTime = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'UTC' }) + ' GMT';
-                                                        displayDay = date.toLocaleDateString([], { month: 'short', day: 'numeric' }).toUpperCase();
+                                    <div className="bg-[#0a0a0a] border-y border-white/5 divide-y divide-white/[0.03]">
+                                        {roundMatches.map(match => {
+                                            let displayTime = 'TBD';
+                                            let displayDay = 'TBD';
+
+                                            if (match.time && match.time !== 'TBD') {
+                                                if (match.time.includes('T') && !match.time.includes(',') && !match.time.includes(' ')) {
+                                                    try {
+                                                        const date = new Date(match.time);
+                                                        if (!isNaN(date.getTime())) {
+                                                            displayTime = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'UTC' }) + ' GMT';
+                                                            displayDay = date.toLocaleDateString([], { month: 'short', day: 'numeric' }).toUpperCase();
+                                                        }
+                                                    } catch (e) { }
+                                                } else {
+                                                    const parts = match.time.split(',');
+                                                    if (parts.length > 1) {
+                                                        displayTime = parts[1]?.trim();
+                                                        displayDay = parts[0]?.slice(0, 3).toUpperCase();
                                                     }
-                                                } catch (e) { /* ignore invalid dates */ }
-                                            } else {
-                                                // Old format: "Saturday, 14:00"
-                                                const parts = match.time.split(',');
-                                                if (parts.length > 1) {
-                                                    displayTime = parts[1]?.trim();
-                                                    displayDay = parts[0]?.slice(0, 3).toUpperCase();
                                                 }
                                             }
-                                        }
 
-                                        return (
-                                            <div key={match.id} className="p-3 flex items-center gap-3 active:bg-white/5 transition-all group">
-                                                <div className="w-10 flex flex-col items-center justify-center flex-shrink-0 text-center gap-0.5">
-                                                    <span className="text-[10px] font-black text-white uppercase tracking-tighter leading-none">{displayDay}</span>
-                                                    <span className={`text-[9px] font-bold uppercase tracking-wide leading-none ${match.completed ? 'text-gray-500' : 'text-orange-500'}`}>{match.completed ? 'FT' : displayTime}</span>
-                                                </div>
-                                                <div className="flex-1 min-w-0 border-l border-white/5 pl-3 space-y-1.5">
-                                                    <div className="flex items-center justify-between gap-2 overflow-hidden">
-                                                        <span className="text-[10px] font-bold text-gray-300 uppercase truncate tracking-tight group-hover:text-white transition-colors">{match.team1}</span>
-                                                        {match.completed && <span className="text-[10px] font-black text-white bg-white/5 px-1.5 rounded">{match.score1}</span>}
+                                            return (
+                                                <div key={match.id} className="p-4 flex items-center gap-3 active:bg-white/5 transition-all group">
+                                                    <div className="w-10 flex flex-col items-center justify-center flex-shrink-0 text-center gap-0.5">
+                                                        <span className="text-[10px] font-black text-white uppercase tracking-tighter leading-none">{displayDay}</span>
+                                                        <span className={`text-[9px] font-bold uppercase tracking-wide leading-none ${match.completed ? 'text-gray-500' : 'text-orange-500'}`}>{match.completed ? 'FT' : displayTime}</span>
                                                     </div>
-                                                    <div className="flex items-center justify-between gap-2 overflow-hidden">
-                                                        <span className="text-[10px] font-bold text-gray-300 uppercase truncate tracking-tight group-hover:text-white transition-colors">{match.team2}</span>
-                                                        {match.completed && <span className="text-[10px] font-black text-white bg-white/5 px-1.5 rounded">{match.score2}</span>}
-                                                    </div>
-                                                </div>
-                                                {!match.completed && (
-                                                    <div className="flex-shrink-0 pl-2">
-                                                        <div className="w-6 h-6 rounded-full bg-orange-500/5 group-hover:bg-orange-500/10 border border-orange-500/10 group-hover:border-orange-500/30 flex items-center justify-center transition-all">
-                                                            <span className="text-[8px] font-black text-orange-500 group-hover:scale-110 transition-transform">VS</span>
+                                                    <div className="flex-1 min-w-0 border-l border-white/5 pl-4 space-y-2">
+                                                        <div className="flex items-center justify-between gap-2 overflow-hidden">
+                                                            <span className="text-xs font-bold text-gray-300 uppercase truncate tracking-tight group-hover:text-white transition-colors">{match.team1}</span>
+                                                            {match.completed && <span className="text-xs font-black text-white bg-white/5 px-2 py-0.5 rounded">{match.score1}</span>}
+                                                        </div>
+                                                        <div className="flex items-center justify-between gap-2 overflow-hidden">
+                                                            <span className="text-xs font-bold text-gray-300 uppercase truncate tracking-tight group-hover:text-white transition-colors">{match.team2}</span>
+                                                            {match.completed && <span className="text-xs font-black text-white bg-white/5 px-2 py-0.5 rounded">{match.score2}</span>}
                                                         </div>
                                                     </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                {matches.filter(m => m.round === activeRound).length === 0 && (
-                                    <div className="py-16 flex flex-col items-center justify-center text-gray-800 opacity-30 gap-2">
-                                        <Clock size={32} />
-                                        <span className="text-[9px] font-black uppercase tracking-[0.2em]">No Schedule</span>
+                                                    {!match.completed && (
+                                                        <div className="flex-shrink-0 pl-2">
+                                                            <div className="w-8 h-8 rounded-full bg-orange-500/5 group-hover:bg-orange-500/10 border border-orange-500/10 group-hover:border-orange-500/30 flex items-center justify-center transition-all">
+                                                                <span className="text-[9px] font-black text-orange-500 group-hover:scale-110 transition-transform">VS</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                )}
+                                </div>
+                            );
+                        })}
+
+                        {matches.length === 0 && (
+                            <div className="py-24 flex flex-col items-center justify-center text-white/10 gap-4">
+                                <Clock size={48} />
+                                <span className="text-xs font-black uppercase tracking-[0.3em]">No Schedule Available</span>
                             </div>
-                        </div>
+                        )}
                     </div>
                 )}
 
                 {/* 3. OVERVIEW VIEW */}
                 {activeTab === 'overview' && (
-                    <div className="animate-in fade-in duration-700 space-y-8 pb-8">
-                        {/* League Identity */}
-                        <div className="px-4 space-y-4">
-                            <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-1 italic">League Details</h4>
-                            <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4 shadow-2xl">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
-                                        <Trophy className="text-orange-500" size={24} />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-black text-white uppercase tracking-tighter">{leagueInfo?.name || "Elite African Series"}</p>
-                                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">{leagueInfo?.season || "Season 1 • 2026"}</p>
-                                    </div>
-                                </div>
-                                <p className="text-xs md:text-sm text-gray-400 leading-relaxed font-medium">
-                                    {leagueInfo?.description || "The premier continental showdown where Africa's talent competes for professional dominance."}
+                    <div className="animate-in fade-in duration-700 space-y-12 pb-12">
+                        {/* League Identity & Description */}
+                        <div className="px-5 space-y-6">
+                            <div className="space-y-4">
+                                <h1 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter leading-none">
+                                    THE <span className="text-orange-500">MISSION</span>
+                                </h1>
+                                <p className="text-sm md:text-lg text-gray-400 leading-relaxed font-medium max-w-3xl">
+                                    {leagueInfo?.description || "The premier continental showdown where Africa's talent competes for professional dominance. Join the elite ranks and prove your worth in the ARENA."}
                                 </p>
+                            </div>
+
+                            {/* Detailed Specs Grid */}
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="bg-white/5 border border-white/5 rounded-2xl p-4 md:p-6 shadow-xl">
+                                    <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2">Platform</p>
+                                    <p className="text-lg font-black text-white uppercase italic tracking-tighter">{leagueInfo?.game || "Mobile"}</p>
+                                </div>
+                                <div className="bg-white/5 border border-white/5 rounded-2xl p-4 md:p-6 shadow-xl">
+                                    <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2">Region</p>
+                                    <p className="text-lg font-black text-white uppercase italic tracking-tighter">Africa</p>
+                                </div>
+                                <div className="bg-white/5 border border-white/5 rounded-2xl p-4 md:p-6 shadow-xl">
+                                    <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2">Format</p>
+                                    <p className="text-lg font-black text-white uppercase italic tracking-tighter">League</p>
+                                </div>
+                                <div className="bg-white/5 border border-white/5 rounded-2xl p-4 md:p-6 shadow-xl">
+                                    <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2">Status</p>
+                                    <p className="text-lg font-black text-green-500 uppercase italic tracking-tighter">In Progress</p>
+                                </div>
                             </div>
                         </div>
 
