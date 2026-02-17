@@ -302,15 +302,15 @@ export default function LeaguesPage() {
                             <table className="w-full text-left table-fixed">
                                 <thead>
                                     <tr className="bg-white/5 border-b border-white/5">
-                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[25px]">#</th>
+                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[20px]">#</th>
                                         <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter">Team</th>
-                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[22px]">P</th>
-                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[18px]">W</th>
-                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[18px]">D</th>
-                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[18px]">L</th>
-                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[18px]">GF</th>
-                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[18px]">GA</th>
-                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[22px]">GD</th>
+                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[20px]">P</th>
+                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[15px]">W</th>
+                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[15px]">D</th>
+                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[15px]">L</th>
+                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[15px]">GF</th>
+                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[15px]">GA</th>
+                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[20px]">GD</th>
                                         <th className="px-1 py-3 text-[8px] font-black text-orange-500 uppercase tracking-tighter text-center w-[25px]">Pts</th>
                                         <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[90px]">Form</th>
                                     </tr>
@@ -324,10 +324,12 @@ export default function LeaguesPage() {
                                                     <span className={`text-[10px] font-black ${idx < 4 ? 'text-orange-500' : standings.length > 6 && idx >= standings.length - 2 ? 'text-red-400' : 'text-gray-500'}`}>{idx + 1}</span>
                                                 </div>
                                             </td>
-                                            <td className="py-4 min-w-0 pr-1">
-                                                <div className="flex items-center gap-1 min-w-0">
-                                                    <FlagEmoji countryCode={team.country} />
-                                                    <span className="font-bold text-white text-[11px] truncate tracking-tight uppercase">{team.team}</span>
+                                            <td className="py-4 min-w-0 pr-4 align-middle">
+                                                <div className="flex items-start gap-1 min-w-0 py-1">
+                                                    <div className="mt-0.5">
+                                                        <FlagEmoji countryCode={team.country} />
+                                                    </div>
+                                                    <span className="font-bold text-white text-[11px] tracking-tight uppercase whitespace-normal leading-tight">{team.team}</span>
                                                 </div>
                                             </td>
                                             <td className="py-4 text-center font-bold text-gray-400 text-[10px]">{team.p}</td>
@@ -570,7 +572,7 @@ export default function LeaguesPage() {
                                         <table className="w-full text-left table-fixed">
                                             <thead>
                                                 <tr className="bg-white/5 text-[8px] font-black text-gray-500 uppercase tracking-tighter">
-                                                    <th className="px-2 py-3 w-[25px] text-center">#</th>
+                                                    <th className="px-2 py-3 w-[20px] text-center">#</th>
                                                     <th className="px-2 py-3">Team</th>
                                                     <th className="px-1 py-3 text-center w-[20px]">P</th>
                                                     <th className="px-1 py-3 text-center w-[15px]">W</th>
@@ -591,10 +593,12 @@ export default function LeaguesPage() {
                                                                 <span className="text-[10px] font-black text-orange-500">{idx + 1}</span>
                                                             </div>
                                                         </td>
-                                                        <td className="py-3">
-                                                            <div className="flex items-center gap-1.5 overflow-hidden pr-2">
-                                                                <FlagEmoji countryCode={team.country} />
-                                                                <span className="text-[11px] font-bold text-white truncate uppercase tracking-tight">{team.team}</span>
+                                                        <td className="py-3 align-middle pr-4">
+                                                            <div className="flex items-start gap-1.5 overflow-hidden pr-2 py-0.5">
+                                                                <div className="mt-0.5">
+                                                                    <FlagEmoji countryCode={team.country} />
+                                                                </div>
+                                                                <span className="text-[11px] font-bold text-white uppercase tracking-tight whitespace-normal leading-tight">{team.team}</span>
                                                             </div>
                                                         </td>
                                                         <td className="text-center text-[10px] font-bold text-gray-400">{team.p}</td>
