@@ -4,14 +4,14 @@ import React from 'react';
 import { Trophy, Info, Gamepad2, ChevronRight, Play } from 'lucide-react';
 
 const mockLeagueData = [
-    { id: 1, team: "Super Strikers", country: "GH", p: 12, w: 9, l: 3, gd: 15, gf: 32, ga: 17, pts: 27 },
-    { id: 2, team: "Cyber Warriors", country: "NG", p: 12, w: 8, l: 4, gd: 12, gf: 28, ga: 16, pts: 24 },
-    { id: 3, team: "Elite Gamers", country: "KE", p: 12, w: 8, l: 4, gd: 8, gf: 25, ga: 17, pts: 24 },
-    { id: 4, team: "Raid Masters", country: "GH", p: 12, w: 7, l: 5, gd: 5, gf: 22, ga: 17, pts: 21 },
-    { id: 5, team: "Alpha Squad", country: "NG", p: 12, w: 6, l: 6, gd: 0, gf: 19, ga: 19, pts: 18 },
-    { id: 6, team: "Delta Force", country: "GH", p: 12, w: 5, l: 7, gd: -3, gf: 16, ga: 19, pts: 15 },
-    { id: 7, team: "Titan Kings", country: "ZA", p: 12, w: 4, l: 8, gd: -7, gf: 14, ga: 21, pts: 12 },
-    { id: 8, team: "Shadow Ninjas", country: "NG", p: 12, w: 3, l: 9, gd: -12, gf: 11, ga: 23, pts: 9 },
+    { id: 1, team: "Super Strikers", country: "GH", p: 12, w: 9, d: 0, l: 3, gd: 15, gf: 32, ga: 17, pts: 27 },
+    { id: 2, team: "Cyber Warriors", country: "NG", p: 12, w: 8, d: 0, l: 4, gd: 12, gf: 28, ga: 16, pts: 24 },
+    { id: 3, team: "Elite Gamers", country: "KE", p: 12, w: 8, d: 0, l: 4, gd: 8, gf: 25, ga: 17, pts: 24 },
+    { id: 4, team: "Raid Masters", country: "GH", p: 12, w: 7, d: 0, l: 5, gd: 5, gf: 22, ga: 17, pts: 21 },
+    { id: 5, team: "Alpha Squad", country: "NG", p: 12, w: 6, d: 0, l: 6, gd: 0, gf: 19, ga: 19, pts: 18 },
+    { id: 6, team: "Delta Force", country: "GH", p: 12, w: 5, d: 0, l: 7, gd: -3, gf: 16, ga: 19, pts: 15 },
+    { id: 7, team: "Titan Kings", country: "ZA", p: 12, w: 4, d: 0, l: 8, gd: -7, gf: 14, ga: 21, pts: 12 },
+    { id: 8, team: "Shadow Ninjas", country: "NG", p: 12, w: 3, d: 0, l: 9, gd: -12, gf: 11, ga: 23, pts: 9 },
 ];
 
 const FlagEmoji = ({ countryCode }) => {
@@ -65,14 +65,9 @@ const LeagueSection = ({ compact = false }) => {
                                 <th className="px-3 py-3 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Team</th>
                                 <th className="px-1 py-3 font-bold text-gray-500 text-[10px] uppercase tracking-wider text-center">P</th>
                                 <th className="px-1 py-3 font-bold text-gray-500 text-[10px] uppercase tracking-wider text-center">W</th>
+                                <th className="px-1 py-3 font-bold text-gray-500 text-[10px] uppercase tracking-wider text-center">D</th>
                                 <th className="px-1 py-3 font-bold text-gray-500 text-[10px] uppercase tracking-wider text-center">L</th>
-                                {!compact && (
-                                    <>
-                                        <th className="px-1 py-3 font-bold text-gray-500 text-[10px] uppercase tracking-wider text-center">Δ</th>
-                                        <th className="px-1 py-3 font-bold text-gray-500 text-[10px] uppercase tracking-wider text-center hidden md:table-cell">GF</th>
-                                        <th className="px-1 py-3 font-bold text-gray-500 text-[10px] uppercase tracking-wider text-center hidden md:table-cell">GA</th>
-                                    </>
-                                )}
+                                <th className="px-1 py-3 font-bold text-gray-500 text-[10px] uppercase tracking-wider text-center">GD</th>
                                 <th className="px-3 py-3 font-bold text-orange-500 text-[10px] uppercase tracking-wider text-center">Pts</th>
                             </tr>
                         </thead>
@@ -103,16 +98,11 @@ const LeagueSection = ({ compact = false }) => {
                                     </td>
                                     <td className="px-1 py-3 text-center text-xs text-gray-400">{item.p}</td>
                                     <td className="px-1 py-3 text-center text-green-500 font-medium text-xs">{item.w}</td>
+                                    <td className="px-1 py-3 text-center text-orange-500 font-medium text-xs">{item.d}</td>
                                     <td className="px-1 py-3 text-center text-red-500 font-medium text-xs">{item.l}</td>
-                                    {!compact && (
-                                        <>
-                                            <td className={`px-1 py-3 text-center font-medium text-xs ${item.gd >= 0 ? 'text-gray-300' : 'text-gray-500'}`}>
-                                                {item.gd > 0 ? `+${item.gd}` : item.gd}
-                                            </td>
-                                            <td className="px-1 py-3 text-center text-gray-500 text-xs hidden md:table-cell">{item.gf}</td>
-                                            <td className="px-1 py-3 text-center text-gray-500 text-xs hidden md:table-cell">{item.ga}</td>
-                                        </>
-                                    )}
+                                    <td className={`px-1 py-3 text-center font-medium text-xs ${item.gd >= 0 ? 'text-gray-300' : 'text-gray-500'}`}>
+                                        {item.gd > 0 ? `+${item.gd}` : item.gd}
+                                    </td>
                                     <td className="px-3 py-3 text-center font-bold text-white text-xs">
                                         {item.pts}
                                     </td>

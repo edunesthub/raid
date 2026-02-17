@@ -6,7 +6,7 @@ export default function Footer() {
 
     return (
         <footer className="bg-black border-t border-gray-800 text-gray-400 py-12 px-4 md:px-12 mt-auto">
-            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
                 {/* Brand Column */}
                 <div className="space-y-4">
                     <Link href="/" className="flex items-center gap-2">
@@ -58,7 +58,7 @@ export default function Footer() {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-600">
+            <div className="max-w-[1600px] mx-auto mt-12 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-600">
                 <p>&copy; {currentYear} RAID ARENA. All rights reserved.</p>
                 <div className="flex gap-6">
                     <Link href="/terms-of-service" className="hover:text-gray-400 transition-colors">Terms</Link>

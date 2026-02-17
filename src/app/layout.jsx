@@ -64,43 +64,14 @@ export default function RootLayout({ children }) {
 
             {/* Main Content Area */}
             <div className={`flex flex-1 ${!hideNav ? 'pt-16' : ''}`}>
-              {/* Desktop Sidebar - Persistent Navigation */}
-              {!hideNav && (
-                <aside className="hidden lg:block w-64 fixed left-0 top-16 bottom-0 border-r border-gray-800 bg-black/50 backdrop-blur-xl overflow-y-auto z-30">
-                  <nav className="p-4 flex flex-col space-y-2">
-                    {/* The navigation items are imported and shared, but for desktop sidebar we might want a specific list */}
-                    {/* For now, I'll use a simple list that matches the user's focus */}
-                    <Link href="/" className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${pathname === "/" ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20" : "text-gray-400 hover:text-white hover:bg-gray-800"}`}>
-                      <Home className="w-5 h-5" />
-                      <span className="font-semibold">Home</span>
-                    </Link>
-                    <Link href="/tournament" className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${pathname === "/tournament" ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20" : "text-gray-400 hover:text-white hover:bg-gray-800"}`}>
-                      <Trophy className="w-5 h-5" />
-                      <span className="font-semibold">Tournaments</span>
-                    </Link>
-                    <Link href="/leagues" className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${pathname === "/leagues" ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20" : "text-gray-400 hover:text-white hover:bg-gray-800"}`}>
-                      <Trophy className="w-5 h-5" />
-                      <span className="font-semibold">Leagues</span>
-                    </Link>
-                    <Link href="/esports-teams" className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${pathname === "/esports-teams" ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20" : "text-gray-400 hover:text-white hover:bg-gray-800"}`}>
-                      <Users className="w-5 h-5" />
-                      <span className="font-semibold">Esports Teams</span>
-                    </Link>
-                    <Link href="/leaderboard" className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${pathname === "/leaderboard" ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20" : "text-gray-400 hover:text-white hover:bg-gray-800"}`}>
-                      <BarChart2 className="w-5 h-5" />
-                      <span className="font-semibold">Leaderboard</span>
-                    </Link>
-                  </nav>
-                </aside>
-              )}
               <main
-                className={`flex-1 ${!hideNav ? 'lg:pl-64' : ''} ${!hideNav ? 'pb-24 md:pb-4' : ''}`}
+                className={`flex-1 ${!hideNav ? 'pb-24 md:pb-4' : ''}`}
                 style={{
                   paddingTop: hideNav ? '0' : undefined,
                   paddingBottom: hideNav ? '0' : undefined,
                 }}
               >
-                <div className="max-w-7xl mx-auto">
+                <div className="max-w-[1600px] mx-auto w-full">
                   {children}
                 </div>
               </main>
@@ -109,7 +80,7 @@ export default function RootLayout({ children }) {
             {/* Footer and Bottom Nav - only show on regular pages */}
             {!hideFooter && (
               <>
-                <div className={`${!hideNav ? 'lg:pl-64' : ''}`}>
+                <div>
                   <Footer />
                 </div>
                 <div className="md:hidden">

@@ -64,6 +64,8 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                 w: 0,
                 d: 0,
                 l: 0,
+                gf: 0,
+                ga: 0,
                 gd: 0,
                 pts: 0,
                 form: [],
@@ -77,12 +79,16 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
 
         newStandings[index][field] = value;
 
-        // Auto-calculate points
-        if (field === 'w' || field === 'd' || field === 'l') {
+        // Auto-calculate points and goal difference
+        if (field === 'w' || field === 'd' || field === 'l' || field === 'gf' || field === 'ga') {
             const w = parseInt(newStandings[index].w) || 0;
             const d = parseInt(newStandings[index].d) || 0;
+            const gf = parseInt(newStandings[index].gf) || 0;
+            const ga = parseInt(newStandings[index].ga) || 0;
+
             newStandings[index].pts = (w * 3) + (d * 1);
             newStandings[index].p = w + d + (parseInt(newStandings[index].l) || 0);
+            newStandings[index].gd = gf - ga;
         }
 
         setStandings(newStandings);
@@ -204,7 +210,7 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                                 </div>
                             </div>
                         </div>
-                        <div className="grid grid-cols-6 gap-1.5 items-end pt-2 border-t border-white/[0.03]">
+                        <div className="grid grid-cols-8 gap-1.5 items-end pt-2 border-t border-white/[0.03]">
                             <div>
                                 <label className="block text-center text-[8px] font-black text-gray-500 uppercase mb-1">P</label>
                                 <input
@@ -242,6 +248,24 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                                 />
                             </div>
                             <div>
+                                <label className="block text-center text-[8px] font-black text-gray-500 uppercase mb-1">GF</label>
+                                <input
+                                    type="number"
+                                    value={team.gf}
+                                    onChange={(e) => updateTeam(idx, 'gf', e.target.value)}
+                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg py-1 text-center text-white text-[10px]"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-center text-[8px] font-black text-gray-500 uppercase mb-1">GA</label>
+                                <input
+                                    type="number"
+                                    value={team.ga}
+                                    onChange={(e) => updateTeam(idx, 'ga', e.target.value)}
+                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg py-1 text-center text-white text-[10px]"
+                                />
+                            </div>
+                            <div>
                                 <label className="block text-center text-[8px] font-black text-gray-500 uppercase mb-1">GD</label>
                                 <input
                                     type="number"
@@ -273,6 +297,8 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                             <th className="p-3 md:p-4 text-center w-14 md:w-20">W</th>
                             <th className="p-3 md:p-4 text-center w-14 md:w-20">D</th>
                             <th className="p-3 md:p-4 text-center w-14 md:w-20">L</th>
+                            <th className="p-3 md:p-4 text-center w-14 md:w-20">GF</th>
+                            <th className="p-3 md:p-4 text-center w-14 md:w-20">GA</th>
                             <th className="p-3 md:p-4 text-center w-14 md:w-20">GD</th>
                             <th className="p-3 md:p-4 text-center w-14 md:w-20 text-orange-500">Pts</th>
                             <th className="p-3 md:p-4 text-right w-14 md:w-20">Actions</th>
@@ -351,6 +377,22 @@ export default function LeagueStandingsEditor({ leagueId, onBack }) {
                                         type="number"
                                         value={team.l}
                                         onChange={(e) => updateTeam(idx, 'l', e.target.value)}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg py-1 text-center text-white text-xs"
+                                    />
+                                </td>
+                                <td className="p-3 md:p-4">
+                                    <input
+                                        type="number"
+                                        value={team.gf}
+                                        onChange={(e) => updateTeam(idx, 'gf', e.target.value)}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg py-1 text-center text-white text-xs"
+                                    />
+                                </td>
+                                <td className="p-3 md:p-4">
+                                    <input
+                                        type="number"
+                                        value={team.ga}
+                                        onChange={(e) => updateTeam(idx, 'ga', e.target.value)}
                                         className="w-full bg-gray-800 border border-gray-700 rounded-lg py-1 text-center text-white text-xs"
                                     />
                                 </td>

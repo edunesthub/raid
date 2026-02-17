@@ -140,83 +140,86 @@ export default function LeagueManagement() {
                 </button>
             </div>
 
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <div className="relative max-w-xl">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                 <input
                     type="text"
-                    placeholder="Search seasons..."
+                    placeholder="Search seasons, years, or games..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-xl pl-10 pr-4 py-3 text-white outline-none focus:border-orange-500 transition"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white outline-none focus:border-orange-500/50 transition-all font-medium placeholder:text-gray-600"
                 />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                 {leagues
                     .filter(l => l.name?.toLowerCase().includes(searchTerm.toLowerCase()))
                     .map((league) => (
-                        <div key={league.id} className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden flex flex-col shadow-xl">
-                            <div className="p-6 space-y-4 flex-1">
+                        <div key={league.id} className="group relative bg-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden flex flex-col hover:border-orange-500/30 transition-all duration-300 shadow-2xl">
+                            {/* Card Decorative Background */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-orange-500/10 transition-colors" />
+
+                            <div className="p-6 md:p-8 space-y-6 flex-1 relative z-10">
                                 <div className="flex items-start justify-between">
-                                    <div>
-                                        <h3 className="text-xl font-bold text-white">{league.name}</h3>
-                                        <p className="text-orange-500 text-xs font-black uppercase tracking-widest">{league.season}</p>
+                                    <div className="min-w-0">
+                                        <h3 className="text-xl md:text-2xl font-black text-white italic uppercase tracking-tighter truncate leading-tight">{league.name}</h3>
+                                        <p className="text-orange-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1 italic">{league.season}</p>
                                     </div>
-                                    <div className="bg-orange-500/10 p-2 rounded-lg">
+                                    <div className="bg-orange-500/10 p-2.5 rounded-xl border border-orange-500/20 shadow-lg shadow-orange-500/5">
                                         <Trophy className="text-orange-500" size={20} />
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-white/5 p-3 rounded-xl border border-white/5">
-                                        <p className="text-[10px] text-gray-500 uppercase font-black">Prize Pool</p>
-                                        <p className="text-white font-bold">{league.prize_pool}</p>
+                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5 backdrop-blur-sm">
+                                        <p className="text-[8px] text-gray-600 uppercase font-black tracking-widest mb-1.5 flex items-center gap-1.5"><Trophy size={10} className="text-orange-500" /> Prize Pool</p>
+                                        <p className="text-white font-black text-sm tracking-tight">{league.prize_pool}</p>
                                     </div>
-                                    <div className="bg-white/5 p-3 rounded-xl border border-white/5">
-                                        <p className="text-[10px] text-gray-500 uppercase font-black">Teams</p>
-                                        <p className="text-white font-bold">{league.team_count || 0}</p>
+                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5 backdrop-blur-sm">
+                                        <p className="text-[8px] text-gray-600 uppercase font-black tracking-widest mb-1.5 flex items-center gap-1.5"><Users size={10} className="text-orange-500" /> Teams</p>
+                                        <p className="text-white font-black text-sm tracking-tight">{league.team_count || 0}</p>
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="space-y-2.5">
                                     <button
                                         onClick={() => openTeams(league)}
-                                        className="w-full flex items-center justify-between p-3 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm text-gray-300 transition-colors"
+                                        className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all border border-transparent hover:border-white/10 group/btn"
                                     >
-                                        <span className="flex items-center gap-2"><Users size={16} /> Manage Teams</span>
-                                        <History size={14} className="opacity-50" />
+                                        <span className="flex items-center gap-2.5"><Users size={16} className="text-orange-500" /> Manage Teams</span>
+                                        <ChevronRight size={14} className="opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all font-bold" />
                                     </button>
                                     <button
                                         onClick={() => openStandings(league)}
-                                        className="w-full flex items-center justify-between p-3 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm text-gray-300 transition-colors"
+                                        className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all border border-transparent hover:border-white/10 group/btn"
                                     >
-                                        <span className="flex items-center gap-2"><ListOrdered size={16} /> Manage Standings</span>
-                                        <History size={14} className="opacity-50" />
+                                        <span className="flex items-center gap-2.5"><ListOrdered size={16} className="text-orange-500" /> Manage Standings</span>
+                                        <ChevronRight size={14} className="opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all font-bold" />
                                     </button>
                                     <button
                                         onClick={() => openMatches(league)}
-                                        className="w-full flex items-center justify-between p-3 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm text-gray-300 transition-colors"
+                                        className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all border border-transparent hover:border-white/10 group/btn"
                                     >
-                                        <span className="flex items-center gap-2"><Calendar size={16} /> Manage Matches</span>
-                                        <History size={14} className="opacity-50" />
+                                        <span className="flex items-center gap-2.5"><Calendar size={16} className="text-orange-500" /> Manage Matches</span>
+                                        <ChevronRight size={14} className="opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all font-bold" />
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="p-3 md:p-4 bg-gray-800/50 border-t border-gray-800 flex items-center justify-between gap-1 md:gap-2">
+                            <div className="p-4 bg-white/[0.02] border-t border-white/5 flex items-center justify-between gap-4">
                                 <button
                                     onClick={() => {
                                         setSelectedLeague(league);
                                         setShowForm(true);
                                     }}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 md:py-2 text-[10px] md:text-xs font-black text-gray-400 hover:text-white transition-colors uppercase tracking-widest"
+                                    className="flex-1 flex items-center justify-center gap-2.5 py-3 text-[10px] font-black text-gray-500 hover:text-white transition-all uppercase tracking-[0.2em]"
                                 >
-                                    <Edit size={14} /> Edit
+                                    <Edit size={14} className="text-gray-600" /> Edit
                                 </button>
-                                <div className="w-px h-4 bg-gray-700" />
+                                <div className="w-px h-4 bg-white/10" />
                                 <button
                                     onClick={() => handleDelete(league.id)}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 md:py-2 text-[10px] md:text-xs font-black text-red-500/60 hover:text-red-500 transition-colors uppercase tracking-widest"
+                                    className="flex-1 flex items-center justify-center gap-2.5 py-3 text-[10px] font-black text-red-500/40 hover:text-red-500 transition-all uppercase tracking-[0.2em]"
                                 >
                                     <Trash2 size={14} /> Delete
                                 </button>

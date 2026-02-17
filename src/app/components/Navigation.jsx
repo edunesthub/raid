@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, cloneElement } from "react";
 import Image from "next/image";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import NotificationBadge from "@/components/NotificationBadge";
@@ -53,9 +53,9 @@ export default function Navigation() {
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+      <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5">
+        <div className="max-w-[1600px] mx-auto px-6">
+          <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center">
               <img
@@ -67,73 +67,75 @@ export default function Navigation() {
               />
             </Link>
 
-            {/* Links */}
-            <div className="flex items-center space-x-6">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${pathname === item.href
-                    ? "bg-orange-500 text-white"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
-                    }`}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </Link>
-              ))}
+            {/* Desktop Links - Right Aligned */}
+            <div className="flex-1 flex items-center justify-end">
+              <div className="flex items-center space-x-1">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`px-4 py-2 rounded-xl transition-all duration-200 ${pathname === item.href
+                      ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                      }`}
+                  >
+                    <span className="text-[11px] font-black uppercase tracking-[0.2em]">{item.label}</span>
+                  </Link>
+                ))}
 
-              {/* Auth Section */}
-              {isAuthenticated ? (
-                <div className="relative">
-                  <div className="flex items-center space-x-2">
-                    {/* ✅ NEW: NotificationBadge Component */}
-                    <NotificationBadge />
+                {/* Auth Section */}
+                <div className="ml-6 pl-6 border-l border-white/10 flex items-center">
+                  {isAuthenticated ? (
+                    <div className="relative">
+                      <div className="flex items-center space-x-4">
+                        <NotificationBadge />
 
-                    <button
-                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                      className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
-                    >
-                      <UserAvatar
-                        user={user}
-                        size="xs"
-                      />
-                      <span className="text-sm">▼</span>
-                    </button>
-                  </div>
-
-                  {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-gray-900 rounded-lg border border-gray-700 shadow-lg">
-                      <div className="px-4 py-2 border-b border-gray-700">
-                        <p className="text-white text-sm font-semibold">
-                          {user?.firstName || user?.username || "User"}
-                        </p>
-                        <p className="text-gray-400 text-xs">{user?.email}</p>
+                        <button
+                          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                          className="flex items-center space-x-2 p-1 rounded-full text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                        >
+                          <UserAvatar
+                            user={user}
+                            size="xs"
+                          />
+                          <span className="text-[10px] opacity-30">▼</span>
+                        </button>
                       </div>
-                      <Link
-                        href="/profile"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
-                      >
-                        Profile
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
-                      >
-                        Logout
-                      </button>
+
+                      {isUserMenuOpen && (
+                        <div className="absolute right-0 mt-4 w-60 bg-[#0a0a0a]/90 rounded-3xl border border-white/10 shadow-2xl backdrop-blur-2xl p-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                          <div className="px-5 py-4 border-b border-white/5 mb-2">
+                            <p className="text-white text-[10px] font-black uppercase tracking-[0.2em] leading-none">
+                              {user?.firstName || user?.username || "RAID Player"}
+                            </p>
+                            <p className="text-gray-500 text-[10px] mt-2 truncate font-medium">{user?.email}</p>
+                          </div>
+                          <Link
+                            href="/profile"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="block px-4 py-2.5 text-[10px] font-black text-gray-400 hover:text-white hover:bg-white/5 rounded-2xl transition-all uppercase tracking-[0.2em]"
+                          >
+                            My Profile
+                          </Link>
+                          <button
+                            onClick={handleLogout}
+                            className="w-full text-left px-4 py-2.5 text-[10px] font-black text-red-500/60 hover:text-red-500 hover:bg-red-500/5 rounded-2xl transition-all uppercase tracking-[0.2em]"
+                          >
+                            Sign Out
+                          </button>
+                        </div>
+                      )}
                     </div>
+                  ) : (
+                    <Link
+                      href="/auth/login"
+                      className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-xl transition-all shadow-xl shadow-orange-500/20 active:scale-95"
+                    >
+                      Enter Arena
+                    </Link>
                   )}
                 </div>
-              ) : (
-                <Link
-                  href="/auth/login"
-                  className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
-                >
-                  Login
-                </Link>
-              )}
+              </div>
             </div>
           </div>
         </div>

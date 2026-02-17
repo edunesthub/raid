@@ -66,8 +66,7 @@ export default function LeaguesPage() {
     const tabs = [
         { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={18} /> },
         { id: 'standing', label: 'Standings', icon: <ListOrdered size={18} /> },
-        { id: 'fixtures', label: 'Fixtures', icon: <Calendar size={18} /> },
-        { id: 'results', label: 'Results', icon: <History size={18} /> },
+        { id: 'matches', label: 'Fixtures & Results', icon: <Calendar size={18} /> },
     ];
 
     React.useEffect(() => {
@@ -216,12 +215,12 @@ export default function LeaguesPage() {
     return (
         <div className="h-[100dvh] bg-[#050505] flex flex-col overflow-hidden">
             {/* --- Back Button --- */}
-            <div className="fixed top-20 left-4 z-[60] md:left-8">
+            <div className="fixed top-24 left-4 z-[60] md:left-8">
                 <button
                     onClick={() => setView('list')}
-                    className="flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-full text-white font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all"
+                    className="flex items-center justify-center bg-black/60 backdrop-blur-md border border-white/10 w-9 h-9 rounded-full text-white hover:bg-white/10 transition-all shadow-xl"
                 >
-                    <ChevronLeft size={16} /> Back
+                    <ChevronLeft size={20} />
                 </button>
             </div>
 
@@ -306,7 +305,12 @@ export default function LeaguesPage() {
                                         <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[25px]">#</th>
                                         <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter">Team</th>
                                         <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[22px]">P</th>
-                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[38px]">W-L</th>
+                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[18px]">W</th>
+                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[18px]">D</th>
+                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[18px]">L</th>
+                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[18px]">GF</th>
+                                        <th className="px-0.5 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[18px]">GA</th>
+                                        <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[22px]">GD</th>
                                         <th className="px-1 py-3 text-[8px] font-black text-orange-500 uppercase tracking-tighter text-center w-[25px]">Pts</th>
                                         <th className="px-1 py-3 text-[8px] font-black text-gray-500 uppercase tracking-tighter text-center w-[90px]">Form</th>
                                     </tr>
@@ -327,7 +331,12 @@ export default function LeaguesPage() {
                                                 </div>
                                             </td>
                                             <td className="py-4 text-center font-bold text-gray-400 text-[10px]">{team.p}</td>
-                                            <td className="py-4 text-center text-[10px] font-semibold text-gray-500">{team.w}-{team.l}</td>
+                                            <td className="py-4 text-center text-[10px] font-semibold text-gray-500">{team.w}</td>
+                                            <td className="py-4 text-center text-[10px] font-semibold text-gray-500">{team.d}</td>
+                                            <td className="py-4 text-center text-[10px] font-semibold text-gray-500">{team.l}</td>
+                                            <td className="py-4 text-center text-[10px] font-semibold text-gray-500">{team.gf || 0}</td>
+                                            <td className="py-4 text-center text-[10px] font-semibold text-gray-500">{team.ga || 0}</td>
+                                            <td className="py-4 text-center text-[10px] font-bold text-gray-500">{team.gd}</td>
                                             <td className="py-4 text-center font-black text-white text-[10px] bg-orange-500/[0.02]">{team.pts}</td>
                                             <td className="py-4">
                                                 <div className="flex items-center justify-center gap-0.5">
@@ -360,7 +369,7 @@ export default function LeaguesPage() {
                 )}
 
                 {/* 2. FIXTURES & RESULTS VIEW */}
-                {(activeTab === 'fixtures' || activeTab === 'results') && (
+                {activeTab === 'matches' && (
                     <div className="animate-in fade-in duration-500">
                         {/* Round Switcher */}
                         <div className="relative z-30 bg-[#050505] border-b border-white/5">
@@ -380,7 +389,7 @@ export default function LeaguesPage() {
                         <div className="py-2">
                             <div className="bg-[#0a0a0a] border-y border-white/5 divide-y divide-white/[0.03]">
                                 {matches
-                                    .filter(m => m.round === activeRound && (activeTab === 'fixtures' ? !m.completed : m.completed))
+                                    .filter(m => m.round === activeRound)
                                     .map(match => {
                                         let displayTime = 'TBD';
                                         let displayDay = 'TBD';
@@ -432,7 +441,7 @@ export default function LeaguesPage() {
                                             </div>
                                         );
                                     })}
-                                {matches.filter(m => m.round === activeRound && (activeTab === 'fixtures' ? !m.completed : m.completed)).length === 0 && (
+                                {matches.filter(m => m.round === activeRound).length === 0 && (
                                     <div className="py-16 flex flex-col items-center justify-center text-gray-800 opacity-30 gap-2">
                                         <Clock size={32} />
                                         <span className="text-[9px] font-black uppercase tracking-[0.2em]">No Schedule</span>
@@ -474,7 +483,7 @@ export default function LeaguesPage() {
                                         <h3 className="text-xs md:text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
                                             <History size={14} className="text-orange-500" /> Latest
                                         </h3>
-                                        <button onClick={() => setActiveTab('results')} className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center gap-1">All <ChevronRight size={14} /></button>
+                                        <button onClick={() => setActiveTab('matches')} className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center gap-1">All <ChevronRight size={14} /></button>
                                     </div>
                                     <div className="bg-[#0a0a0a] border-y border-white/5 divide-y divide-white/5">
                                         {matches.filter(m => m.completed).slice(0, 3).map(match => (
@@ -497,7 +506,7 @@ export default function LeaguesPage() {
                                         <h3 className="text-xs md:text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
                                             <Calendar size={14} className="text-orange-500" /> Upcoming
                                         </h3>
-                                        <button onClick={() => setActiveTab('fixtures')} className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center gap-1">All <ChevronRight size={14} /></button>
+                                        <button onClick={() => setActiveTab('matches')} className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center gap-1">All <ChevronRight size={14} /></button>
                                     </div>
                                     <div className="bg-[#0a0a0a] border-y border-white/5 divide-y divide-white/5">
                                         {matches.filter(m => !m.completed).slice(0, 3).map(match => {
@@ -564,6 +573,11 @@ export default function LeaguesPage() {
                                                     <th className="px-2 py-3 w-[25px] text-center">#</th>
                                                     <th className="px-2 py-3">Team</th>
                                                     <th className="px-1 py-3 text-center w-[20px]">P</th>
+                                                    <th className="px-1 py-3 text-center w-[15px]">W</th>
+                                                    <th className="px-1 py-3 text-center w-[15px]">D</th>
+                                                    <th className="px-1 py-3 text-center w-[15px]">L</th>
+                                                    <th className="px-1 py-3 text-center w-[15px]">GF</th>
+                                                    <th className="px-1 py-3 text-center w-[15px]">GA</th>
                                                     <th className="px-1 py-3 text-center w-[20px]">GD</th>
                                                     <th className="px-2 py-3 text-center w-[30px] text-orange-500">Pts</th>
                                                 </tr>
@@ -584,6 +598,11 @@ export default function LeaguesPage() {
                                                             </div>
                                                         </td>
                                                         <td className="text-center text-[10px] font-bold text-gray-400">{team.p}</td>
+                                                        <td className="text-center text-[10px] font-semibold text-gray-500">{team.w}</td>
+                                                        <td className="text-center text-[10px] font-semibold text-gray-500">{team.d}</td>
+                                                        <td className="text-center text-[10px] font-semibold text-gray-500">{team.l}</td>
+                                                        <td className="text-center text-[10px] font-semibold text-gray-500">{team.gf || 0}</td>
+                                                        <td className="text-center text-[10px] font-semibold text-gray-500">{team.ga || 0}</td>
                                                         <td className="text-center text-[10px] font-bold text-gray-500">{team.gd}</td>
                                                         <td className="text-center text-[10px] font-black text-white bg-orange-500/5">{team.pts}</td>
                                                     </tr>

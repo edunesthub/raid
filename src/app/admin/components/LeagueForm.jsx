@@ -114,45 +114,52 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-start md:items-center justify-center p-4 overflow-y-auto">
-            <div className="relative bg-gray-900 border border-gray-800 rounded-2xl md:rounded-3xl w-full max-w-2xl my-auto shadow-2xl overflow-hidden mb-8 md:mb-0">
-                <div className="p-4 md:p-6 border-b border-gray-800 flex items-center justify-between bg-gradient-to-r from-orange-500/10 to-transparent">
-                    <div className="flex items-center gap-3">
-                        <Trophy className="text-orange-500" />
-                        <h3 className="text-xl font-bold text-white">
-                            {league ? "Edit League " : "Create New Season"}
-                        </h3>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div className="relative bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] w-full max-w-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden animate-in zoom-in duration-300">
+                <div className="p-8 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-orange-500/10 to-transparent">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20">
+                            <Trophy className="text-white" size={24} />
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">
+                                {league ? "Refine Season" : "Launch New Season"}
+                            </h3>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-0.5">League Architecture Utility</p>
+                        </div>
                     </div>
-                    <button onClick={onClose} className="p-2 text-gray-400 hover:text-white transition-colors">
-                        <X size={24} />
+                    <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all border border-white/5">
+                        <X size={20} />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-4 md:space-y-6">
+                <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto max-h-[75vh] scrollbar-hide">
                     {/* Image Upload Section */}
-                    <div className="space-y-2">
-                        <label className="text-xs font-black text-gray-500 uppercase tracking-widest">League Flyer / Banner</label>
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Season Visual Identity</label>
                         <div
                             onClick={() => fileInputRef.current?.click()}
-                            className="relative border-2 border-dashed border-gray-700 rounded-xl p-4 sm:p-6 hover:border-orange-500 transition-colors cursor-pointer group"
+                            className="relative border-2 border-dashed border-white/10 rounded-[2rem] p-8 hover:border-orange-500/50 transition-all cursor-pointer group bg-white/[0.02]"
                         >
                             {imagePreview ? (
-                                <div className="relative">
+                                <div className="relative h-48 w-full group">
                                     <img
                                         src={imagePreview}
                                         alt="League flyer preview"
-                                        className="w-full h-40 sm:h-48 object-cover rounded-lg"
+                                        className="w-full h-full object-cover rounded-2xl"
                                     />
-                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                        <Upload className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                                        <span className="ml-2 text-white font-medium text-sm sm:text-base">Change Image</span>
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all rounded-2xl flex flex-col items-center justify-center backdrop-blur-sm">
+                                        <Upload className="w-10 h-10 text-white mb-2" />
+                                        <span className="text-white font-black text-xs uppercase tracking-widest">Update Visuals</span>
                                     </div>
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center justify-center text-gray-400">
-                                    <ImageIcon className="w-10 h-10 sm:w-12 sm:h-12 mb-2" />
-                                    <p className="text-sm font-medium">Click to upload league banner</p>
-                                    <p className="text-xs mt-1">PNG, JPG up to 5MB</p>
+                                <div className="flex flex-col items-center justify-center text-gray-500 py-4">
+                                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/5 group-hover:scale-110 transition-transform">
+                                        <ImageIcon className="w-8 h-8 text-orange-500/40" />
+                                    </div>
+                                    <p className="text-xs font-black uppercase tracking-widest">Upload Season Banner</p>
+                                    <p className="text-[9px] mt-2 opacity-50 uppercase tracking-widest font-bold">Optimized for UHD displays</p>
                                 </div>
                             )}
                         </div>
@@ -165,92 +172,95 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">League Name</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <div className="space-y-2.5">
+                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Identity</label>
                             <input
                                 required
+                                placeholder="e.g. ELITE AFRICAN SERIES"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500 transition"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-orange-500/50 transition-all"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Season Label</label>
+                        <div className="space-y-2.5">
+                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Timeline Label</label>
                             <input
                                 required
+                                placeholder="e.g. S1 • 2026"
                                 value={formData.season}
                                 onChange={(e) => setFormData({ ...formData, season: e.target.value })}
-                                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500 transition"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-orange-500/50 transition-all"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Prize Pool</label>
+                        <div className="space-y-2.5">
+                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Arena Rewards</label>
                             <input
                                 required
+                                placeholder="e.g. ₵50,000"
                                 value={formData.prize_pool}
                                 onChange={(e) => setFormData({ ...formData, prize_pool: e.target.value })}
-                                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500 transition"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-orange-500/50 transition-all"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Total Teams</label>
+                        <div className="space-y-2.5">
+                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Combatants</label>
                             <input
                                 type="number"
                                 required
                                 value={formData.team_count}
                                 onChange={(e) => setFormData({ ...formData, team_count: parseInt(e.target.value) })}
-                                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500 transition"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-orange-500/50 transition-all"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Start Date</label>
+                        <div className="space-y-2.5">
+                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Deployment Start</label>
                             <input
                                 type="date"
                                 required
                                 value={formData.start_date}
                                 onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500 transition"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-orange-500/50 transition-all [color-scheme:dark]"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">End Date</label>
+                        <div className="space-y-2.5">
+                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Mission End</label>
                             <input
                                 type="date"
                                 required
                                 value={formData.end_date}
                                 onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500 transition"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-orange-500/50 transition-all [color-scheme:dark]"
                             />
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Description</label>
+                    <div className="space-y-2.5">
+                        <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Mission Directive</label>
                         <textarea
-                            rows={3}
+                            rows={4}
                             required
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500 transition resize-none"
+                            className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-6 py-5 text-white font-medium outline-none focus:border-orange-500/50 transition-all resize-none leading-relaxed"
                         />
                     </div>
 
-                    <div className="pt-4 flex gap-4">
+                    <div className="pt-6 flex gap-4">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 py-3 md:py-4 px-4 md:px-6 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl md:rounded-2xl transition shadow-lg text-sm md:text-base"
+                            className="flex-1 py-5 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl transition-all border border-white/5"
                         >
-                            Cancel
+                            Abort
                         </button>
                         <button
                             disabled={loading}
                             type="submit"
-                            className="flex-[2] md:flex-3 py-3 md:py-4 px-6 md:px-10 bg-orange-600 hover:bg-orange-500 disabled:bg-orange-900 text-white font-bold rounded-xl md:rounded-2xl transition shadow-lg flex items-center justify-center gap-2 text-sm md:text-base"
+                            className="flex-[2] py-5 bg-orange-600 hover:bg-orange-500 disabled:bg-orange-900 text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl transition-all shadow-xl shadow-orange-600/20 flex items-center justify-center gap-3"
                         >
-                            <Save size={18} className="md:w-5 md:h-5" />
-                            {uploadingImage ? "Uploading..." : loading ? "Saving..." : "Save "}
+                            <Save size={20} />
+                            {uploadingImage ? "Synchronizing Assets..." : loading ? "Archiving Details..." : "Confirm Deployment"}
                         </button>
                     </div>
                 </form>
