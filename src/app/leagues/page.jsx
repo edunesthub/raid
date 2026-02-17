@@ -325,10 +325,8 @@ export default function LeaguesPage() {
                                                 </div>
                                             </td>
                                             <td className="py-4 min-w-0 pr-4 align-middle">
-                                                <div className="flex items-start gap-1 min-w-0 py-1">
-                                                    <div className="mt-0.5">
-                                                        <FlagEmoji countryCode={team.country} />
-                                                    </div>
+                                                <div className="flex items-start gap-1 min-w-0">
+                                                    <FlagEmoji countryCode={team.country} />
                                                     <span className="font-bold text-white text-[11px] tracking-tight uppercase whitespace-normal leading-tight">{team.team}</span>
                                                 </div>
                                             </td>
@@ -594,10 +592,8 @@ export default function LeaguesPage() {
                                                             </div>
                                                         </td>
                                                         <td className="py-3 align-middle pr-4">
-                                                            <div className="flex items-start gap-1.5 overflow-hidden pr-2 py-0.5">
-                                                                <div className="mt-0.5">
-                                                                    <FlagEmoji countryCode={team.country} />
-                                                                </div>
+                                                            <div className="flex items-start gap-1 min-w-0">
+                                                                <FlagEmoji countryCode={team.country} />
                                                                 <span className="text-[11px] font-bold text-white uppercase tracking-tight whitespace-normal leading-tight">{team.team}</span>
                                                             </div>
                                                         </td>
