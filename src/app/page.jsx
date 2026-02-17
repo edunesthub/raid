@@ -116,7 +116,7 @@ export default function Home() {
           {/* Text Content */}
           <div className="flex-none lg:flex-1 text-center lg:text-left animate-fade-in order-2 lg:order-1 lg:pt-0">
             <h1 className="text-3xl md:text-7xl font-black text-white italic uppercase tracking-tighter leading-tight lg:leading-none mb-3 lg:mb-6">
-              Home of <span className="text-orange-500">esports</span> <br className="hidden lg:block" /> in africa
+              Home of <span className="text-orange-500">competitive esports</span> <br className="hidden lg:block" /> in africa
             </h1>
             <p className="text-gray-400 text-xs md:text-lg font-medium max-w-lg mb-6 lg:mb-10 mx-auto lg:mx-0 leading-relaxed px-4 lg:px-0">
               The ultimate destination for competitive mobile gaming. Join daily tournaments, build your squad, and claim your glory.
