@@ -439,3 +439,14 @@ body,
 [data-radix-scroll-area-viewport] {
   background-color: #000000 !important;
 }
+
+/* Prevent mobile auto-zoom on focus - Font size must be at least 16px for iOS */
+@media screen and (max-width: 768px) {
+
+  input,
+  select,
+  textarea,
+  [contenteditable] {
+    font-size: 16px !important;
+  }
+}

@@ -7,6 +7,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import Link from "next/link";
 import Image from "next/image";
+import { ChevronLeft } from "lucide-react";
 
 export default function HostLogin() {
     const [formData, setFormData] = useState({
@@ -17,6 +18,19 @@ export default function HostLogin() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+
+    // Check for error parameters in URL (from useHostAuth redirects)
+    useState(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const errorParam = params.get('error');
+            if (errorParam === 'account_terminated') {
+                setError("This account has been terminated by an administrator.");
+            } else if (errorParam === 'account_pending') {
+                setError("Your host account is pending approval or has been rejected.");
+            }
+        }
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -37,6 +51,19 @@ export default function HostLogin() {
             const userData = userDoc.data();
 
             if (userData && userData.role === "host") {
+                // Check status
+                if (userData.status === 'terminated') {
+                    await auth.signOut();
+                    setError("This account has been terminated by an administrator.");
+                    return;
+                }
+
+                if (userData.status !== 'approved') {
+                    await auth.signOut();
+                    setError("Your host account is pending approval by the RAID team.");
+                    return;
+                }
+
                 // Verify host name (case insensitive for user convenience but usually should match)
                 if (userData.hostName?.toLowerCase() === formData.hostName.toLowerCase()) {
                     router.push("/host");
@@ -57,8 +84,16 @@ export default function HostLogin() {
 
     return (
         <div className="min-h-screen bg-black flex items-center justify-center p-4">
-            <div className="max-w-md w-full space-y-8 bg-gray-900/50 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/5 shadow-2xl">
-                <div className="text-center">
+            <div className="max-w-md w-full space-y-8 bg-gray-900/50 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/5 shadow-2xl relative">
+                <Link
+                    href="/"
+                    className="absolute left-6 top-8 text-gray-500 hover:text-white transition-colors flex items-center gap-1 text-[10px] font-black uppercase tracking-widest group"
+                >
+                    <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+                    Back
+                </Link>
+
+                <div className="text-center pt-4">
                     <Link href="/" className="inline-block mb-6">
                         <Image src="/assets/raid1.svg" alt="Logo" width={60} height={60} className="hover:scale-110 transition-transform duration-300" />
                     </Link>

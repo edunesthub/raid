@@ -19,10 +19,19 @@ export default function useHostAuth() {
                     const userData = userDoc.data();
 
                     if (userData && userData.role === "host") {
-                        setHost({
-                            id: user.uid,
-                            ...userData
-                        });
+                        if (userData.status === 'approved') {
+                            setHost({
+                                id: user.uid,
+                                ...userData
+                            });
+                        } else {
+                            console.warn("Host is not approved", userData.status);
+                            setHost(null);
+                            // Sign out the user if they are not approved
+                            await signOut(auth);
+                            // Redirect to login with error
+                            router.replace('/host/login?error=' + (userData.status === 'terminated' ? 'account_terminated' : 'account_pending'));
+                        }
                     } else {
                         console.warn("User is not a host", userData);
                         setHost(null);

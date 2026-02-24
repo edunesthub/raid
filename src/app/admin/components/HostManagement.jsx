@@ -27,7 +27,8 @@ import {
     ChevronDown,
     ChevronUp,
     DollarSign,
-    Zap
+    Zap,
+    Trash2
 } from "lucide-react";
 
 const calculateItemCommission = (item) => {
@@ -314,7 +315,11 @@ export default function HostManagement() {
     };
 
     const handleStatusUpdate = async (hostId, newStatus) => {
-        if (!confirm(`Are you sure you want to ${newStatus === 'approved' ? 'approve' : 'reject'} this host?`)) return;
+        const confirmMessage = newStatus === 'terminated'
+            ? "WARNING: Are you sure you want to terminate this host? They will lose access to their portal immediately."
+            : `Are you sure you want to ${newStatus === 'approved' ? 'approve' : 'reject'} this host?`;
+
+        if (!confirm(confirmMessage)) return;
 
         try {
             await updateDoc(doc(db, "users", hostId), {
@@ -377,9 +382,11 @@ export default function HostManagement() {
                                             </h3>
                                             <span className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest border shrink-0 ${host.status === 'approved'
                                                 ? 'bg-green-500/10 text-green-500 border-green-500/20'
-                                                : host.status === 'rejected'
+                                                : host.status === 'terminated'
                                                     ? 'bg-red-500/10 text-red-500 border-red-500/20'
-                                                    : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                                                    : host.status === 'rejected'
+                                                        ? 'bg-red-500/10 text-red-500 border-red-500/20 opacity-50'
+                                                        : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
                                                 }`}>
                                                 {host.status?.replace('_', ' ') || 'Pending'}
                                             </span>
@@ -412,22 +419,35 @@ export default function HostManagement() {
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    {host.status === 'pending_approval' && (
+                                    {(host.status === 'pending_approval' || host.status === 'approved') && (
                                         <div className="flex gap-1.5">
-                                            <button
-                                                onClick={() => handleStatusUpdate(host.id, 'approved')}
-                                                className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white rounded-xl border border-green-500/20 transition-all active:scale-95 shadow-lg shadow-green-500/5 focus:outline-none"
-                                                title="Approve Host"
-                                            >
-                                                <CheckCircle size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleStatusUpdate(host.id, 'rejected')}
-                                                className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl border border-red-500/20 transition-all active:scale-95 shadow-lg shadow-red-500/5 focus:outline-none"
-                                                title="Reject Host"
-                                            >
-                                                <XCircle size={18} />
-                                            </button>
+                                            {host.status === 'pending_approval' && (
+                                                <button
+                                                    onClick={() => handleStatusUpdate(host.id, 'approved')}
+                                                    className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white rounded-xl border border-green-500/20 transition-all active:scale-95 shadow-lg shadow-green-500/5 focus:outline-none"
+                                                    title="Approve Host"
+                                                >
+                                                    <CheckCircle size={18} />
+                                                </button>
+                                            )}
+                                            {host.status === 'pending_approval' && (
+                                                <button
+                                                    onClick={() => handleStatusUpdate(host.id, 'rejected')}
+                                                    className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl border border-red-500/20 transition-all active:scale-95 shadow-lg shadow-red-500/5 focus:outline-none"
+                                                    title="Reject Host"
+                                                >
+                                                    <XCircle size={18} />
+                                                </button>
+                                            )}
+                                            {host.status === 'approved' && (
+                                                <button
+                                                    onClick={() => handleStatusUpdate(host.id, 'terminated')}
+                                                    className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl border border-red-500/20 transition-all active:scale-95 shadow-lg shadow-red-500/5 focus:outline-none group/term"
+                                                    title="Terminate Host"
+                                                >
+                                                    <Trash2 size={18} className="group-hover/term:scale-110 transition-transform" />
+                                                </button>
+                                            )}
                                         </div>
                                     )}
                                     <button
