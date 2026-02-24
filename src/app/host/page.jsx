@@ -27,11 +27,13 @@ import LeagueManagement from "../admin/components/LeagueManagement";
 import Dashboard from "../admin/components/Dashboard";
 import WinnerSelection from "../admin/components/WinnerSelection";
 import ResultsVerification from "../admin/components/ResultsVerification";
+import { toast } from "react-hot-toast";
 
 export default function HostPortal() {
     const { host, loading, logout } = useHostAuth();
     const [activeTab, setActiveTab] = useState("dashboard");
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [showPlanModal, setShowPlanModal] = useState(false);
     const sidebarRef = useRef(null);
 
     useEffect(() => {
@@ -48,11 +50,11 @@ export default function HostPortal() {
 
     const menuItems = [
         { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+        { id: "payments", label: "Payments", icon: CreditCard },
         { id: "tournaments", label: "My Tournaments", icon: Trophy },
         { id: "leagues", label: "My Leagues", icon: Award },
         { id: "winner-selection", label: "Select Winners", icon: Crown },
         { id: "results-verification", label: "Verify Results", icon: ClipboardCheck },
-        { id: "payments", label: "Payments", icon: CreditCard },
         { id: "settings", label: "Settings", icon: Settings },
     ];
 
@@ -69,11 +71,11 @@ export default function HostPortal() {
                 // If switching to subscription, set as unpaid initially if not already paid
                 subscriptionStatus: model === 'subscription' ? (host.subscriptionStatus || 'unpaid') : null
             });
-            alert(`Switched to ${model === 'subscription' ? 'Monthly Subscription' : 'Commission per Tournament'} model.`);
+            toast.success(`Switched to ${model === 'subscription' ? 'Monthly Subscription' : 'Commission per Tournament'} model.`);
             window.location.reload(); // Refresh to update context
         } catch (error) {
             console.error("Error updating payment model:", error);
-            alert("Failed to update payment plan.");
+            toast.error("Failed to update payment plan.");
         }
     };
 
@@ -88,18 +90,18 @@ export default function HostPortal() {
                 subscriptionExpiry: expiry,
                 lastSubscriptionPayment: new Date()
             });
-            alert("Payment successful! Your subscription is now active for 30 days.");
+            toast.success("Payment successful! Your subscription is now active for 30 days.");
             window.location.reload();
         } catch (error) {
             console.error("Payment error:", error);
-            alert("Payment failed simulation.");
+            toast.error("Payment failed simulation.");
         }
     };
 
     const canCreateTournament = host.paymentModel === 'commission' || host.subscriptionStatus === 'active';
 
     return (
-        <div className="min-h-screen bg-black flex flex-col lg:flex-row">
+        <div className={`h-screen bg-black flex flex-col lg:flex-row overflow-hidden`}>
             {/* Mobile Header */}
             <div className="lg:hidden bg-gray-900 border-b border-gray-800 p-4 flex items-center justify-between sticky top-0 z-50">
                 <div className="flex items-center gap-3">
@@ -208,19 +210,22 @@ export default function HostPortal() {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 overflow-y-auto bg-[#050505]">
-                <div className="max-w-[1600px] mx-auto p-6 md:p-10">
+            <div className={`flex-1 flex flex-col min-h-0 min-w-0 bg-[#050505] overflow-hidden`}>
+                <div className={`max-w-[1600px] mx-auto w-full h-full flex flex-col min-h-0 min-w-0 ${activeTab === 'results-verification' ? 'p-0' : 'p-6 md:p-10 overflow-y-auto'}`}>
                     {activeTab === "dashboard" && <Dashboard hostId={host.id} />}
                     {activeTab === "tournaments" && (
                         <TournamentManagement
                             hostId={host.id}
-                            restriction={!canCreateTournament ? "Please pay your monthly subscription to create new tournaments." : null}
+                            paymentModel={host.paymentModel}
+                            onPlanRequired={!host.paymentModel ? () => setShowPlanModal(true) : null}
+                            restriction={host.paymentModel === 'subscription' && host.subscriptionStatus !== 'active' ? "Please pay your monthly subscription to create new tournaments." : null}
                         />
                     )}
                     {activeTab === "leagues" && (
                         <LeagueManagement
                             hostId={host.id}
-                            restriction={!canCreateTournament ? "Please pay your monthly subscription to create new leagues." : null}
+                            onPlanRequired={!host.paymentModel ? () => setShowPlanModal(true) : null}
+                            restriction={host.paymentModel === 'subscription' && host.subscriptionStatus !== 'active' ? "Please pay your monthly subscription to create new leagues." : null}
                         />
                     )}
                     {activeTab === "winner-selection" && <WinnerSelection hostId={host.id} />}
@@ -237,21 +242,21 @@ export default function HostPortal() {
                                 <div className="lg:col-span-2 space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* Commission Plan */}
-                                        <div className={`p-8 rounded-[2.5rem] border transition-all ${host.paymentModel !== 'subscription' ? 'bg-orange-500/10 border-orange-500/50' : 'bg-gray-900/50 border-white/5 opacity-60 hover:opacity-100'}`}>
-                                            <div className="flex justify-between items-start mb-6">
-                                                <div className="p-3 bg-white/5 rounded-2xl text-orange-500">
-                                                    <Zap size={24} />
+                                        <div className={`p-5 rounded-3xl border transition-all ${host.paymentModel !== 'subscription' ? 'bg-orange-500/10 border-orange-500/50' : 'bg-gray-900/50 border-white/5 opacity-60 hover:opacity-100'}`}>
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="p-2.5 bg-white/5 rounded-xl text-orange-500">
+                                                    <Zap size={20} />
                                                 </div>
                                                 {host.paymentModel !== 'subscription' && (
-                                                    <span className="px-3 py-1 bg-orange-500 text-white rounded-full text-[8px] font-black uppercase tracking-widest">Active Plan</span>
+                                                    <span className="px-2 py-0.5 bg-orange-500 text-white rounded-full text-[7px] font-black uppercase tracking-widest">Active</span>
                                                 )}
                                             </div>
-                                            <h3 className="text-xl font-black text-white uppercase italic mb-2 tracking-tight">Pay Per Event</h3>
-                                            <p className="text-gray-400 text-xs leading-relaxed mb-6 font-medium">No monthly costs. Pay only when you host. Fixed ₵200 or 20% commission applies per tournament.</p>
+                                            <h3 className="text-base font-black text-white uppercase italic mb-1 tracking-tight">Pay Per Event</h3>
+                                            <p className="text-gray-400 text-[10px] leading-snug mb-4 font-medium">No monthly costs. RAID takes a 20% commission from the total entry pool (Entry Fee × Max Participants).</p>
                                             {host.paymentModel === 'subscription' && (
                                                 <button
                                                     onClick={() => updatePaymentModel('commission')}
-                                                    className="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/10"
+                                                    className="w-full py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-white/10"
                                                 >
                                                     Switch to Commission
                                                 </button>
@@ -259,21 +264,21 @@ export default function HostPortal() {
                                         </div>
 
                                         {/* Subscription Plan */}
-                                        <div className={`p-8 rounded-[2.5rem] border transition-all ${host.paymentModel === 'subscription' ? 'bg-blue-500/10 border-blue-500/50' : 'bg-gray-900/50 border-white/5 opacity-60 hover:opacity-100'}`}>
-                                            <div className="flex justify-between items-start mb-6">
-                                                <div className="p-3 bg-white/5 rounded-2xl text-blue-400">
-                                                    <CreditCard size={24} />
+                                        <div className={`p-5 rounded-3xl border transition-all ${host.paymentModel === 'subscription' ? 'bg-blue-500/10 border-blue-500/50' : 'bg-gray-900/50 border-white/5 opacity-60 hover:opacity-100'}`}>
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="p-2.5 bg-white/5 rounded-xl text-blue-400">
+                                                    <CreditCard size={20} />
                                                 </div>
                                                 {host.paymentModel === 'subscription' && (
-                                                    <span className="px-3 py-1 bg-blue-500 text-white rounded-full text-[8px] font-black uppercase tracking-widest">Active Plan</span>
+                                                    <span className="px-2 py-0.5 bg-blue-500 text-white rounded-full text-[7px] font-black uppercase tracking-widest">Active</span>
                                                 )}
                                             </div>
-                                            <h3 className="text-xl font-black text-white uppercase italic mb-2 tracking-tight">Monthly Subscription</h3>
-                                            <p className="text-gray-400 text-xs leading-relaxed mb-6 font-medium">₵200 per month. Unlimited hosting with zero commissions. Best for high-frequency hosts.</p>
+                                            <h3 className="text-base font-black text-white uppercase italic mb-1 tracking-tight">Monthly Subscription</h3>
+                                            <p className="text-gray-400 text-[10px] leading-snug mb-4 font-medium">₵200 per month. Unlimited hosting with zero commissions.</p>
                                             {host.paymentModel !== 'subscription' && (
                                                 <button
                                                     onClick={() => updatePaymentModel('subscription')}
-                                                    className="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/10"
+                                                    className="w-full py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-white/10"
                                                 >
                                                     Switch to Monthly
                                                 </button>
@@ -375,6 +380,56 @@ export default function HostPortal() {
                     )}
                 </div>
             </div>
+            {/* Plan Required Modal */}
+            {showPlanModal && (
+                <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                    <div className="bg-[#0a0a0a] border border-white/10 p-8 rounded-[2.5rem] max-w-xl w-full space-y-8 animate-in zoom-in-95 duration-300 shadow-2xl shadow-orange-500/10">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-2">
+                                <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">Choose your strategy</h2>
+                                <p className="text-gray-400 text-sm font-medium tracking-wide">Select a payment plan to begin creating events.</p>
+                            </div>
+                            <button onClick={() => setShowPlanModal(false)} className="p-2 text-gray-500 hover:text-white transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4">
+                            <button
+                                onClick={() => updatePaymentModel('commission')}
+                                className="p-6 rounded-3xl border border-white/5 bg-white/5 hover:bg-orange-500/10 hover:border-orange-500/50 transition-all text-left group"
+                            >
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="p-3 bg-white/5 rounded-2xl text-orange-500 group-hover:scale-110 transition-transform">
+                                        <Zap size={24} />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase text-orange-500 tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity">Select Plan</span>
+                                </div>
+                                <h3 className="text-xl font-black text-white uppercase italic mb-1">Pay Per Event</h3>
+                                <p className="text-gray-400 text-xs font-medium leading-relaxed">No upfront costs. 20% commission of the total entry pool (Entry Fee × Max Participants) applies per event.</p>
+                            </button>
+
+                            <button
+                                onClick={() => updatePaymentModel('subscription')}
+                                className="p-6 rounded-3xl border border-white/5 bg-white/5 hover:bg-blue-500/10 hover:border-blue-500/50 transition-all text-left group"
+                            >
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="p-3 bg-white/5 rounded-2xl text-blue-400 group-hover:scale-110 transition-transform">
+                                        <CreditCard size={24} />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase text-blue-400 tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity">Select Plan</span>
+                                </div>
+                                <h3 className="text-xl font-black text-white uppercase italic mb-1">Monthly Subscription</h3>
+                                <p className="text-gray-400 text-xs font-medium leading-relaxed">₵200 per month. Unlimited hosting with zero commissions.</p>
+                            </button>
+                        </div>
+
+                        <p className="text-center text-[10px] text-gray-600 font-black uppercase tracking-widest italic">
+                            You can switch plans anytime in the Payments tab
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -4,9 +4,10 @@
 import { useState, useRef, useEffect } from "react";
 import { addDoc, collection, serverTimestamp, doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { X, Upload, Image as ImageIcon, Save, Plus, Shield, Users } from "lucide-react";
+import { X, Upload, Image as ImageIcon, Save, Plus, Shield, Users, Zap } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { logAdminAction } from '@/services/adminAuditService';
+import { toast } from "react-hot-toast";
 
 export default function TournamentForm({ tournament, onClose, onCreated, hostId }) {
   const isEditing = !!tournament;
@@ -75,7 +76,7 @@ export default function TournamentForm({ tournament, onClose, onCreated, hostId 
         rules: Array.isArray(tournament.rules) ? tournament.rules : [],
         twitch_link: tournament.twitch_link || "",
         prize_distribution: Array.isArray(tournament.prize_distribution) ? tournament.prize_distribution : [],
-        operational_model: tournament.operational_model || "percentage",
+        operational_model: tournament.operational_model || (hostId ? (user?.paymentModel === 'subscription' ? 'fixed' : 'percentage') : "percentage"),
       });
 
       if (tournament.tournament_flyer) {
@@ -140,12 +141,12 @@ export default function TournamentForm({ tournament, onClose, onCreated, hostId 
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      toast.error('Please select an image file');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
+      toast.error('Image size should be less than 5MB');
       return;
     }
 
@@ -192,7 +193,7 @@ export default function TournamentForm({ tournament, onClose, onCreated, hostId 
     e.preventDefault();
 
     if (!form.tournament_name || !form.game) {
-      alert("Please fill required fields");
+      toast.error("Please fill required fields");
       return;
     }
 
@@ -244,7 +245,7 @@ export default function TournamentForm({ tournament, onClose, onCreated, hostId 
             details: { fields: Object.keys(tournamentData) }
           });
         }
-        alert("Tournament updated successfully!");
+        toast.success("Tournament updated successfully!");
       } else {
         const adminMeta = await getAdminMeta();
         const docRef = await addDoc(collection(db, "tournaments"), {
@@ -270,14 +271,14 @@ export default function TournamentForm({ tournament, onClose, onCreated, hostId 
             details: { name: tournamentData.tournament_name }
           });
         }
-        alert("Tournament created successfully!");
+        toast.success("Tournament created successfully!");
       }
 
       onCreated();
       onClose();
     } catch (error) {
       console.error(error);
-      alert(`Failed to ${isEditing ? 'update' : 'create'} tournament: ` + error.message);
+      toast.error(`Failed to ${isEditing ? 'update' : 'create'} tournament: ` + error.message);
     } finally {
       setLoading(false);
       setUploadingImage(false);
@@ -440,48 +441,25 @@ export default function TournamentForm({ tournament, onClose, onCreated, hostId 
             </div>
           </div>
 
-          {/* Operational Model - For Hosts or Admin creating for hosts */}
+          {/* Hosting Plan Info Tag */}
           {(hostId || tournament?.hostId) && (
-            <div className="bg-orange-500/5 p-5 rounded-[2rem] border border-orange-500/20 space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
-                  <span className="text-orange-500 text-xs font-black italic">!</span>
+            <div className="bg-orange-500/5 p-4 rounded-2xl border border-orange-500/20 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-500/20 rounded-lg text-orange-500">
+                  <Zap size={16} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">
-                    Hosting Plan
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-orange-500 opacity-70">
+                    Active Payment Model
                   </label>
-                  <p className="text-[9px] text-orange-500/60 uppercase font-bold tracking-widest">Choose how you want to pay for this tournament</p>
+                  <p className="text-xs font-black text-white italic uppercase tracking-tighter">
+                    {form.operational_model === 'fixed' ? '₵200 Monthly Flat Fee' : '20% Entry Fee Commission'}
+                  </p>
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, operational_model: "percentage" })}
-                  className={`p-5 rounded-2xl border-2 text-left transition-all duration-300 ${form.operational_model === "percentage"
-                    ? "bg-orange-500/20 border-orange-500 text-white shadow-xl shadow-orange-500/20"
-                    : "bg-gray-800/40 border-gray-700/50 text-gray-500 hover:border-gray-600"
-                    }`}
-                >
-                  <div className="font-black text-[9px] uppercase tracking-widest mb-1 opacity-60">Commission</div>
-                  <div className="font-black text-lg italic tracking-tight">20% OF PRIZE</div>
-                  <div className="text-[9px] font-bold uppercase tracking-wider opacity-60 mt-1">Pay per tournament.</div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, operational_model: "fixed" })}
-                  className={`p-5 rounded-2xl border-2 text-left transition-all duration-300 ${form.operational_model === "fixed"
-                    ? "bg-orange-500/20 border-orange-500 text-white shadow-xl shadow-orange-500/20"
-                    : "bg-gray-800/40 border-gray-700/50 text-gray-500 hover:border-gray-600"
-                    }`}
-                >
-                  <div className="font-black text-[9px] uppercase tracking-widest mb-1 opacity-60">Flat Fee</div>
-                  <div className="font-black text-lg italic tracking-tight">₵200 MONTHLY</div>
-                  <div className="text-[9px] font-bold uppercase tracking-wider opacity-60 mt-1">Unlimited tournaments.</div>
-                </button>
-              </div>
+              <p className="text-[8px] text-orange-500/50 uppercase font-black tracking-widest text-right max-w-[100px]">
+                Managed in Payments Tab
+              </p>
             </div>
           )}
 
@@ -674,6 +652,28 @@ export default function TournamentForm({ tournament, onClose, onCreated, hostId 
               />
             </div>
           </div>
+
+          {/* Commission Summary Display */}
+          {form.operational_model !== 'fixed' && (form.entry_fee > 0 || form.max_participant > 0) && (
+            <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl flex items-center justify-between animate-in fade-in zoom-in duration-300">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-500/20 rounded-lg text-orange-500">
+                  <Zap size={16} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase text-orange-500 tracking-widest opacity-70">Estimated Raid Commission</p>
+                  <p className="text-sm font-black text-white italic">
+                    {form.country === 'Nigeria' ? '₦' : '₵'}
+                    {(Number(form.entry_fee || 0) * Number(form.max_participant || 0) * 0.20).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-[8px] text-gray-500 uppercase font-bold">Based on 20% of</p>
+                <p className="text-[9px] text-gray-400 font-black uppercase">Full Registration</p>
+              </div>
+            </div>
+          )}
 
           {/* Prize Distribution */}
           <div className="space-y-3 bg-gray-800/30 p-4 rounded-xl border border-gray-700/50">

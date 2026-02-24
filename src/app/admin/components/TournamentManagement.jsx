@@ -18,10 +18,11 @@ import TournamentForm from "./TournamentForm";
 import TournamentParticipants from "./TournamentParticipants";
 import TournamentTeams from "./TournamentTeams";
 import SendSMSModal from "./SendSMSModal";
+import { toast } from "react-hot-toast";
 import { useAuth } from '@/hooks/useAuth';
 import { logAdminAction } from '@/services/adminAuditService';
 
-export default function TournamentManagement({ hostId, restriction }) {
+export default function TournamentManagement({ hostId, restriction, onPlanRequired, paymentModel }) {
   const { user } = useAuth();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +35,6 @@ export default function TournamentManagement({ hostId, restriction }) {
   const [showSMSModal, setShowSMSModal] = useState(false);
   const [selectedTournamentId, setSelectedTournamentId] = useState(null);
   const [selectedTournamentType, setSelectedTournamentType] = useState("Individual");
-  const [activeTab, setActiveTab] = useState("bracket"); // bracket or battle-royale
   const [statusUpdate, setStatusUpdate] = useState({
     tournamentId: null,
     currentStatus: "",
@@ -90,10 +90,10 @@ export default function TournamentManagement({ hostId, restriction }) {
           entityId: id,
         });
       }
-      alert("Tournament deleted successfully!");
+      toast.success("Tournament deleted successfully!");
     } catch (error) {
       console.error("Error deleting:", error);
-      alert("Failed to delete tournament: " + error.message);
+      toast.error("Failed to delete tournament: " + error.message);
     }
   };
 
@@ -158,8 +158,7 @@ export default function TournamentManagement({ hostId, restriction }) {
               console.log("Automatic member pairings generated on live status.");
             }
           } catch (e) {
-            console.error("Auto-pairing failed on status change:", e);
-            alert("Status changed to Live, but member pairings could not be auto-generated: " + e.message + "\n\nMake sure at least 2 squads have selected their lineups.");
+            toast.error("Status changed to Live, but member pairings could not be auto-generated: " + e.message, { duration: 5000 });
           }
         }
 
@@ -181,10 +180,10 @@ export default function TournamentManagement({ hostId, restriction }) {
         });
       }
       setShowStatusModal(false);
-      alert("Tournament status updated successfully!");
+      toast.success("Tournament status updated successfully!");
     } catch (error) {
       console.error("Error updating status:", error);
-      alert("Failed to update tournament status");
+      toast.error("Failed to update tournament status");
     }
   };
 
@@ -206,11 +205,11 @@ export default function TournamentManagement({ hostId, restriction }) {
           details: { matches: result?.matches?.length || 0 }
         });
       }
-      alert(`Bracket generated successfully! ${result.matches.length} matches created for Round 1.`);
+      toast.success(`Bracket generated successfully! ${result.matches.length} matches created for Round 1.`);
       loadTournaments();
     } catch (error) {
       console.error('Error generating bracket:', error);
-      alert(error.message || 'Failed to generate bracket');
+      toast.error(error.message || 'Failed to generate bracket');
     } finally {
       setLoading(false);
     }
@@ -252,20 +251,11 @@ export default function TournamentManagement({ hostId, restriction }) {
     );
   };
 
-  // Filter tournaments by format and search
-  const bracketTournaments = tournaments.filter(t =>
-    t.format === "Bracket" &&
-    (t.tournament_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.game?.toLowerCase().includes(searchTerm.toLowerCase()))
+  // Filter tournaments by search only
+  const displayTournaments = tournaments.filter(t =>
+    t.tournament_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.game?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const battleRoyaleTournaments = tournaments.filter(t =>
-    t.format !== "Bracket" &&
-    (t.tournament_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.game?.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  const displayTournaments = activeTab === "bracket" ? bracketTournaments : battleRoyaleTournaments;
 
   if (loading)
     return (
@@ -288,14 +278,18 @@ export default function TournamentManagement({ hostId, restriction }) {
         </div>
         <button
           onClick={() => {
+            if (onPlanRequired) {
+              onPlanRequired();
+              return;
+            }
             if (restriction) {
-              alert(restriction);
+              toast.error(restriction);
               return;
             }
             setSelectedTournament(null);
             setShowForm(true);
           }}
-          disabled={!!restriction}
+          disabled={!!restriction && !onPlanRequired}
           className={`flex items-center gap-2 font-semibold py-2 px-4 rounded-xl shadow-md transition-all text-sm md:text-base ${restriction
             ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5"
             : "bg-orange-600 hover:bg-orange-500 text-white"
@@ -325,48 +319,21 @@ export default function TournamentManagement({ hostId, restriction }) {
         />
       </div>
 
-      {/* Format Tabs */}
-      <div className="flex gap-2 bg-gray-800 border border-gray-700 rounded-xl p-1">
-        <button
-          onClick={() => setActiveTab("bracket")}
-          className={`flex-1 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${activeTab === "bracket"
-            ? "bg-purple-600 text-white shadow-lg"
-            : "text-gray-400 hover:text-white hover:bg-gray-700"
-            }`}
-        >
-          <Target className="w-5 h-5" />
-          Bracket Tournaments
-          <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">
-            {bracketTournaments.length}
-          </span>
-        </button>
-        <button
-          onClick={() => setActiveTab("battle-royale")}
-          className={`flex-1 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${activeTab === "battle-royale"
-            ? "bg-orange-600 text-white shadow-lg"
-            : "text-gray-400 hover:text-white hover:bg-gray-700"
-            }`}
-        >
-          <Zap className="w-5 h-5" />
-          Battle Royale / FFA
-          <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">
-            {battleRoyaleTournaments.length}
-          </span>
-        </button>
-      </div>
 
-      {/* Info Banner */}
-      <div className={`rounded-xl p-4 border ${activeTab === "bracket"
-        ? "bg-purple-500/10 border-purple-500/30"
-        : "bg-orange-500/10 border-orange-500/30"
-        }`}>
-        <p className={`text-sm flex items-center gap-2 ${activeTab === "bracket" ? "text-purple-400" : "text-orange-400"
-          }`}>
-          <Filter className="w-4 h-4" />
-          {activeTab === "bracket"
-            ? "Bracket tournaments use auto-generated elimination brackets. Click 'Generate Bracket' when ready to start."
-            : "Battle Royale tournaments require manual winner selection. Use 'Battle Royale Results' tab to set winners."}
-        </p>
+      {/* Info Banner - Combined */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="rounded-xl p-4 border bg-purple-500/10 border-purple-500/30">
+          <p className="text-sm flex items-center gap-2 text-purple-400">
+            <Target className="w-4 h-4" />
+            Bracket tournaments use auto-generated elimination brackets. Click 'Generate' when ready.
+          </p>
+        </div>
+        <div className="rounded-xl p-4 border bg-orange-500/10 border-orange-500/30">
+          <p className="text-sm flex items-center gap-2 text-orange-400">
+            <Zap className="w-4 h-4" />
+            Battle Royale tournaments require manual winner selection in the 'Winner Selection' tab.
+          </p>
+        </div>
       </div>
 
       {/* Desktop Table */}
@@ -383,17 +350,18 @@ export default function TournamentManagement({ hostId, restriction }) {
               <th className="text-left p-4">Participants</th>
               <th className="text-left p-4">Entry Fee</th>
               <th className="text-left p-4">Prize</th>
-              {activeTab === "bracket" && <th className="text-left p-4">Bracket</th>}
+              <th className="text-left p-4">Commission</th>
+              <th className="text-left p-4">Bracket</th>
               <th className="text-left p-4">Actions</th>
             </tr>
           </thead>
           <tbody>
             {displayTournaments.length === 0 ? (
               <tr>
-                <td colSpan={activeTab === "bracket" ? 8 : 7} className="text-center py-12 text-gray-400">
+                <td colSpan={11} className="text-center py-12 text-gray-400">
                   <div className="flex flex-col items-center gap-2">
                     <Filter className="w-12 h-12 text-gray-600" />
-                    <p className="font-semibold">No {activeTab === "bracket" ? "bracket" : "battle royale"} tournaments found</p>
+                    <p className="font-semibold">No tournaments found</p>
                     <p className="text-sm">Create one using the button above</p>
                   </div>
                 </td>
@@ -476,21 +444,46 @@ export default function TournamentManagement({ hostId, restriction }) {
                   </td>
                   <td className="p-4 text-gray-400">{t.country === 'Nigeria' ? '₦' : '₵'}{t.entry_fee}</td>
                   <td className="p-4 text-white font-medium">{t.first_place || '-'}</td>
-                  {activeTab === "bracket" && (
-                    <td className="p-4">
-                      {t.bracketGenerated ? (
-                        <span className="text-green-400 text-xs flex items-center gap-1">
+                  <td className="p-4">
+                    <div className="flex flex-col">
+                      {t.operational_model === 'fixed' ? (
+                        <span className="text-blue-400 text-[10px] font-black uppercase tracking-widest bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 w-fit">Flat Fee</span>
+                      ) : (
+                        <>
+                          <span className="text-orange-500 text-xs font-black">
+                            {t.country === 'Nigeria' ? '₦' : '₵'}
+                            {((t.entry_fee || 0) * (t.max_participant || 0) * 0.20).toFixed(2)}
+                          </span>
+                          <span className="text-[8px] text-gray-500 uppercase font-bold tracking-tighter">20% Capacity</span>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                  {/* Bracket Column */}
+                  <td className="p-4">
+                    {t.format === "Bracket" ? (
+                      t.bracketGenerated ? (
+                        <span className="text-green-400 text-xs flex items-center gap-1 font-bold uppercase tracking-widest">
                           <Target size={12} />
                           Generated
                         </span>
+                      ) : t.status === 'live' ? (
+                        <button
+                          onClick={() => handleGenerateBracket(t.id)}
+                          className="bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 px-3 py-1.5 rounded-lg border border-purple-500/30 text-[10px] font-black uppercase tracking-widest transition-all animate-pulse"
+                        >
+                          Generate
+                        </button>
                       ) : (
-                        <span className="text-yellow-500 text-xs flex items-center gap-1">
-                          <Zap size={12} />
+                        <span className="text-yellow-500/50 text-[10px] flex items-center gap-1 font-black uppercase tracking-widest italic">
+                          <Zap size={10} />
                           Pending
                         </span>
-                      )}
-                    </td>
-                  )}
+                      )
+                    ) : (
+                      <span className="text-gray-700 text-xs font-black select-none">-</span>
+                    )}
+                  </td>
                   <td className="p-4">
                     <div className="flex gap-2">
                       {shouldShowBracketButton(t) && (
@@ -557,7 +550,7 @@ export default function TournamentManagement({ hostId, restriction }) {
           <div className="text-center py-12 text-gray-400">
             <div className="flex flex-col items-center gap-2">
               <Filter className="w-12 h-12 text-gray-600" />
-              <p className="font-semibold">No {activeTab === "bracket" ? "bracket" : "battle royale"} tournaments found</p>
+              <p className="font-semibold">No tournaments found</p>
               <p className="text-sm">Create one using the button above</p>
             </div>
           </div>
@@ -619,7 +612,18 @@ export default function TournamentManagement({ hostId, restriction }) {
                 <div className="text-gray-300">
                   Prize: <span className="text-orange-400 font-bold">{t.first_place || '-'}</span>
                 </div>
-                {activeTab === "bracket" && (
+                <div className="text-gray-300 flex items-center gap-2">
+                  Commission:
+                  {t.operational_model === 'fixed' ? (
+                    <span className="text-blue-400 font-black text-[9px] uppercase tracking-widest bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">Flat Fee</span>
+                  ) : (
+                    <span className="text-orange-500 font-black">
+                      {t.country === 'Nigeria' ? '₦' : '₵'}
+                      {((t.entry_fee || 0) * (t.max_participant || 0) * 0.20).toFixed(2)}
+                    </span>
+                  )}
+                </div>
+                {t.format === "Bracket" && (
                   <div className="text-gray-300">
                     Bracket: {t.bracketGenerated ? (
                       <span className="text-green-400">✓ Generated</span>

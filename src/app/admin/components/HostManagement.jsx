@@ -12,6 +12,7 @@ import {
     getDoc
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { toast } from "react-hot-toast";
 import {
     Users,
     Trophy,
@@ -321,10 +322,10 @@ export default function HostManagement() {
                 updatedAt: new Date()
             });
             setHosts(hosts.map(h => h.id === hostId ? { ...h, status: newStatus } : h));
-            alert(`Host ${newStatus} successfully!`);
+            toast.success(`Host ${newStatus} successfully!`);
         } catch (error) {
             console.error("Error updating host status:", error);
-            alert("Failed to update status");
+            toast.error("Failed to update status");
         }
     };
 

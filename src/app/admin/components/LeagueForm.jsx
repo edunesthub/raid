@@ -4,8 +4,11 @@ import { useState, useRef } from "react";
 import { doc, updateDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { X, Save, Trophy, Calendar, Info, Upload, Image as ImageIcon } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LeagueForm({ league, onClose, onSuccess, hostId }) {
+    const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [imagePreview, setImagePreview] = useState(league?.league_flyer || null);
@@ -21,7 +24,7 @@ export default function LeagueForm({ league, onClose, onSuccess, hostId }) {
         start_date: league?.start_date || "2026-02-10",
         end_date: league?.end_date || "2026-03-25",
         team_count: league?.team_count || 8,
-        operational_model: league?.operational_model || "percentage",
+        operational_model: league?.operational_model || (hostId ? (user?.paymentModel === 'subscription' ? 'fixed' : 'percentage') : "percentage"),
     });
 
     const handleImageSelect = (e) => {
@@ -29,12 +32,12 @@ export default function LeagueForm({ league, onClose, onSuccess, hostId }) {
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-            alert('Please select an image file');
+            toast.error('Please select an image file');
             return;
         }
 
         if (file.size > 5 * 1024 * 1024) {
-            alert('Image size should be less than 5MB');
+            toast.error('Image size should be less than 5MB');
             return;
         }
 
@@ -108,7 +111,7 @@ export default function LeagueForm({ league, onClose, onSuccess, hostId }) {
 
             onSuccess();
         } catch (error) {
-            alert("Error saving: " + error.message);
+            toast.error("Error saving: " + error.message);
         } finally {
             setLoading(false);
             setUploadingImage(false);
@@ -248,48 +251,25 @@ export default function LeagueForm({ league, onClose, onSuccess, hostId }) {
                         />
                     </div>
 
-                    {/* Operational Model - For Hosts */}
+                    {/* Branding / Info Tag */}
                     {(hostId || league?.hostId) && (
-                        <div className="bg-orange-500/5 p-6 rounded-[2.5rem] border border-orange-500/20 space-y-5">
+                        <div className="bg-orange-500/5 p-4 rounded-2xl border border-orange-500/20 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-orange-500/20 flex items-center justify-center">
-                                    <Info className="text-orange-500" size={20} />
+                                <div className="p-2 bg-orange-500/20 rounded-lg text-orange-500">
+                                    <Info size={16} />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-black uppercase tracking-[0.1em] text-orange-500">
-                                        Operational Framework
+                                    <label className="block text-[10px] font-black uppercase tracking-wider text-orange-500 opacity-70">
+                                        Settlement Strategy
                                     </label>
-                                    <p className="text-[10px] text-orange-500/60 font-bold uppercase tracking-wider">How will this campaign be settled?</p>
+                                    <p className="text-xs font-black text-white italic uppercase tracking-tighter">
+                                        {formData.operational_model === 'fixed' ? '₵200 Monthly Subscription' : '20% Revenue Commission'}
+                                    </p>
                                 </div>
                             </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setFormData({ ...formData, operational_model: "percentage" })}
-                                    className={`p-5 rounded-3xl border-2 text-left transition-all duration-300 ${formData.operational_model === "percentage"
-                                        ? "bg-orange-500/20 border-orange-500 text-white shadow-xl shadow-orange-500/20 scale-[1.02]"
-                                        : "bg-black/40 border-white/5 text-gray-500 hover:border-white/10"
-                                        }`}
-                                >
-                                    <div className="font-black text-[10px] uppercase tracking-widest mb-1 opacity-50">Flex Commission</div>
-                                    <div className="font-black text-xl italic tracking-tighter">20% CUT</div>
-                                    <div className="text-[10px] font-bold uppercase tracking-wider opacity-60 mt-1">Pay per season.</div>
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={() => setFormData({ ...formData, operational_model: "fixed" })}
-                                    className={`p-5 rounded-3xl border-2 text-left transition-all duration-300 ${formData.operational_model === "fixed"
-                                        ? "bg-orange-500/20 border-orange-500 text-white shadow-xl shadow-orange-500/20 scale-[1.02]"
-                                        : "bg-black/40 border-white/5 text-gray-500 hover:border-white/10"
-                                        }`}
-                                >
-                                    <div className="font-black text-[10px] uppercase tracking-widest mb-1 opacity-50">Fixed Access</div>
-                                    <div className="font-black text-xl italic tracking-tighter">₵200 FLAT</div>
-                                    <div className="text-[10px] font-bold uppercase tracking-wider opacity-60 mt-1">Unlimited scaling.</div>
-                                </button>
-                            </div>
+                            <p className="text-[8px] text-orange-500/40 uppercase font-black tracking-widest text-right max-w-[100px]">
+                                Configured in Host Payments
+                            </p>
                         </div>
                     )}
 

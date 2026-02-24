@@ -33,8 +33,9 @@ import LeagueForm from "./LeagueForm";
 import LeagueStandingsEditor from "./LeagueStandingsEditor";
 import LeagueMatchesEditor from "./LeagueMatchesEditor";
 import LeagueTeamsEditor from "./LeagueTeamsEditor";
+import { toast } from "react-hot-toast";
 
-export default function LeagueManagement({ hostId, restriction }) {
+export default function LeagueManagement({ hostId, restriction, onPlanRequired }) {
     const [leagues, setLeagues] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -78,9 +79,9 @@ export default function LeagueManagement({ hostId, restriction }) {
         try {
             await deleteDoc(doc(db, "league_seasons", id));
             setLeagues(leagues.filter((l) => l.id !== id));
-            alert("League deleted!");
+            toast.success("League deleted!");
         } catch (error) {
-            alert("Error: " + error.message);
+            toast.error("Error: " + error.message);
         }
     };
 
@@ -142,17 +143,21 @@ export default function LeagueManagement({ hostId, restriction }) {
                 </div>
                 <button
                     onClick={() => {
+                        if (onPlanRequired) {
+                            onPlanRequired();
+                            return;
+                        }
                         if (restriction) {
-                            alert(restriction);
+                            toast.error(restriction);
                             return;
                         }
                         setSelectedLeague(null);
                         setShowForm(true);
                     }}
-                    disabled={!!restriction}
+                    disabled={!!restriction && !onPlanRequired}
                     className={`flex items-center gap-2 font-semibold py-2 px-4 rounded-xl shadow-md transition-all ${restriction
-                            ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5"
-                            : "bg-orange-600 hover:bg-orange-500 text-white"
+                        ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5"
+                        : "bg-orange-600 hover:bg-orange-500 text-white"
                         }`}
                 >
                     <Plus size={18} />

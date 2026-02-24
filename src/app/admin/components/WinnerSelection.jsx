@@ -14,6 +14,7 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { toast } from 'react-hot-toast';
 
 export default function WinnerSelection({ hostId }) {
   const [tournaments, setTournaments] = useState([]);
@@ -174,12 +175,12 @@ export default function WinnerSelection({ hostId }) {
 
       await Promise.all(updates);
 
-      alert('Tournament winners submitted successfully!');
+      toast.success('Tournament winners submitted successfully!');
       setShowModal(false);
       loadCompletableTournaments();
     } catch (error) {
       console.error('Error submitting winners:', error);
-      alert('Failed to submit winners: ' + error.message);
+      toast.error('Failed to submit winners: ' + error.message);
     } finally {
       setSubmitting(false);
     }
@@ -426,8 +427,8 @@ export default function WinnerSelection({ hostId }) {
                       <div
                         key={participant.id}
                         className={`bg-gray-800 border rounded-xl p-3 transition-all ${isSelected
-                            ? 'border-orange-500 bg-orange-500/10'
-                            : 'border-gray-700 hover:border-gray-600'
+                          ? 'border-orange-500 bg-orange-500/10'
+                          : 'border-gray-700 hover:border-gray-600'
                           }`}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

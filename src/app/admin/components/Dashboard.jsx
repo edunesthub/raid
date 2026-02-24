@@ -42,12 +42,17 @@ export default function Dashboard({ hostId }) {
       }).length;
 
       let totalRevenue = 0;
+      let totalCommission = 0;
       filteredTournaments.forEach(doc => {
         const data = doc.data();
         totalRevenue += (data.entry_fee || 0) * (data.current_participants || 0);
+        // Calculate commission based on (entry fee * max participants)
+        if (data.operational_model !== 'fixed') {
+          totalCommission += (data.entry_fee || 0) * (data.max_participant || 0) * 0.20;
+        }
       });
 
-      setStats({ totalUsers, activeTournaments, totalRevenue, pendingActions: 0 });
+      setStats({ totalUsers, activeTournaments, totalRevenue, totalCommission, pendingActions: 0 });
     } catch (err) {
       console.error(err);
     } finally {
@@ -64,7 +69,7 @@ export default function Dashboard({ hostId }) {
         {!hostId && <StatCard title="Total Users" value={stats.totalUsers.toLocaleString()} icon={Users} trend={12} color="blue" />}
         <StatCard title="Active Tournaments" value={stats.activeTournaments.toString()} icon={Trophy} trend={8} color="orange" />
         <StatCard title="Total Revenue" value={`${user?.country === 'Nigeria' ? '₦' : '₵'}${stats.totalRevenue.toLocaleString()}`} icon={DollarSign} trend={15} color="green" />
-        <StatCard title={hostId ? "Commission Due" : "Pending Actions"} value={hostId ? `${user?.country === 'Nigeria' ? '₦' : '₵'}${(stats.totalRevenue * 0.2).toLocaleString()}` : stats.pendingActions.toString()} icon={AlertCircle} color="purple" />
+        <StatCard title={hostId ? "Commission Due" : "Pending Actions"} value={hostId ? `${user?.country === 'Nigeria' ? '₦' : '₵'}${stats.totalCommission.toLocaleString()}` : stats.pendingActions.toString()} icon={AlertCircle} color="purple" />
       </div>
     </div>
   );
