@@ -12,10 +12,14 @@ import {
     X,
     Award,
     ClipboardCheck,
+    CheckCircle,
     CreditCard,
+    AlertCircle,
     Crown,
-    CheckCircle
+    Zap
 } from "lucide-react";
+import { updateDoc, doc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import Image from "next/image";
 import useHostAuth from "./hooks/useHostAuth";
 import TournamentManagement from "../admin/components/TournamentManagement";
@@ -56,6 +60,43 @@ export default function HostPortal() {
         setActiveTab(id);
         setSidebarOpen(false);
     };
+
+    const updatePaymentModel = async (model) => {
+        try {
+            const hostRef = doc(db, "users", host.id);
+            await updateDoc(hostRef, {
+                paymentModel: model,
+                // If switching to subscription, set as unpaid initially if not already paid
+                subscriptionStatus: model === 'subscription' ? (host.subscriptionStatus || 'unpaid') : null
+            });
+            alert(`Switched to ${model === 'subscription' ? 'Monthly Subscription' : 'Commission per Tournament'} model.`);
+            window.location.reload(); // Refresh to update context
+        } catch (error) {
+            console.error("Error updating payment model:", error);
+            alert("Failed to update payment plan.");
+        }
+    };
+
+    const handleMockPayment = async () => {
+        try {
+            const hostRef = doc(db, "users", host.id);
+            const expiry = new Date();
+            expiry.setMonth(expiry.getMonth() + 1);
+
+            await updateDoc(hostRef, {
+                subscriptionStatus: 'active',
+                subscriptionExpiry: expiry,
+                lastSubscriptionPayment: new Date()
+            });
+            alert("Payment successful! Your subscription is now active for 30 days.");
+            window.location.reload();
+        } catch (error) {
+            console.error("Payment error:", error);
+            alert("Payment failed simulation.");
+        }
+    };
+
+    const canCreateTournament = host.paymentModel === 'commission' || host.subscriptionStatus === 'active';
 
     return (
         <div className="min-h-screen bg-black flex flex-col lg:flex-row">
@@ -170,50 +211,135 @@ export default function HostPortal() {
             <div className="flex-1 overflow-y-auto bg-[#050505]">
                 <div className="max-w-[1600px] mx-auto p-6 md:p-10">
                     {activeTab === "dashboard" && <Dashboard hostId={host.id} />}
-                    {activeTab === "tournaments" && <TournamentManagement hostId={host.id} />}
-                    {activeTab === "leagues" && <LeagueManagement hostId={host.id} />}
+                    {activeTab === "tournaments" && (
+                        <TournamentManagement
+                            hostId={host.id}
+                            restriction={!canCreateTournament ? "Please pay your monthly subscription to create new tournaments." : null}
+                        />
+                    )}
+                    {activeTab === "leagues" && (
+                        <LeagueManagement
+                            hostId={host.id}
+                            restriction={!canCreateTournament ? "Please pay your monthly subscription to create new leagues." : null}
+                        />
+                    )}
                     {activeTab === "winner-selection" && <WinnerSelection hostId={host.id} />}
                     {activeTab === "results-verification" && <ResultsVerification hostId={host.id} />}
                     {activeTab === "payments" && (
                         <div className="space-y-8">
                             <div className="flex flex-col gap-2">
-                                <h2 className="text-3xl font-black text-white italic">HOSTING PAYMENTS</h2>
-                                <p className="text-gray-400 text-sm">Manage your hosting plan and commission payments</p>
+                                <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">Host Revenue & Plans</h2>
+                                <p className="text-gray-400 text-sm font-medium tracking-wide">Manage your billing cycle and operational strategy</p>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="bg-gray-900/50 border border-white/5 p-8 rounded-[2.5rem] space-y-6">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-lg font-black text-white uppercase tracking-wider">Hosting Plan</h3>
-                                        <span className="px-4 py-1.5 bg-orange-500/10 text-orange-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-orange-500/20">
-                                            Per Event
-                                        </span>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {/* Plan Selection */}
+                                <div className="lg:col-span-2 space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Commission Plan */}
+                                        <div className={`p-8 rounded-[2.5rem] border transition-all ${host.paymentModel !== 'subscription' ? 'bg-orange-500/10 border-orange-500/50' : 'bg-gray-900/50 border-white/5 opacity-60 hover:opacity-100'}`}>
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className="p-3 bg-white/5 rounded-2xl text-orange-500">
+                                                    <Zap size={24} />
+                                                </div>
+                                                {host.paymentModel !== 'subscription' && (
+                                                    <span className="px-3 py-1 bg-orange-500 text-white rounded-full text-[8px] font-black uppercase tracking-widest">Active Plan</span>
+                                                )}
+                                            </div>
+                                            <h3 className="text-xl font-black text-white uppercase italic mb-2 tracking-tight">Pay Per Event</h3>
+                                            <p className="text-gray-400 text-xs leading-relaxed mb-6 font-medium">No monthly costs. Pay only when you host. Fixed ₵200 or 20% commission applies per tournament.</p>
+                                            {host.paymentModel === 'subscription' && (
+                                                <button
+                                                    onClick={() => updatePaymentModel('commission')}
+                                                    className="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/10"
+                                                >
+                                                    Switch to Commission
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Subscription Plan */}
+                                        <div className={`p-8 rounded-[2.5rem] border transition-all ${host.paymentModel === 'subscription' ? 'bg-blue-500/10 border-blue-500/50' : 'bg-gray-900/50 border-white/5 opacity-60 hover:opacity-100'}`}>
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className="p-3 bg-white/5 rounded-2xl text-blue-400">
+                                                    <CreditCard size={24} />
+                                                </div>
+                                                {host.paymentModel === 'subscription' && (
+                                                    <span className="px-3 py-1 bg-blue-500 text-white rounded-full text-[8px] font-black uppercase tracking-widest">Active Plan</span>
+                                                )}
+                                            </div>
+                                            <h3 className="text-xl font-black text-white uppercase italic mb-2 tracking-tight">Monthly Subscription</h3>
+                                            <p className="text-gray-400 text-xs leading-relaxed mb-6 font-medium">₵200 per month. Unlimited hosting with zero commissions. Best for high-frequency hosts.</p>
+                                            {host.paymentModel !== 'subscription' && (
+                                                <button
+                                                    onClick={() => updatePaymentModel('subscription')}
+                                                    className="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/10"
+                                                >
+                                                    Switch to Monthly
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    <div className="space-y-4">
-                                        <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
-                                            <p className="text-white text-xs font-bold uppercase tracking-widest mb-1">Current Strategy</p>
-                                            <p className="text-gray-400 text-[10px] leading-relaxed">
-                                                You now select your operational model (20% Commission or ₵200 Flat Fee)
-                                                individually for each tournament or league you create.
-                                            </p>
+                                    {/* Strategy Banner */}
+                                    <div className="p-6 bg-white/5 rounded-3xl border border-white/5 flex items-start gap-4">
+                                        <div className="p-2 bg-orange-500/10 rounded-lg text-orange-500 shrink-0">
+                                            <AlertCircle size={18} />
                                         </div>
-                                        <div className="flex items-center gap-2 text-green-500">
-                                            <CheckCircle size={14} />
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Flexible Scaling Enabled</span>
+                                        <div>
+                                            <p className="text-white text-xs font-bold uppercase tracking-wider mb-1">Important Note</p>
+                                            <p className="text-gray-500 text-[11px] leading-relaxed">
+                                                Switching plans takes effect immediately. For Monthly users, tournament creation is disabled if the subscription payment is overdue.
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="bg-gray-900/50 border border-white/5 p-8 rounded-[2.5rem] space-y-6">
-                                    <h3 className="text-lg font-black text-white uppercase tracking-wider">Outstanding Balance</h3>
-                                    <div className="space-y-1">
-                                        <p className="text-4xl font-black text-white italic">GHS 0.00</p>
-                                        <p className="text-gray-400 text-xs font-bold uppercase tracking-widest text-green-500">All caught up!</p>
+                                {/* Status & Payment */}
+                                <div className="space-y-6">
+                                    <div className="bg-gray-900/50 border border-white/5 p-8 rounded-[2.5rem] flex flex-col justify-between h-full">
+                                        <div>
+                                            <h3 className="text-lg font-black text-white uppercase tracking-wider mb-6">Billing Status</h3>
+                                            <div className="space-y-6">
+                                                <div>
+                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Current Balance Due</p>
+                                                    <p className="text-4xl font-black text-white italic tracking-tighter">
+                                                        ₵{host.paymentModel === 'subscription' && host.subscriptionStatus !== 'active' ? '200.00' : '0.00'}
+                                                    </p>
+                                                </div>
+
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center justify-between text-[11px] font-bold">
+                                                        <span className="text-gray-500 uppercase">Payment Status</span>
+                                                        <span className={host.paymentModel === 'subscription' ? (host.subscriptionStatus === 'active' ? 'text-green-500' : 'text-red-500') : 'text-green-500'}>
+                                                            {host.paymentModel === 'subscription' ? (host.subscriptionStatus === 'active' ? 'PAID / ACTIVE' : 'OVERDUE') : 'COMMISSION MODE'}
+                                                        </span>
+                                                    </div>
+                                                    {host.paymentModel === 'subscription' && host.subscriptionExpiry && (
+                                                        <div className="flex items-center justify-between text-[11px] font-bold">
+                                                            <span className="text-gray-500 uppercase">Expiry Date</span>
+                                                            <span className="text-white">{new Date(host.subscriptionExpiry.seconds * 1000).toLocaleDateString()}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {host.paymentModel === 'subscription' && host.subscriptionStatus !== 'active' && (
+                                            <button
+                                                onClick={handleMockPayment}
+                                                className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20 active:scale-95 mt-8"
+                                            >
+                                                Pay ₵200 now
+                                            </button>
+                                        )}
+
+                                        {(host.paymentModel !== 'subscription' || host.subscriptionStatus === 'active') && (
+                                            <div className="mt-8 p-4 bg-green-500/10 rounded-2xl border border-green-500/20 text-center">
+                                                <p className="text-green-500 text-[10px] font-black uppercase tracking-widest">No outstanding payments</p>
+                                            </div>
+                                        )}
                                     </div>
-                                    <button className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20">
-                                        Pay Now
-                                    </button>
                                 </div>
                             </div>
                         </div>

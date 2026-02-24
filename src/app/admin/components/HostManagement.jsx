@@ -60,7 +60,15 @@ const HostActivityModal = ({ isOpen, onClose, host, stats }) => {
                             <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none">
                                 {host.hostName}
                             </h3>
-                            <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Host Details & Performance</p>
+                            <div className="flex items-center gap-3 mt-2">
+                                <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em]">Host Details & Performance</p>
+                                <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${host.paymentModel === 'subscription'
+                                    ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                                    : 'bg-orange-500/10 text-orange-500 border-orange-500/20'
+                                    }`}>
+                                    {host.paymentModel === 'subscription' ? 'Monthly Subscriber' : 'Commission Based'}
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <button
@@ -379,6 +387,10 @@ export default function HostManagement() {
                                             <p className="text-gray-500 text-[9px] font-black uppercase tracking-widest truncate">{host.fullName}</p>
                                             <span className="w-1 h-1 bg-gray-800 rounded-full" />
                                             <p className="text-gray-600 text-[9px] font-black uppercase tracking-widest truncate">{host.country || 'Global'}</p>
+                                            <span className="w-1 h-1 bg-gray-800 rounded-full" />
+                                            <span className={`text-[8px] font-black uppercase tracking-widest ${host.paymentModel === 'subscription' ? 'text-blue-500' : 'text-orange-500'}`}>
+                                                {host.paymentModel === 'subscription' ? 'Subscriber' : 'Commission'}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>

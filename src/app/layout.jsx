@@ -16,6 +16,7 @@ import Footer from "@/components/Footer";
 import LeagueSection from "@/components/LeagueSection";
 import Link from "next/link";
 import { Home, Trophy, Users, BarChart2 } from "lucide-react";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -98,6 +99,28 @@ export default function RootLayout({ children }) {
         </AppProviders>
 
         <Analytics />
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            style: {
+              background: '#111',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '1rem',
+              fontSize: '12px',
+              fontFamily: 'inherit',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            },
+            success: {
+              iconTheme: {
+                primary: '#f97316',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
       </body>
     </html>
   );

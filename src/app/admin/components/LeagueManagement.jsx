@@ -26,14 +26,15 @@ import {
     Settings,
     ListOrdered,
     Users,
-    ChevronRight
+    ChevronRight,
+    AlertCircle
 } from "lucide-react";
 import LeagueForm from "./LeagueForm";
 import LeagueStandingsEditor from "./LeagueStandingsEditor";
 import LeagueMatchesEditor from "./LeagueMatchesEditor";
 import LeagueTeamsEditor from "./LeagueTeamsEditor";
 
-export default function LeagueManagement({ hostId }) {
+export default function LeagueManagement({ hostId, restriction }) {
     const [leagues, setLeagues] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -141,15 +142,30 @@ export default function LeagueManagement({ hostId }) {
                 </div>
                 <button
                     onClick={() => {
+                        if (restriction) {
+                            alert(restriction);
+                            return;
+                        }
                         setSelectedLeague(null);
                         setShowForm(true);
                     }}
-                    className="flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-all"
+                    disabled={!!restriction}
+                    className={`flex items-center gap-2 font-semibold py-2 px-4 rounded-xl shadow-md transition-all ${restriction
+                            ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5"
+                            : "bg-orange-600 hover:bg-orange-500 text-white"
+                        }`}
                 >
                     <Plus size={18} />
                     Create New Season
                 </button>
             </div>
+
+            {restriction && (
+                <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <AlertCircle className="text-red-500 shrink-0" size={20} />
+                    <p className="text-red-500 text-xs font-bold uppercase tracking-wider">{restriction}</p>
+                </div>
+            )}
 
             <div className="relative max-w-xl">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />

@@ -13,7 +13,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Plus, Search, Edit, Trash2, X, Calendar, Users as UsersIcon, Zap, Target, Filter, MessageSquare, Shield } from "lucide-react";
+import { Plus, Search, Edit, Trash2, X, Calendar, Users as UsersIcon, Zap, Target, Filter, MessageSquare, Shield, AlertCircle } from "lucide-react";
 import TournamentForm from "./TournamentForm";
 import TournamentParticipants from "./TournamentParticipants";
 import TournamentTeams from "./TournamentTeams";
@@ -21,7 +21,7 @@ import SendSMSModal from "./SendSMSModal";
 import { useAuth } from '@/hooks/useAuth';
 import { logAdminAction } from '@/services/adminAuditService';
 
-export default function TournamentManagement({ hostId }) {
+export default function TournamentManagement({ hostId, restriction }) {
   const { user } = useAuth();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -288,15 +288,30 @@ export default function TournamentManagement({ hostId }) {
         </div>
         <button
           onClick={() => {
+            if (restriction) {
+              alert(restriction);
+              return;
+            }
             setSelectedTournament(null);
             setShowForm(true);
           }}
-          className="flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-all text-sm md:text-base"
+          disabled={!!restriction}
+          className={`flex items-center gap-2 font-semibold py-2 px-4 rounded-xl shadow-md transition-all text-sm md:text-base ${restriction
+            ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5"
+            : "bg-orange-600 hover:bg-orange-500 text-white"
+            }`}
         >
           <Plus size={18} />
           Create Tournament
         </button>
       </div>
+
+      {restriction && (
+        <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <AlertCircle className="text-red-500 shrink-0" size={20} />
+          <p className="text-red-500 text-xs font-bold uppercase tracking-wider">{restriction}</p>
+        </div>
+      )}
 
       {/* Search */}
       <div className="relative">
@@ -388,32 +403,36 @@ export default function TournamentManagement({ hostId }) {
                 <tr key={t.id} className="border-t border-gray-700 hover:bg-gray-900/50 transition-all">
                   <td className="p-4 text-white font-medium">
                     <div>{t.tournament_name}</div>
-                    <div className="mt-1 space-x-2">
-                      {(t.createdByName || t.createdByRole) && (
-                        <span className="inline-flex items-center gap-1 text-xs text-gray-400">
-                          <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700">Created by</span>
-                          {t.createdByName && (
-                            <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700 text-white">{t.createdByName}</span>
+                    {!hostId && (
+                      <>
+                        <div className="mt-1 space-x-2">
+                          {(t.createdByName || t.createdByRole) && (
+                            <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                              <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700">Created by</span>
+                              {t.createdByName && (
+                                <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700 text-white">{t.createdByName}</span>
+                              )}
+                              {t.createdByRole && (
+                                <span className="px-2 py-0.5 rounded bg-orange-600/20 border border-orange-500/40 text-orange-300">Admin {t.createdByRole}</span>
+                              )}
+                            </span>
                           )}
-                          {t.createdByRole && (
-                            <span className="px-2 py-0.5 rounded bg-orange-600/20 border border-orange-500/40 text-orange-300">Admin {t.createdByRole}</span>
+                        </div>
+                        <div className="mt-1 space-x-2">
+                          {(t.updatedByName || t.updatedByRole) && (
+                            <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                              <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700">Updated by</span>
+                              {t.updatedByName && (
+                                <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700 text-white">{t.updatedByName}</span>
+                              )}
+                              {t.updatedByRole && (
+                                <span className="px-2 py-0.5 rounded bg-orange-600/20 border border-orange-500/40 text-orange-300">Admin {t.updatedByRole}</span>
+                              )}
+                            </span>
                           )}
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-1 space-x-2">
-                      {(t.updatedByName || t.updatedByRole) && (
-                        <span className="inline-flex items-center gap-1 text-xs text-gray-400">
-                          <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700">Updated by</span>
-                          {t.updatedByName && (
-                            <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700 text-white">{t.updatedByName}</span>
-                          )}
-                          {t.updatedByRole && (
-                            <span className="px-2 py-0.5 rounded bg-orange-600/20 border border-orange-500/40 text-orange-300">Admin {t.updatedByRole}</span>
-                          )}
-                        </span>
-                      )}
-                    </div>
+                        </div>
+                      </>
+                    )}
                   </td>
                   <td className="p-4 text-gray-300">{t.game}</td>
                   <td className="p-4">
@@ -500,13 +519,15 @@ export default function TournamentManagement({ hostId }) {
                       >
                         {t.participant_type === 'Team' ? <Shield size={14} /> : <UsersIcon size={14} />}
                       </button>
-                      <button
-                        onClick={() => openSMSModal(t)}
-                        className="p-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-lg transition"
-                        title="Send SMS to Participants"
-                      >
-                        <MessageSquare size={14} />
-                      </button>
+                      {!hostId && (
+                        <button
+                          onClick={() => openSMSModal(t)}
+                          className="p-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-lg transition"
+                          title="Send SMS to Participants"
+                        >
+                          <MessageSquare size={14} />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleEdit(t)}
                         className="p-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg transition"
@@ -557,27 +578,31 @@ export default function TournamentManagement({ hostId }) {
                 <div className="flex items-center gap-2">
                   Format: {getFormatBadge(t.format)}
                 </div>
-                {(t.createdByName || t.createdByRole) && (
-                  <div className="text-xs text-gray-400 flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700">Created by</span>
-                    {t.createdByName && (
-                      <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700 text-white">{t.createdByName}</span>
+                {!hostId && (
+                  <>
+                    {(t.createdByName || t.createdByRole) && (
+                      <div className="text-xs text-gray-400 flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700">Created by</span>
+                        {t.createdByName && (
+                          <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700 text-white">{t.createdByName}</span>
+                        )}
+                        {t.createdByRole && (
+                          <span className="px-2 py-0.5 rounded bg-orange-600/20 border border-orange-500/40 text-orange-300">Admin {t.createdByRole}</span>
+                        )}
+                      </div>
                     )}
-                    {t.createdByRole && (
-                      <span className="px-2 py-0.5 rounded bg-orange-600/20 border border-orange-500/40 text-orange-300">Admin {t.createdByRole}</span>
+                    {(t.updatedByName || t.updatedByRole) && (
+                      <div className="text-xs text-gray-400 flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700">Updated by</span>
+                        {t.updatedByName && (
+                          <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700 text-white">{t.updatedByName}</span>
+                        )}
+                        {t.updatedByRole && (
+                          <span className="px-2 py-0.5 rounded bg-orange-600/20 border border-orange-500/40 text-orange-300">Admin {t.updatedByRole}</span>
+                        )}
+                      </div>
                     )}
-                  </div>
-                )}
-                {(t.updatedByName || t.updatedByRole) && (
-                  <div className="text-xs text-gray-400 flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700">Updated by</span>
-                    {t.updatedByName && (
-                      <span className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700 text-white">{t.updatedByName}</span>
-                    )}
-                    {t.updatedByRole && (
-                      <span className="px-2 py-0.5 rounded bg-orange-600/20 border border-orange-500/40 text-orange-300">Admin {t.updatedByRole}</span>
-                    )}
-                  </div>
+                  </>
                 )}
                 <button
                   onClick={() => openParticipantsModal(t)}
@@ -627,12 +652,14 @@ export default function TournamentManagement({ hostId }) {
                   {t.participant_type === 'Team' ? <Shield size={16} /> : <UsersIcon size={16} />}
                   {t.participant_type === 'Team' ? 'Squads' : 'Users'}
                 </button>
-                <button
-                  onClick={() => openSMSModal(t)}
-                  className="p-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-lg transition flex items-center justify-center gap-1"
-                >
-                  <MessageSquare size={16} /> SMS
-                </button>
+                {!hostId && (
+                  <button
+                    onClick={() => openSMSModal(t)}
+                    className="p-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-lg transition flex items-center justify-center gap-1"
+                  >
+                    <MessageSquare size={16} /> SMS
+                  </button>
+                )}
                 <button
                   onClick={() => handleEdit(t)}
                   className="p-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg transition flex items-center justify-center gap-1"
