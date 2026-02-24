@@ -361,6 +361,7 @@ export default function TournamentManagement({ hostId, restriction, onPlanRequir
               <th className="text-left p-4">Participants</th>
               <th className="text-left p-4">Entry Fee</th>
               <th className="text-left p-4">Prize</th>
+              <th className="text-left p-4">Cash Pool</th>
               <th className="text-left p-4">Commission</th>
               <th className="text-left p-4">Bracket</th>
               <th className="text-left p-4">Actions</th>
@@ -453,8 +454,19 @@ export default function TournamentManagement({ hostId, restriction, onPlanRequir
                       {t.participant_type === 'Team' ? (t.teams || []).length : t.current_participants}/{t.max_participant}
                     </button>
                   </td>
-                  <td className="p-4 text-gray-400">{t.country === 'Nigeria' ? '₦' : '₵'}{t.entry_fee}</td>
+                  <td className="p-4 text-gray-400">
+                    {t.country === 'Nigeria' ? '₦' : '₵'}{t.entry_fee}
+                  </td>
                   <td className="p-4 text-white font-medium">{t.first_place || '-'}</td>
+                  <td className="p-4">
+                    <div className="flex flex-col">
+                      <span className="text-green-500 text-xs font-black">
+                        {t.country === 'Nigeria' ? '₦' : '₵'}
+                        {((t.entry_fee || 0) * (t.max_participant || 0)).toLocaleString()}
+                      </span>
+                      <span className="text-[8px] text-gray-500 uppercase font-bold tracking-tighter italic">Total Pool</span>
+                    </div>
+                  </td>
                   <td className="p-4">
                     <div className="flex flex-col">
                       {t.operational_model === 'fixed' ? (
@@ -622,6 +634,9 @@ export default function TournamentManagement({ hostId, restriction, onPlanRequir
                 </div>
                 <div className="text-gray-300">
                   Prize: <span className="text-orange-400 font-bold">{t.first_place || '-'}</span>
+                </div>
+                <div className="text-gray-300">
+                  Cash Pool: <span className="text-green-500 font-bold">{t.country === 'Nigeria' ? '₦' : '₵'}{((t.entry_fee || 0) * (t.max_participant || 0)).toLocaleString()}</span>
                 </div>
                 <div className="text-gray-300 flex items-center gap-2">
                   Commission:
