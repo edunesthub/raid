@@ -8,7 +8,7 @@ import { X, Upload, Image as ImageIcon, Save, Plus, Shield, Users } from "lucide
 import { useAuth } from '@/hooks/useAuth';
 import { logAdminAction } from '@/services/adminAuditService';
 
-export default function TournamentForm({ tournament, onClose, onCreated }) {
+export default function TournamentForm({ tournament, onClose, onCreated, hostId }) {
   const isEditing = !!tournament;
   const { user } = useAuth();
 
@@ -42,6 +42,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
     rules: [],
     twitch_link: "",
     prize_distribution: [], // [{rank: "1st Place", reward: ""}]
+    operational_model: "percentage", // "percentage" or "fixed"
   });
 
   const [loading, setLoading] = useState(false);
@@ -74,6 +75,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
         rules: Array.isArray(tournament.rules) ? tournament.rules : [],
         twitch_link: tournament.twitch_link || "",
         prize_distribution: Array.isArray(tournament.prize_distribution) ? tournament.prize_distribution : [],
+        operational_model: tournament.operational_model || "percentage",
       });
 
       if (tournament.tournament_flyer) {
@@ -219,6 +221,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
         rules: form.rules.filter(rule => rule.trim() !== ""),
         twitch_link: form.twitch_link || "",
         prize_distribution: form.prize_distribution.filter(p => p.reward.trim() !== ""),
+        operational_model: form.operational_model || "percentage",
         updated_at: serverTimestamp(),
       };
 
@@ -255,6 +258,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
           createdBy: adminMeta.id,
           createdByName: adminMeta.name,
           createdByRole: adminMeta.role,
+          hostId: hostId || null,
         });
         // Audit log
         if (user?.id) {
@@ -435,6 +439,51 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
               </p>
             </div>
           </div>
+
+          {/* Operational Model - For Hosts or Admin creating for hosts */}
+          {(hostId || tournament?.hostId) && (
+            <div className="bg-orange-500/5 p-5 rounded-[2rem] border border-orange-500/20 space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
+                  <span className="text-orange-500 text-xs font-black italic">!</span>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">
+                    Hosting Plan
+                  </label>
+                  <p className="text-[9px] text-orange-500/60 uppercase font-bold tracking-widest">Choose how you want to pay for this tournament</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, operational_model: "percentage" })}
+                  className={`p-5 rounded-2xl border-2 text-left transition-all duration-300 ${form.operational_model === "percentage"
+                    ? "bg-orange-500/20 border-orange-500 text-white shadow-xl shadow-orange-500/20"
+                    : "bg-gray-800/40 border-gray-700/50 text-gray-500 hover:border-gray-600"
+                    }`}
+                >
+                  <div className="font-black text-[9px] uppercase tracking-widest mb-1 opacity-60">Commission</div>
+                  <div className="font-black text-lg italic tracking-tight">20% OF PRIZE</div>
+                  <div className="text-[9px] font-bold uppercase tracking-wider opacity-60 mt-1">Pay per tournament.</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, operational_model: "fixed" })}
+                  className={`p-5 rounded-2xl border-2 text-left transition-all duration-300 ${form.operational_model === "fixed"
+                    ? "bg-orange-500/20 border-orange-500 text-white shadow-xl shadow-orange-500/20"
+                    : "bg-gray-800/40 border-gray-700/50 text-gray-500 hover:border-gray-600"
+                    }`}
+                >
+                  <div className="font-black text-[9px] uppercase tracking-widest mb-1 opacity-60">Flat Fee</div>
+                  <div className="font-black text-lg italic tracking-tight">₵200 MONTHLY</div>
+                  <div className="text-[9px] font-bold uppercase tracking-wider opacity-60 mt-1">Unlimited tournaments.</div>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Participant Type */}
           <div className="bg-gray-800/20 p-4 rounded-xl border border-gray-700/50">
@@ -655,7 +704,7 @@ export default function TournamentForm({ tournament, onClose, onCreated }) {
                     <input
                       value={prize.reward}
                       onChange={(e) => handlePrizeChange(index, 'reward', e.target.value)}
-                      placeholder="Reward (e.g., 1000 CP + BP)"
+                      placeholder="Reward (e.g., 1000 CP + BP or GH₵1000)"
                       className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-orange-400 text-xs font-bold focus:outline-none focus:border-orange-500 transition"
                     />
                   </div>

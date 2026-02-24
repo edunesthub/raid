@@ -7,7 +7,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import StatCard from "./StatCard";
 
-export default function Dashboard() {
+export default function Dashboard({ hostId }) {
   const { user } = useAuth();
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -24,17 +24,25 @@ export default function Dashboard() {
   const loadStats = async () => {
     try {
       setLoading(true);
-      const usersSnapshot = await getDocs(collection(db, "users"));
+      let totalUsers = 0;
+      if (!hostId) {
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        totalUsers = usersSnapshot.size;
+      }
+
       const tournamentsSnapshot = await getDocs(collection(db, "tournaments"));
 
-      const totalUsers = usersSnapshot.size;
-      const activeTournaments = tournamentsSnapshot.docs.filter(doc => {
+      const filteredTournaments = hostId
+        ? tournamentsSnapshot.docs.filter(doc => doc.data().hostId === hostId)
+        : tournamentsSnapshot.docs;
+
+      const activeTournaments = filteredTournaments.filter(doc => {
         const status = doc.data().status;
         return status === "registration-open" || status === "live";
       }).length;
 
       let totalRevenue = 0;
-      tournamentsSnapshot.docs.forEach(doc => {
+      filteredTournaments.forEach(doc => {
         const data = doc.data();
         totalRevenue += (data.entry_fee || 0) * (data.current_participants || 0);
       });
@@ -53,10 +61,10 @@ export default function Dashboard() {
     <div className="space-y-6 p-4 md:p-6">
       <h2 className="text-2xl font-bold text-white">Dashboard Overview</h2>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Users" value={stats.totalUsers.toLocaleString()} icon={Users} trend={12} color="blue" />
+        {!hostId && <StatCard title="Total Users" value={stats.totalUsers.toLocaleString()} icon={Users} trend={12} color="blue" />}
         <StatCard title="Active Tournaments" value={stats.activeTournaments.toString()} icon={Trophy} trend={8} color="orange" />
         <StatCard title="Total Revenue" value={`${user?.country === 'Nigeria' ? '₦' : '₵'}${stats.totalRevenue.toLocaleString()}`} icon={DollarSign} trend={15} color="green" />
-        <StatCard title="Pending Actions" value={stats.pendingActions.toString()} icon={AlertCircle} color="purple" />
+        <StatCard title={hostId ? "Commission Due" : "Pending Actions"} value={hostId ? `${user?.country === 'Nigeria' ? '₦' : '₵'}${(stats.totalRevenue * 0.2).toLocaleString()}` : stats.pendingActions.toString()} icon={AlertCircle} color="purple" />
       </div>
     </div>
   );

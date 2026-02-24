@@ -58,7 +58,7 @@ export default function ProfileCompletionPrompt({ hide }) {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const profileNeedsCompletion = useMemo(() => {
-    if (!user) return false;
+    if (!user || user.role === "host") return false;
     return [
       user.username,
       user.firstName,
@@ -203,155 +203,186 @@ export default function ProfileCompletionPrompt({ hide }) {
   if (!open || hide) return null;
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
-      <div className="w-full max-w-md bg-gray-900 border border-orange-500/40 rounded-2xl p-6 shadow-2xl">
-        <h2 className="text-xl font-bold text-white mb-1">Complete your profile</h2>
-        <p className="text-gray-400 text-sm mb-4">We need your details (name, country, phone for SMS, bio) to continue.</p>
-        {error && (
-          <div className="mb-3 rounded-lg border border-red-500/40 bg-red-500/10 text-red-200 text-sm px-3 py-2">
-            {error}
-          </div>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label className="block text-gray-300 text-sm mb-1">Username *</label>
-            <input
-              name="username"
-              value={form.username}
-              onChange={handleChange}
-              className="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-white focus:outline-none focus:border-orange-500"
-              required
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-gray-300 text-sm mb-1">First Name *</label>
-              <input
-                name="firstName"
-                value={form.firstName}
-                onChange={handleChange}
-                className="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-white focus:outline-none focus:border-orange-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 text-sm mb-1">Last Name *</label>
-              <input
-                name="lastName"
-                value={form.lastName}
-                onChange={handleChange}
-                className="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-white focus:outline-none focus:border-orange-500"
-                required
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-gray-300 text-sm mb-1">Country *</label>
-            <select
-              name="country"
-              value={form.country}
-              onChange={handleChange}
-              className="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-white focus:outline-none focus:border-orange-500"
-              required
-            >
-              <option value="">Select your country</option>
-              {COUNTRIES.map((country) => (
-                <option key={country.code} value={country.name}>
-                  {country.flag} {country.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-gray-300 text-sm mb-1">Date of Birth *</label>
-            <input
-              type="date"
-              name="dateOfBirth"
-              value={form.dateOfBirth}
-              onChange={handleChange}
-              max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
-              className="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-white focus:outline-none focus:border-orange-500"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">You must be at least 13 years old.</p>
-          </div>
-          <div>
-            <label className="block text-gray-300 text-sm mb-1">Phone (SMS) *</label>
-            <input
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              placeholder={form.country === "Nigeria" ? "08012345678 or 2348012345678" : "0241234567 or 233241234567"}
-              className="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-white focus:outline-none focus:border-orange-500"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">Must be able to receive SMS in {form.country}.</p>
-          </div>
-          <div>
-            <label className="block text-gray-300 text-sm mb-1">Short Bio *</label>
-            <textarea
-              name="bio"
-              value={form.bio}
-              onChange={handleChange}
-              rows={3}
-              className="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-white focus:outline-none focus:border-orange-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-gray-300 text-sm mb-1">Avatar *</label>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-800 border border-gray-700">
-                {avatarPreview ? (
-                  <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">No image</div>
-                )}
-              </div>
-              <button
-                type="button"
-                className="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white text-sm border border-gray-600"
-                onClick={() => document.getElementById("profile-avatar-input")?.click()}
-                disabled={saving || uploadingAvatar}
-              >
-                {uploadingAvatar ? "Uploading..." : "Choose Image"}
-              </button>
-            </div>
-            <input
-              id="profile-avatar-input"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
-              disabled={saving || uploadingAvatar}
-            />
+    <div className="fixed inset-0 z-[10000] overflow-y-auto bg-black/80 backdrop-blur-sm">
+      <div className="min-h-full flex items-center justify-center p-4 py-8">
+        <div className="w-full max-w-md bg-gray-950/80 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+          {/* Decorative background element */}
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-orange-500/10 blur-[80px] rounded-full pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-orange-500/5 blur-[80px] rounded-full pointer-events-none" />
 
-            <div className="mt-4">
-              <p className="block text-gray-300 text-sm mb-2">Or choose a generic avatar:</p>
-              <div className="flex flex-wrap gap-2">
-                {GENERIC_AVATARS.map((url, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleGenericAvatarSelect(url)}
-                    className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all ${avatarPreview === url ? 'border-orange-500 scale-110 shadow-lg shadow-orange-500/20' : 'border-gray-700 hover:border-gray-500'}`}
-                  >
-                    <img src={url} alt={`Avatar ${idx + 1}`} className="w-full h-full object-cover bg-gray-800" />
-                  </button>
-                ))}
+          <div className="relative z-10">
+            <h2 className="text-2xl font-black text-white italic uppercase tracking-tight mb-2">Complete Profile</h2>
+            <p className="text-gray-400 text-xs sm:text-sm mb-6 leading-relaxed">Join the arena! We need a few more details to set up your account.</p>
+
+            {error && (
+              <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 text-red-200 text-xs px-4 py-3 italic font-medium">
+                {error}
               </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">Upload a clear photo or select a generic one.</p>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1 mb-1.5">Username *</label>
+                <input
+                  name="username"
+                  value={form.username}
+                  onChange={handleChange}
+                  placeholder="Unique ID"
+                  className="w-full rounded-2xl bg-black/40 border border-white/5 px-5 py-4 text-white focus:outline-none focus:border-orange-500 transition-all font-bold text-sm"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1 mb-1.5">First Name *</label>
+                  <input
+                    name="firstName"
+                    value={form.firstName}
+                    onChange={handleChange}
+                    placeholder="First name"
+                    className="w-full rounded-2xl bg-black/40 border border-white/5 px-5 py-4 text-white focus:outline-none focus:border-orange-500 transition-all font-bold text-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1 mb-1.5">Last Name *</label>
+                  <input
+                    name="lastName"
+                    value={form.lastName}
+                    onChange={handleChange}
+                    placeholder="Last name"
+                    className="w-full rounded-2xl bg-black/40 border border-white/5 px-5 py-4 text-white focus:outline-none focus:border-orange-500 transition-all font-bold text-sm"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1 mb-1.5">Country *</label>
+                <select
+                  name="country"
+                  value={form.country}
+                  onChange={handleChange}
+                  className="w-full rounded-2xl bg-black/40 border border-white/5 px-5 py-4 text-white focus:outline-none focus:border-orange-500 transition-all font-bold text-sm appearance-none"
+                  required
+                >
+                  <option value="">Select country</option>
+                  {COUNTRIES.map((country) => (
+                    <option key={country.code} value={country.name} className="bg-gray-900">
+                      {country.flag} {country.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1 mb-1.5">Date of Birth *</label>
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  value={form.dateOfBirth}
+                  onChange={handleChange}
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
+                  className="w-full rounded-2xl bg-black/40 border border-white/5 px-5 py-4 text-white focus:outline-none focus:border-orange-500 transition-all font-bold text-sm [color-scheme:dark]"
+                  required
+                />
+                <p className="text-[9px] text-gray-500 mt-2 font-bold uppercase tracking-widest ml-1">Age 13+ requirement</p>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1 mb-1.5">Phone (SMS Updates) *</label>
+                <input
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder={form.country === "Nigeria" ? "08012345678" : "0241234567"}
+                  className="w-full rounded-2xl bg-black/40 border border-white/5 px-5 py-4 text-white focus:outline-none focus:border-orange-500 transition-all font-bold text-sm"
+                  required
+                />
+                <p className="text-[9px] text-gray-500 mt-2 font-bold uppercase tracking-widest ml-1">Receive tournament notifications</p>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1 mb-1.5">Gamer Bio *</label>
+                <textarea
+                  name="bio"
+                  value={form.bio}
+                  onChange={handleChange}
+                  rows={2}
+                  placeholder="Talk about your gaming experience..."
+                  className="w-full rounded-2xl bg-black/40 border border-white/5 px-5 py-4 text-white focus:outline-none focus:border-orange-500 transition-all font-medium text-sm resize-none leading-relaxed"
+                  required
+                />
+              </div>
+              <div className="bg-white/5 p-6 rounded-3xl border border-white/5 space-y-4">
+                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-orange-500 ml-1">Identity Visual *</label>
+                <div className="flex items-center gap-6">
+                  <div className="relative group">
+                    <div className="w-20 h-20 rounded-[2rem] overflow-hidden bg-black border-2 border-orange-500/20 group-hover:border-orange-500 transition-all shadow-xl shadow-orange-500/10">
+                      {avatarPreview ? (
+                        <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-600 font-black italic text-xl">?</div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById("profile-avatar-input")?.click()}
+                      className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center border-2 border-gray-950 shadow-lg"
+                      disabled={saving || uploadingAvatar}
+                    >
+                      <UploadIcon size={14} />
+                    </button>
+                  </div>
+
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed">
+                      Upload a battle-ready avatar or select a variant below.
+                    </p>
+                  </div>
+                </div>
+
+                <input
+                  id="profile-avatar-input"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                  disabled={saving || uploadingAvatar}
+                />
+
+                <div className="pt-2">
+                  <div className="flex flex-wrap gap-2.5">
+                    {GENERIC_AVATARS.map((url, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleGenericAvatarSelect(url)}
+                        className={`w-9 h-9 rounded-xl overflow-hidden border-2 transition-all duration-300 ${avatarPreview === url ? 'border-orange-500 scale-110 shadow-lg shadow-orange-500/20' : 'border-white/5 hover:border-white/20'}`}
+                      >
+                        <img src={url} alt={`Variant ${idx + 1}`} className="w-full h-full object-cover bg-black" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={saving}
+                className={`w-full bg-orange-600 hover:bg-orange-500 text-white font-black uppercase tracking-[0.2em] py-5 rounded-2xl transition-all shadow-xl shadow-orange-600/20 active:scale-[0.98] disabled:opacity-50 mt-4 text-xs ${saving ? "cursor-not-allowed" : ""}`}
+              >
+                {saving ? "Synchronizing Data..." : "Enter the Arena"}
+              </button>
+            </form>
           </div>
-          <button
-            type="submit"
-            disabled={saving}
-            className={`w-full mt-2 rounded-xl bg-gradient-to-r from-orange-600 to-orange-500 text-white font-bold py-3 shadow-lg shadow-orange-500/30 transition-all ${saving ? "opacity-50 cursor-not-allowed" : "hover:scale-[0.99]"}`}
-          >
-            {saving ? "Saving..." : "Save & Continue"}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );
 }
+
+const UploadIcon = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+);

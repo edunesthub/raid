@@ -26,6 +26,7 @@ export default function RootLayout({ children }) {
   // Pages that should hide navigation completely
   const hideNav = ["/welcome", "/auth/login", "/auth/signup", "/auth/onboarding", "/admin/login"].includes(pathname) ||
     pathname.startsWith("/admin") ||
+    pathname.startsWith("/host") ||
     pathname.startsWith("/team-chat") ||
     pathname.startsWith("/league-chat") ||
     (pathname.includes("/tournament/") && pathname.endsWith("/chat"));

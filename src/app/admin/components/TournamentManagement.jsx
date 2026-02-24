@@ -10,6 +10,7 @@ import {
   doc,
   deleteDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Plus, Search, Edit, Trash2, X, Calendar, Users as UsersIcon, Zap, Target, Filter, MessageSquare, Shield } from "lucide-react";
@@ -20,7 +21,7 @@ import SendSMSModal from "./SendSMSModal";
 import { useAuth } from '@/hooks/useAuth';
 import { logAdminAction } from '@/services/adminAuditService';
 
-export default function TournamentManagement() {
+export default function TournamentManagement({ hostId }) {
   const { user } = useAuth();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,8 +54,16 @@ export default function TournamentManagement() {
 
   const loadTournaments = async () => {
     try {
-      setLoading(true);
-      const q = query(collection(db, "tournaments"), orderBy("created_at", "desc"));
+      let q;
+      if (hostId) {
+        q = query(
+          collection(db, "tournaments"),
+          where("hostId", "==", hostId),
+          orderBy("created_at", "desc")
+        );
+      } else {
+        q = query(collection(db, "tournaments"), orderBy("created_at", "desc"));
+      }
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map((d) => ({
         id: d.id,
@@ -730,6 +739,7 @@ export default function TournamentManagement() {
         showForm && (
           <TournamentForm
             tournament={selectedTournament}
+            hostId={hostId}
             onClose={() => {
               setShowForm(false);
               setSelectedTournament(null);

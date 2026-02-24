@@ -10,7 +10,8 @@ import {
     addDoc,
     serverTimestamp,
     orderBy,
-    query
+    query,
+    where
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
@@ -32,7 +33,7 @@ import LeagueStandingsEditor from "./LeagueStandingsEditor";
 import LeagueMatchesEditor from "./LeagueMatchesEditor";
 import LeagueTeamsEditor from "./LeagueTeamsEditor";
 
-export default function LeagueManagement() {
+export default function LeagueManagement({ hostId }) {
     const [leagues, setLeagues] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -48,7 +49,16 @@ export default function LeagueManagement() {
     const loadLeagues = async () => {
         try {
             setLoading(true);
-            const q = query(collection(db, "league_seasons"), orderBy("created_at", "desc"));
+            let q;
+            if (hostId) {
+                q = query(
+                    collection(db, "league_seasons"),
+                    where("hostId", "==", hostId),
+                    orderBy("created_at", "desc")
+                );
+            } else {
+                q = query(collection(db, "league_seasons"), orderBy("created_at", "desc"));
+            }
             const snapshot = await getDocs(q);
             const data = snapshot.docs.map((d) => ({
                 id: d.id,
@@ -239,6 +249,7 @@ export default function LeagueManagement() {
             {showForm && (
                 <LeagueForm
                     league={selectedLeague}
+                    hostId={hostId}
                     onClose={() => setShowForm(false)}
                     onSuccess={() => {
                         setShowForm(false);

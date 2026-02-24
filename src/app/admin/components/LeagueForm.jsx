@@ -5,7 +5,7 @@ import { doc, updateDoc, addDoc, collection, serverTimestamp } from "firebase/fi
 import { db } from "@/lib/firebase";
 import { X, Save, Trophy, Calendar, Info, Upload, Image as ImageIcon } from "lucide-react";
 
-export default function LeagueForm({ league, onClose, onSuccess }) {
+export default function LeagueForm({ league, onClose, onSuccess, hostId }) {
     const [loading, setLoading] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [imagePreview, setImagePreview] = useState(league?.league_flyer || null);
@@ -21,6 +21,7 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
         start_date: league?.start_date || "2026-02-10",
         end_date: league?.end_date || "2026-03-25",
         team_count: league?.team_count || 8,
+        operational_model: league?.operational_model || "percentage",
     });
 
     const handleImageSelect = (e) => {
@@ -101,6 +102,7 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                 await addDoc(collection(db, "league_seasons"), {
                     ...data,
                     created_at: serverTimestamp(),
+                    hostId: hostId || null,
                 });
             }
 
@@ -123,9 +125,9 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                         </div>
                         <div>
                             <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">
-                                {league ? "Refine Season" : "Launch New Season"}
+                                {league ? "Edit Season" : "New League Season"}
                             </h3>
-                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-0.5">League Architecture Utility</p>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-0.5">League Management</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all border border-white/5">
@@ -136,7 +138,7 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                 <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto max-h-[75vh] scrollbar-hide">
                     {/* Image Upload Section */}
                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Season Visual Identity</label>
+                        <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">League Banner</label>
                         <div
                             onClick={() => fileInputRef.current?.click()}
                             className="relative border-2 border-dashed border-white/10 rounded-[2rem] p-8 hover:border-orange-500/50 transition-all cursor-pointer group bg-white/[0.02]"
@@ -150,7 +152,7 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                                     />
                                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all rounded-2xl flex flex-col items-center justify-center backdrop-blur-sm">
                                         <Upload className="w-10 h-10 text-white mb-2" />
-                                        <span className="text-white font-black text-xs uppercase tracking-widest">Update Visuals</span>
+                                        <span className="text-white font-black text-xs uppercase tracking-widest">Change Image</span>
                                     </div>
                                 </div>
                             ) : (
@@ -174,7 +176,7 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                         <div className="space-y-2.5">
-                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Identity</label>
+                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">League Name</label>
                             <input
                                 required
                                 placeholder="e.g. ELITE AFRICAN SERIES"
@@ -184,7 +186,7 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                             />
                         </div>
                         <div className="space-y-2.5">
-                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Timeline Label</label>
+                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Season Name</label>
                             <input
                                 required
                                 placeholder="e.g. S1 • 2026"
@@ -194,7 +196,7 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                             />
                         </div>
                         <div className="space-y-2.5">
-                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Arena Rewards</label>
+                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Prize Pool</label>
                             <input
                                 required
                                 placeholder="e.g. ₵50,000"
@@ -204,7 +206,7 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                             />
                         </div>
                         <div className="space-y-2.5">
-                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Combatants</label>
+                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Teams</label>
                             <input
                                 type="number"
                                 required
@@ -214,7 +216,7 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                             />
                         </div>
                         <div className="space-y-2.5">
-                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Deployment Start</label>
+                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Start Date</label>
                             <input
                                 type="date"
                                 required
@@ -224,7 +226,7 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                             />
                         </div>
                         <div className="space-y-2.5">
-                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Mission End</label>
+                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">End Date</label>
                             <input
                                 type="date"
                                 required
@@ -236,15 +238,60 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                     </div>
 
                     <div className="space-y-2.5">
-                        <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Mission Directive</label>
+                        <label className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] ml-1">Description</label>
                         <textarea
                             rows={4}
                             required
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-6 py-5 text-white font-medium outline-none focus:border-orange-500/50 transition-all resize-none leading-relaxed"
+                            className="w-full bg-white/5 border border-white/5 rounded-[2rem] px-6 py-5 text-white font-medium outline-none focus:border-orange-500/50 transition-all resize-none leading-relaxed"
                         />
                     </div>
+
+                    {/* Operational Model - For Hosts */}
+                    {(hostId || league?.hostId) && (
+                        <div className="bg-orange-500/5 p-6 rounded-[2.5rem] border border-orange-500/20 space-y-5">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-orange-500/20 flex items-center justify-center">
+                                    <Info className="text-orange-500" size={20} />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-black uppercase tracking-[0.1em] text-orange-500">
+                                        Operational Framework
+                                    </label>
+                                    <p className="text-[10px] text-orange-500/60 font-bold uppercase tracking-wider">How will this campaign be settled?</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, operational_model: "percentage" })}
+                                    className={`p-5 rounded-3xl border-2 text-left transition-all duration-300 ${formData.operational_model === "percentage"
+                                        ? "bg-orange-500/20 border-orange-500 text-white shadow-xl shadow-orange-500/20 scale-[1.02]"
+                                        : "bg-black/40 border-white/5 text-gray-500 hover:border-white/10"
+                                        }`}
+                                >
+                                    <div className="font-black text-[10px] uppercase tracking-widest mb-1 opacity-50">Flex Commission</div>
+                                    <div className="font-black text-xl italic tracking-tighter">20% CUT</div>
+                                    <div className="text-[10px] font-bold uppercase tracking-wider opacity-60 mt-1">Pay per season.</div>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, operational_model: "fixed" })}
+                                    className={`p-5 rounded-3xl border-2 text-left transition-all duration-300 ${formData.operational_model === "fixed"
+                                        ? "bg-orange-500/20 border-orange-500 text-white shadow-xl shadow-orange-500/20 scale-[1.02]"
+                                        : "bg-black/40 border-white/5 text-gray-500 hover:border-white/10"
+                                        }`}
+                                >
+                                    <div className="font-black text-[10px] uppercase tracking-widest mb-1 opacity-50">Fixed Access</div>
+                                    <div className="font-black text-xl italic tracking-tighter">₵200 FLAT</div>
+                                    <div className="text-[10px] font-bold uppercase tracking-wider opacity-60 mt-1">Unlimited scaling.</div>
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="pt-6 flex gap-4">
                         <button
@@ -252,7 +299,7 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                             onClick={onClose}
                             className="flex-1 py-5 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl transition-all border border-white/5"
                         >
-                            Abort
+                            Cancel
                         </button>
                         <button
                             disabled={loading}
@@ -260,7 +307,7 @@ export default function LeagueForm({ league, onClose, onSuccess }) {
                             className="flex-[2] py-5 bg-orange-600 hover:bg-orange-500 disabled:bg-orange-900 text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl transition-all shadow-xl shadow-orange-600/20 flex items-center justify-center gap-3"
                         >
                             <Save size={20} />
-                            {uploadingImage ? "Synchronizing Assets..." : loading ? "Archiving Details..." : "Confirm Deployment"}
+                            {uploadingImage ? "Uploading..." : loading ? "Saving..." : "Create League"}
                         </button>
                     </div>
                 </form>

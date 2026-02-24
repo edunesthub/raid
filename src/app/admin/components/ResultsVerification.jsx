@@ -1,20 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
+import {
+  collection,
+  query,
+  where,
+  orderBy,
   getDocs,
   doc,
   updateDoc,
-  serverTimestamp 
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Check, X, Eye, Clock, CheckCircle, XCircle } from 'lucide-react';
 
-export default function ResultsVerification() {
+export default function ResultsVerification({ hostId }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('pending'); // pending, verified, rejected, all
@@ -30,16 +30,33 @@ export default function ResultsVerification() {
     try {
       setLoading(true);
       const resultsRef = collection(db, 'match_results');
-      
+
       let q;
-      if (filter === 'all') {
-        q = query(resultsRef, orderBy('submittedAt', 'desc'));
+      if (hostId) {
+        if (filter === 'all') {
+          q = query(
+            resultsRef,
+            where('hostId', '==', hostId),
+            orderBy('submittedAt', 'desc')
+          );
+        } else {
+          q = query(
+            resultsRef,
+            where('hostId', '==', hostId),
+            where('status', '==', filter),
+            orderBy('submittedAt', 'desc')
+          );
+        }
       } else {
-        q = query(
-          resultsRef,
-          where('status', '==', filter),
-          orderBy('submittedAt', 'desc')
-        );
+        if (filter === 'all') {
+          q = query(resultsRef, orderBy('submittedAt', 'desc'));
+        } else {
+          q = query(
+            resultsRef,
+            where('status', '==', filter),
+            orderBy('submittedAt', 'desc')
+          );
+        }
       }
 
       const snapshot = await getDocs(q);
@@ -121,11 +138,10 @@ export default function ResultsVerification() {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap transition-colors ${
-              filter === f
+            className={`px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap transition-colors ${filter === f
                 ? 'bg-orange-600 text-white'
                 : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
-            }`}
+              }`}
           >
             {f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
@@ -154,9 +170,9 @@ export default function ResultsVerification() {
                     <h3 className="text-white font-bold">{result.username}</h3>
                     {getStatusBadge(result.status)}
                   </div>
-                  
+
                   <p className="text-gray-400 text-sm">{result.tournamentName}</p>
-                  
+
                   <div className="flex items-center gap-4 text-sm">
                     <span className="text-gray-300">
                       Score: <span className="font-bold text-green-400">{result.userScore}</span>

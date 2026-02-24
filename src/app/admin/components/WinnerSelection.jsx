@@ -3,19 +3,19 @@
 
 import { useState, useEffect } from 'react';
 import { Trophy, Crown, Medal, Award, X, Search, Check, Loader } from 'lucide-react';
-import { 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  doc, 
-  updateDoc, 
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
   serverTimestamp,
-  getDoc 
+  getDoc
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-export default function WinnerSelection() {
+export default function WinnerSelection({ hostId }) {
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTournament, setSelectedTournament] = useState(null);
@@ -23,7 +23,7 @@ export default function WinnerSelection() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  
+
   const [placements, setPlacements] = useState({
     first: null,
     second: null,
@@ -38,15 +38,24 @@ export default function WinnerSelection() {
     try {
       setLoading(true);
       // Get live tournaments or tournaments ready to complete
-      const q = query(
-        collection(db, 'tournaments'),
-        where('status', 'in', ['live', 'upcoming'])
-      );
+      let q;
+      if (hostId) {
+        q = query(
+          collection(db, 'tournaments'),
+          where('status', 'in', ['live', 'upcoming']),
+          where('hostId', '==', hostId)
+        );
+      } else {
+        q = query(
+          collection(db, 'tournaments'),
+          where('status', 'in', ['live', 'upcoming'])
+        );
+      }
 
       const snapshot = await getDocs(q);
-      const tournamentsList = snapshot.docs.map(doc => ({ 
-        id: doc.id, 
-        ...doc.data() 
+      const tournamentsList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
       }));
 
       setTournaments(tournamentsList);
@@ -61,7 +70,7 @@ export default function WinnerSelection() {
   const openTournament = async (tournament) => {
     try {
       setSelectedTournament(tournament);
-      
+
       // Get participants
       const participantsQuery = query(
         collection(db, 'tournament_participants'),
@@ -70,14 +79,14 @@ export default function WinnerSelection() {
       );
 
       const participantsSnapshot = await getDocs(participantsQuery);
-      
+
       // Get user details for each participant
       const participantsList = await Promise.all(
         participantsSnapshot.docs.map(async (docSnap) => {
           const data = docSnap.data();
           const userDoc = await getDoc(doc(db, 'users', data.userId));
           const userData = userDoc.exists() ? userDoc.data() : {};
-          
+
           return {
             id: data.userId,
             username: userData.username || 'Unknown',
@@ -98,7 +107,7 @@ export default function WinnerSelection() {
 
   const handleSelectWinner = (placement, participantId) => {
     const currentPlacements = { ...placements };
-    
+
     // Remove this participant from other placements
     Object.keys(currentPlacements).forEach(key => {
       if (currentPlacements[key] === participantId && key !== placement) {
@@ -125,7 +134,7 @@ export default function WinnerSelection() {
       setSubmitting(true);
 
       const tournamentRef = doc(db, 'tournaments', selectedTournament.id);
-      
+
       // Update tournament with winners
       await updateDoc(tournamentRef, {
         status: 'completed',
@@ -138,28 +147,28 @@ export default function WinnerSelection() {
 
       // Update participant records with placement
       const updates = [];
-      
+
       if (placements.first) {
         const firstDoc = doc(db, 'tournament_participants', `${selectedTournament.id}_${placements.first}`);
-        updates.push(updateDoc(firstDoc, { 
-          placement: 1, 
-          placementAt: serverTimestamp() 
+        updates.push(updateDoc(firstDoc, {
+          placement: 1,
+          placementAt: serverTimestamp()
         }));
       }
-      
+
       if (placements.second) {
         const secondDoc = doc(db, 'tournament_participants', `${selectedTournament.id}_${placements.second}`);
-        updates.push(updateDoc(secondDoc, { 
-          placement: 2, 
-          placementAt: serverTimestamp() 
+        updates.push(updateDoc(secondDoc, {
+          placement: 2,
+          placementAt: serverTimestamp()
         }));
       }
-      
+
       if (placements.third) {
         const thirdDoc = doc(db, 'tournament_participants', `${selectedTournament.id}_${placements.third}`);
-        updates.push(updateDoc(thirdDoc, { 
-          placement: 3, 
-          placementAt: serverTimestamp() 
+        updates.push(updateDoc(thirdDoc, {
+          placement: 3,
+          placementAt: serverTimestamp()
         }));
       }
 
@@ -179,34 +188,34 @@ export default function WinnerSelection() {
   const getPlacementIcon = (placement) => {
     switch (placement) {
       case 'first':
-        return { 
-          icon: Crown, 
-          color: 'text-yellow-400', 
-          bg: 'bg-yellow-500/20', 
+        return {
+          icon: Crown,
+          color: 'text-yellow-400',
+          bg: 'bg-yellow-500/20',
           border: 'border-yellow-500/40',
           label: '1st Place'
         };
       case 'second':
-        return { 
-          icon: Medal, 
-          color: 'text-gray-400', 
-          bg: 'bg-gray-500/20', 
+        return {
+          icon: Medal,
+          color: 'text-gray-400',
+          bg: 'bg-gray-500/20',
           border: 'border-gray-500/40',
           label: '2nd Place'
         };
       case 'third':
-        return { 
-          icon: Medal, 
-          color: 'text-orange-400', 
-          bg: 'bg-orange-500/20', 
+        return {
+          icon: Medal,
+          color: 'text-orange-400',
+          bg: 'bg-orange-500/20',
           border: 'border-orange-500/40',
           label: '3rd Place'
         };
       default:
-        return { 
-          icon: Award, 
-          color: 'text-gray-400', 
-          bg: 'bg-gray-500/20', 
+        return {
+          icon: Award,
+          color: 'text-gray-400',
+          bg: 'bg-gray-500/20',
           border: 'border-gray-500/40',
           label: 'Unknown'
         };
@@ -267,9 +276,8 @@ export default function WinnerSelection() {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">Status:</span>
-                  <span className={`font-semibold ${
-                    tournament.status === 'live' ? 'text-green-400' : 'text-yellow-400'
-                  }`}>
+                  <span className={`font-semibold ${tournament.status === 'live' ? 'text-green-400' : 'text-yellow-400'
+                    }`}>
                     {tournament.status === 'live' ? 'Live' : 'Upcoming'}
                   </span>
                 </div>
@@ -406,7 +414,7 @@ export default function WinnerSelection() {
                   <Trophy className="w-5 h-5" />
                   All Participants ({filteredParticipants.length})
                 </h4>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
                   {filteredParticipants.map(participant => {
                     const isSelected = Object.values(placements).includes(participant.id);
@@ -417,11 +425,10 @@ export default function WinnerSelection() {
                     return (
                       <div
                         key={participant.id}
-                        className={`bg-gray-800 border rounded-xl p-3 transition-all ${
-                          isSelected
+                        className={`bg-gray-800 border rounded-xl p-3 transition-all ${isSelected
                             ? 'border-orange-500 bg-orange-500/10'
                             : 'border-gray-700 hover:border-gray-600'
-                        }`}
+                          }`}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                           <div className="flex items-center gap-3 min-w-0">
