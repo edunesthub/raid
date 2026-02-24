@@ -1,6 +1,6 @@
 "use client";
 
-export default function StatCard({ title, value, icon: Icon, trend, color = "orange" }) {
+export default function StatCard({ title, value, icon: Icon, trend, color = "orange", onClick }) {
   const colorClasses = {
     orange: "bg-orange-500/10 border-orange-500/30 text-orange-400",
     green: "bg-green-500/10 border-green-500/30 text-green-400",
@@ -9,7 +9,10 @@ export default function StatCard({ title, value, icon: Icon, trend, color = "ora
   };
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 hover:border-orange-500/50 transition-all">
+    <div
+      onClick={onClick}
+      className={`bg-gray-800 border border-gray-700 rounded-xl p-4 transition-all ${onClick ? 'cursor-pointer hover:border-orange-500/50 hover:bg-gray-800/80 active:scale-95' : ''}`}
+    >
       <div className="flex items-center justify-between mb-3">
         <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
           <Icon size={20} />
@@ -21,8 +24,8 @@ export default function StatCard({ title, value, icon: Icon, trend, color = "ora
           </span>
         )}
       </div>
-      <h3 className="text-gray-400 text-xs mb-1">{title}</h3>
-      <p className="text-white text-xl font-bold">{value}</p>
+      <h3 className="text-gray-400 text-xs mb-1 uppercase font-bold tracking-wider">{title}</h3>
+      <p className="text-white text-xl font-black italic">{value}</p>
     </div>
   );
 }

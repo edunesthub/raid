@@ -320,19 +320,30 @@ export default function TournamentManagement({ hostId, restriction, onPlanRequir
       </div>
 
 
-      {/* Info Banner - Combined */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="rounded-xl p-4 border bg-purple-500/10 border-purple-500/30">
-          <p className="text-sm flex items-center gap-2 text-purple-400">
-            <Target className="w-4 h-4" />
-            Bracket tournaments use auto-generated elimination brackets. Click 'Generate' when ready.
-          </p>
-        </div>
-        <div className="rounded-xl p-4 border bg-orange-500/10 border-orange-500/30">
-          <p className="text-sm flex items-center gap-2 text-orange-400">
-            <Zap className="w-4 h-4" />
-            Battle Royale tournaments require manual winner selection in the 'Winner Selection' tab.
-          </p>
+      {/* Combined Info Banner */}
+      <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-3 md:p-4">
+        <div className="flex flex-col md:flex-row gap-3 md:gap-8 justify-center">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-purple-500/10 rounded-lg text-purple-400">
+              <Target size={14} />
+            </div>
+            <p className="text-[10px] md:text-xs font-medium text-gray-400">
+              <span className="text-purple-400 font-bold uppercase tracking-widest mr-1">Brackets:</span>
+              Auto-generated elimination. Click 'Generate' when registration closes.
+            </p>
+          </div>
+
+          <div className="hidden md:block w-px h-4 bg-white/10 self-center"></div>
+
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-orange-500/10 rounded-lg text-orange-400">
+              <Zap size={14} />
+            </div>
+            <p className="text-[10px] md:text-xs font-medium text-gray-400">
+              <span className="text-orange-400 font-bold uppercase tracking-widest mr-1">Battle Royale:</span>
+              Manual winner selection required in the selection tab.
+            </p>
+          </div>
         </div>
       </div>
 
