@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
     LayoutDashboard,
     Trophy,
@@ -28,6 +28,16 @@ export default function HostPortal() {
     const { host, loading, logout } = useHostAuth();
     const [activeTab, setActiveTab] = useState("dashboard");
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const sidebarRef = useRef(null);
+
+    useEffect(() => {
+        if (sidebarOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => { document.body.style.overflow = 'unset'; };
+    }, [sidebarOpen]);
 
     if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white italic">Loading Host Portal...</div>;
     if (!host) return null; // Hook handles redirect
@@ -68,10 +78,17 @@ export default function HostPortal() {
             </div>
 
             {/* Sidebar Overlay for Mobile */}
-            {sidebarOpen && <div className="fixed inset-0 bg-black/60 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden animate-in fade-in duration-300"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
 
             {/* Sidebar */}
-            <div className={`fixed lg:static inset-y-0 left-0 w-64 bg-gray-900 border-r border-gray-800 flex flex-col transform transition-transform duration-300 z-50 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+            <div
+                ref={sidebarRef}
+                className={`fixed lg:static inset-y-0 left-0 w-64 bg-gray-900 border-r border-gray-800 flex flex-col transform transition-transform duration-300 z-50 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
                 {/* Sidebar Branding (Desktop & Mobile) */}
                 <div className="p-8 border-b border-gray-800/50 relative">
                     {/* Mobile Close Button */}

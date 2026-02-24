@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, cloneElement } from "react";
+import { useState, cloneElement, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import NotificationBadge from "@/components/NotificationBadge";
@@ -25,6 +25,31 @@ export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
+  const sidebarRef = useRef(null);
+  const userMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Close user menu if clicking outside
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    if (isUserMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isUserMenuOpen]);
+
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isMenuOpen]);
 
   const navItems = [
     { href: "/", label: "Home", icon: <Home className="w-5 h-5" /> },
@@ -91,16 +116,18 @@ export default function Navigation() {
                       <div className="flex items-center space-x-4">
                         <NotificationBadge />
 
-                        <button
-                          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                          className="flex items-center space-x-2 p-1 rounded-full text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-                        >
-                          <UserAvatar
-                            user={user}
-                            size="xs"
-                          />
-                          <span className="text-[10px] opacity-30">▼</span>
-                        </button>
+                        <div className="relative" ref={userMenuRef}>
+                          <button
+                            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                            className="flex items-center space-x-2 p-1 rounded-full text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                          >
+                            <UserAvatar
+                              user={user}
+                              size="xs"
+                            />
+                            <span className="text-[10px] opacity-30">▼</span>
+                          </button>
+                        </div>
                       </div>
 
                       {isUserMenuOpen && (
@@ -188,6 +215,7 @@ export default function Navigation() {
       )}
 
       <div
+        ref={sidebarRef}
         className={`fixed top-0 left-0 h-full w-80 bg-black/70 backdrop-blur-xl border-r border-white/10 shadow-xl transform transition-transform duration-300 z-[100] flex flex-col ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
