@@ -103,17 +103,19 @@ export default function Dashboard({ hostId }) {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid grid-cols-2 ${hostId ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-4`}>
         {!hostId && <StatCard title="Total Users" value={stats.totalUsers.toLocaleString()} icon={Users} color="blue" />}
         <StatCard title="Active Events" value={stats.activeTournaments.toString()} icon={Trophy} color="orange" />
-        <StatCard title="Total Revenue" value={`${currency}${stats.totalRevenue.toLocaleString()} `} icon={DollarSign} color="green" />
-        <StatCard
-          title={hostId ? "Commission Due" : "Raid Commission"}
-          value={hostId ? `${currency}${stats.totalCommission.toLocaleString()} ` : stats.commissionEventsCount.toString() + ' Events'}
-          icon={AlertCircle}
-          color="purple"
-          onClick={() => setShowCommissionModal(true)}
-        />
+        <StatCard title="Total Revenue" value={`${currency}${stats.totalRevenue.toLocaleString()}`} icon={DollarSign} color="green" />
+        {!hostId && (
+          <StatCard
+            title="Raid Commission"
+            value={stats.commissionEventsCount.toString() + ' Events'}
+            icon={AlertCircle}
+            color="purple"
+            onClick={() => setShowCommissionModal(true)}
+          />
+        )}
       </div>
 
       {/* Commission Modal */}
