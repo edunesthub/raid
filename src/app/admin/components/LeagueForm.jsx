@@ -24,7 +24,7 @@ export default function LeagueForm({ league, onClose, onSuccess, hostId }) {
         start_date: league?.start_date || "2026-02-10",
         end_date: league?.end_date || "2026-03-25",
         team_count: league?.team_count || 8,
-        operational_model: league?.operational_model || (hostId ? (user?.paymentModel === 'subscription' ? 'fixed' : 'percentage') : "percentage"),
+        operational_model: "percentage",
     });
 
     const handleImageSelect = (e) => {
@@ -251,27 +251,7 @@ export default function LeagueForm({ league, onClose, onSuccess, hostId }) {
                         />
                     </div>
 
-                    {/* Branding / Info Tag */}
-                    {(hostId || league?.hostId) && (
-                        <div className="bg-orange-500/5 p-4 rounded-2xl border border-orange-500/20 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-orange-500/20 rounded-lg text-orange-500">
-                                    <Info size={16} />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-wider text-orange-500 opacity-70">
-                                        Settlement Strategy
-                                    </label>
-                                    <p className="text-xs font-black text-white italic uppercase tracking-tighter">
-                                        {formData.operational_model === 'fixed' ? '₵200 Monthly Subscription' : '20% Revenue Commission'}
-                                    </p>
-                                </div>
-                            </div>
-                            <p className="text-[8px] text-orange-500/40 uppercase font-black tracking-widest text-right max-w-[100px]">
-                                Configured in Host Payments
-                            </p>
-                        </div>
-                    )}
+
 
                     <div className="pt-6 flex gap-4">
                         <button

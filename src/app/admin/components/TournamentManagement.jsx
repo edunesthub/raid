@@ -469,17 +469,11 @@ export default function TournamentManagement({ hostId, restriction, onPlanRequir
                   </td>
                   <td className="p-4">
                     <div className="flex flex-col">
-                      {t.operational_model === 'fixed' ? (
-                        <span className="text-blue-400 text-[10px] font-black uppercase tracking-widest bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 w-fit">Flat Fee</span>
-                      ) : (
-                        <>
-                          <span className="text-orange-500 text-xs font-black">
-                            {t.country === 'Nigeria' ? '₦' : '₵'}
-                            {((t.entry_fee || 0) * (t.max_participant || 0) * 0.20).toFixed(2)}
-                          </span>
-                          <span className="text-[8px] text-gray-500 uppercase font-bold tracking-tighter">20% Capacity</span>
-                        </>
-                      )}
+                      <span className="text-orange-500 text-xs font-black">
+                        {t.country === 'Nigeria' ? '₦' : '₵'}
+                        {((t.entry_fee || 0) * (t.max_participant || 0) * 0.20).toFixed(2)}
+                      </span>
+                      <span className="text-[8px] text-gray-500 uppercase font-bold tracking-tighter italic">20% Commission</span>
                     </div>
                   </td>
                   {/* Bracket Column */}
@@ -638,16 +632,8 @@ export default function TournamentManagement({ hostId, restriction, onPlanRequir
                 <div className="text-gray-300">
                   Cash Pool: <span className="text-green-500 font-bold">{t.country === 'Nigeria' ? '₦' : '₵'}{((t.entry_fee || 0) * (t.max_participant || 0)).toLocaleString()}</span>
                 </div>
-                <div className="text-gray-300 flex items-center gap-2">
-                  Commission:
-                  {t.operational_model === 'fixed' ? (
-                    <span className="text-blue-400 font-black text-[9px] uppercase tracking-widest bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">Flat Fee</span>
-                  ) : (
-                    <span className="text-orange-500 font-black">
-                      {t.country === 'Nigeria' ? '₦' : '₵'}
-                      {((t.entry_fee || 0) * (t.max_participant || 0) * 0.20).toFixed(2)}
-                    </span>
-                  )}
+                <div className="text-gray-300">
+                  Commission: <span className="text-orange-500 font-black">{t.country === 'Nigeria' ? '₦' : '₵'}{((t.entry_fee || 0) * (t.max_participant || 0) * 0.20).toFixed(2)}</span>
                 </div>
                 {t.format === "Bracket" && (
                   <div className="text-gray-300">

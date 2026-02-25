@@ -32,9 +32,6 @@ import {
 } from "lucide-react";
 
 const calculateItemCommission = (item) => {
-    if (item.operational_model === 'fixed') {
-        return 200;
-    }
     // Handle both tournament and league participants naming
     const participants = parseInt(item.current_participants || item.participantsCount || 0);
     const fee = parseFloat(item.entry_fee || 0);
@@ -64,11 +61,8 @@ const HostActivityModal = ({ isOpen, onClose, host, stats }) => {
                             </h3>
                             <div className="flex items-center gap-3 mt-2">
                                 <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em]">Host Details & Performance</p>
-                                <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${host.paymentModel === 'subscription'
-                                    ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                                    : 'bg-orange-500/10 text-orange-500 border-orange-500/20'
-                                    }`}>
-                                    {host.paymentModel === 'subscription' ? 'Monthly Subscriber' : 'Commission Based'}
+                                <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border bg-orange-500/10 text-orange-500 border-orange-500/20">
+                                    Commission Based
                                 </span>
                             </div>
                         </div>
@@ -103,29 +97,16 @@ const HostActivityModal = ({ isOpen, onClose, host, stats }) => {
                         </div>
 
                         <div className="bg-white/5 p-6 rounded-3xl border border-white/5 col-span-1 lg:col-span-2">
-                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Event Payment Plans</p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="flex items-center gap-4 p-5 bg-black/40 rounded-2xl border border-white/5">
-                                    <div className="p-3 bg-orange-500/10 rounded-2xl text-orange-500">
-                                        <CreditCard size={20} />
-                                    </div>
-                                    <div>
-                                        <p className="text-[11px] font-black text-white uppercase tracking-widest">Commission Plan</p>
-                                        <p className="text-[10px] text-gray-500 uppercase font-black mt-1">
-                                            {stats?.tournamentData.filter(t => t.operational_model === 'percentage').length || 0} Tournaments • {stats?.leagueData.filter(t => t.operational_model === 'percentage').length || 0} Leagues
-                                        </p>
-                                    </div>
+                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Platform Operational Model</p>
+                            <div className="flex items-center gap-4 p-5 bg-black/40 rounded-2xl border border-white/5">
+                                <div className="p-3 bg-orange-500/10 rounded-2xl text-orange-500">
+                                    <DollarSign size={20} />
                                 </div>
-                                <div className="flex items-center gap-4 p-5 bg-black/40 rounded-2xl border border-white/5">
-                                    <div className="p-3 bg-blue-500/10 rounded-2xl text-blue-500">
-                                        <ShieldCheck size={20} />
-                                    </div>
-                                    <div>
-                                        <p className="text-[11px] font-black text-white uppercase tracking-widest">Flat Fee Plan</p>
-                                        <p className="text-[10px] text-gray-500 uppercase font-black mt-1">
-                                            {stats?.tournamentData.filter(t => t.operational_model === 'fixed').length || 0} Tournaments • {stats?.leagueData.filter(t => t.operational_model === 'fixed').length || 0} Leagues
-                                        </p>
-                                    </div>
+                                <div>
+                                    <p className="text-[11px] font-black text-white uppercase tracking-widest">20% Revenue Share</p>
+                                    <p className="text-[10px] text-gray-400 uppercase font-black mt-1 leading-snug">
+                                        Applied to all entry fees. No upfront or monthly costs for hosts.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -186,7 +167,7 @@ const HostActivityModal = ({ isOpen, onClose, host, stats }) => {
                                                 </span>
                                             </div>
                                             <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mt-1">
-                                                {t.operational_model === 'fixed' ? '₵200 Flat' : '20% Commission'} • {t.current_participants || 0}/{t.max_participant || '∞'} Players
+                                                20% Commission • {t.current_participants || 0}/{t.max_participant || '∞'} Players
                                             </p>
                                         </div>
                                         <div className="text-right flex-shrink-0">
@@ -230,7 +211,7 @@ const HostActivityModal = ({ isOpen, onClose, host, stats }) => {
                                                 </span>
                                             </div>
                                             <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mt-1">
-                                                {l.operational_model === 'fixed' ? 'Fixed' : '20% Rate'} • Season {l.season}
+                                                20% Commission Rate • Season {l.season}
                                             </p>
                                         </div>
                                         <div className="text-right flex-shrink-0">
@@ -396,8 +377,8 @@ export default function HostManagement() {
                                             <span className="w-1 h-1 bg-gray-800 rounded-full" />
                                             <p className="text-gray-600 text-[9px] font-black uppercase tracking-widest truncate">{host.country || 'Global'}</p>
                                             <span className="w-1 h-1 bg-gray-800 rounded-full" />
-                                            <span className={`text-[8px] font-black uppercase tracking-widest ${host.paymentModel === 'subscription' ? 'text-blue-500' : 'text-orange-500'}`}>
-                                                {host.paymentModel === 'subscription' ? 'Subscriber' : 'Commission'}
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-orange-500">
+                                                Commission Model
                                             </span>
                                         </div>
                                     </div>

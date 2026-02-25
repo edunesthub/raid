@@ -43,7 +43,7 @@ export default function TournamentForm({ tournament, onClose, onCreated, hostId 
     rules: [],
     twitch_link: "",
     prize_distribution: [], // [{rank: "1st Place", reward: ""}]
-    operational_model: "percentage", // "percentage" or "fixed"
+    operational_model: "percentage", // "percentage" is the only model now
   });
 
   const [loading, setLoading] = useState(false);
@@ -76,7 +76,7 @@ export default function TournamentForm({ tournament, onClose, onCreated, hostId 
         rules: Array.isArray(tournament.rules) ? tournament.rules : [],
         twitch_link: tournament.twitch_link || "",
         prize_distribution: Array.isArray(tournament.prize_distribution) ? tournament.prize_distribution : [],
-        operational_model: tournament.operational_model || (hostId ? (user?.paymentModel === 'subscription' ? 'fixed' : 'percentage') : "percentage"),
+        operational_model: "percentage",
       });
 
       if (tournament.tournament_flyer) {
@@ -441,27 +441,7 @@ export default function TournamentForm({ tournament, onClose, onCreated, hostId 
             </div>
           </div>
 
-          {/* Hosting Plan Info Tag */}
-          {(hostId || tournament?.hostId) && (
-            <div className="bg-orange-500/5 p-4 rounded-2xl border border-orange-500/20 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-500/20 rounded-lg text-orange-500">
-                  <Zap size={16} />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-orange-500 opacity-70">
-                    Active Payment Model
-                  </label>
-                  <p className="text-xs font-black text-white italic uppercase tracking-tighter">
-                    {form.operational_model === 'fixed' ? '₵200 Monthly Flat Fee' : '20% Entry Fee Commission'}
-                  </p>
-                </div>
-              </div>
-              <p className="text-[8px] text-orange-500/50 uppercase font-black tracking-widest text-right max-w-[100px]">
-                Managed in Payments Tab
-              </p>
-            </div>
-          )}
+
 
           {/* Participant Type */}
           <div className="bg-gray-800/20 p-4 rounded-xl border border-gray-700/50">
@@ -654,7 +634,7 @@ export default function TournamentForm({ tournament, onClose, onCreated, hostId 
           </div>
 
           {/* Commission Summary Display */}
-          {form.operational_model !== 'fixed' && (form.entry_fee > 0 || form.max_participant > 0) && (
+          {(form.entry_fee > 0 || form.max_participant > 0) && (
             <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl flex items-center justify-between animate-in fade-in zoom-in duration-300">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-orange-500/20 rounded-lg text-orange-500">

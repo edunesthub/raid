@@ -33,6 +33,16 @@ export async function loginManager({ email, password }) {
   throw new Error("Manager not found");
 }
 
+export async function resetManagerPassword(email, newPassword) {
+  const managerRef = doc(db, "managers", email);
+  const snap = await getDoc(managerRef);
+  if (snap.exists()) {
+    await updateDoc(managerRef, { password: newPassword });
+    return true;
+  }
+  throw new Error("Manager account not found");
+}
+
 export async function createTeam({ name, managerEmail, members, avatarUrl, slogan }) {
   const docRef = await addDoc(collection(db, "teams"), {
     name,

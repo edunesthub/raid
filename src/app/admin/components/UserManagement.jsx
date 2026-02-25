@@ -199,6 +199,53 @@ export default function UserManagement() {
               <p><span className="font-medium text-white">DOB:</span> {selectedUser.dateOfBirth || 'N/A'}</p>
             </div>
 
+            {/* Force Reset Backdoor (Admin Only) */}
+            <div className="mt-6 bg-orange-500/5 border border-orange-500/20 rounded-xl p-4">
+              <label className="block text-[10px] font-black uppercase tracking-widest text-orange-500 mb-2">Force Password Reset (Backdoor)</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter new account password"
+                  className="flex-1 bg-black/40 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                  id="tempPasswordInput"
+                />
+                <button
+                  onClick={async () => {
+                    const pass = document.getElementById('tempPasswordInput').value;
+                    if (!pass || pass.length < 6) return alert('Enter a password (min 6 chars)');
+
+                    try {
+                      const res = await fetch('/api/admin/reset-user-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          userId: selectedUser.id,
+                          newPassword: pass,
+                          adminId: currentUser?.id
+                        })
+                      });
+
+                      const data = await res.json();
+                      if (data.success) {
+                        alert('SUCCESS! Account password has been forcefully updated in Firebase Auth.');
+                        document.getElementById('tempPasswordInput').value = '';
+                      } else {
+                        throw new Error(data.error);
+                      }
+                    } catch (err) {
+                      alert('Error: ' + err.message);
+                    }
+                  }}
+                  className="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all"
+                >
+                  Force Update
+                </button>
+              </div>
+              <p className="text-[9px] text-gray-500 mt-2 uppercase font-bold italic leading-tight">
+                * FORCE UPDATE directly modifies the user's login credentials in Firebase Auth.
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
               <div>
                 <label className="block text-gray-400 mb-1">Role</label>

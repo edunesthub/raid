@@ -7,7 +7,8 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -104,9 +105,9 @@ export function AuthProvider({ children }) {
 
   const requestPasswordReset = async (email) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await sendPasswordResetEmail(auth, email);
     } catch (error) {
-      throw new Error("Failed to send reset email");
+      throw new Error(error.message || "Failed to send reset email");
     }
   };
 

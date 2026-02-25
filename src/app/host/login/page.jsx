@@ -134,7 +134,12 @@ export default function HostLogin() {
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Password</label>
+                            <div className="flex justify-between items-center ml-1">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Password</label>
+                                <Link href="/auth/reset" className="text-[8px] font-black uppercase tracking-widest text-orange-500/60 hover:text-orange-500 transition-colors">
+                                    Forgot Password?
+                                </Link>
+                            </div>
                             <input
                                 type="password"
                                 placeholder="Password"

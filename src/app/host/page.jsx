@@ -50,7 +50,6 @@ export default function HostPortal() {
 
     const menuItems = [
         { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { id: "payments", label: "Payments", icon: CreditCard },
         { id: "tournaments", label: "My Tournaments", icon: Trophy },
         { id: "leagues", label: "My Leagues", icon: Award },
         { id: "winner-selection", label: "Select Winners", icon: Crown },
@@ -63,42 +62,7 @@ export default function HostPortal() {
         setSidebarOpen(false);
     };
 
-    const updatePaymentModel = async (model) => {
-        try {
-            const hostRef = doc(db, "users", host.id);
-            await updateDoc(hostRef, {
-                paymentModel: model,
-                // If switching to subscription, set as unpaid initially if not already paid
-                subscriptionStatus: model === 'subscription' ? (host.subscriptionStatus || 'unpaid') : null
-            });
-            toast.success(`Switched to ${model === 'subscription' ? 'Monthly Subscription' : 'Commission per Tournament'} model.`);
-            window.location.reload(); // Refresh to update context
-        } catch (error) {
-            console.error("Error updating payment model:", error);
-            toast.error("Failed to update payment plan.");
-        }
-    };
-
-    const handleMockPayment = async () => {
-        try {
-            const hostRef = doc(db, "users", host.id);
-            const expiry = new Date();
-            expiry.setMonth(expiry.getMonth() + 1);
-
-            await updateDoc(hostRef, {
-                subscriptionStatus: 'active',
-                subscriptionExpiry: expiry,
-                lastSubscriptionPayment: new Date()
-            });
-            toast.success("Payment successful! Your subscription is now active for 30 days.");
-            window.location.reload();
-        } catch (error) {
-            console.error("Payment error:", error);
-            toast.error("Payment failed simulation.");
-        }
-    };
-
-    const canCreateTournament = host.paymentModel === 'commission' || host.subscriptionStatus === 'active';
+    const canCreateTournament = true;
 
     return (
         <div className={`h-screen bg-black flex flex-col lg:flex-row overflow-hidden`}>
@@ -216,139 +180,16 @@ export default function HostPortal() {
                     {activeTab === "tournaments" && (
                         <TournamentManagement
                             hostId={host.id}
-                            paymentModel={host.paymentModel}
-                            onPlanRequired={!host.paymentModel ? () => setShowPlanModal(true) : null}
-                            restriction={host.paymentModel === 'subscription' && host.subscriptionStatus !== 'active' ? "Please pay your monthly subscription to create new tournaments." : null}
+                            paymentModel="commission"
                         />
                     )}
                     {activeTab === "leagues" && (
                         <LeagueManagement
                             hostId={host.id}
-                            onPlanRequired={!host.paymentModel ? () => setShowPlanModal(true) : null}
-                            restriction={host.paymentModel === 'subscription' && host.subscriptionStatus !== 'active' ? "Please pay your monthly subscription to create new leagues." : null}
                         />
                     )}
                     {activeTab === "winner-selection" && <WinnerSelection hostId={host.id} />}
                     {activeTab === "results-verification" && <ResultsVerification hostId={host.id} />}
-                    {activeTab === "payments" && (
-                        <div className="space-y-8">
-                            <div className="flex flex-col gap-2">
-                                <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">Host Revenue & Plans</h2>
-                                <p className="text-gray-400 text-sm font-medium tracking-wide">Manage your billing cycle and operational strategy</p>
-                            </div>
-
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                {/* Plan Selection */}
-                                <div className="lg:col-span-2 space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {/* Commission Plan */}
-                                        <div className={`p-5 rounded-3xl border transition-all ${host.paymentModel !== 'subscription' ? 'bg-orange-500/10 border-orange-500/50' : 'bg-gray-900/50 border-white/5 opacity-60 hover:opacity-100'}`}>
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className="p-2.5 bg-white/5 rounded-xl text-orange-500">
-                                                    <Zap size={20} />
-                                                </div>
-                                                {host.paymentModel !== 'subscription' && (
-                                                    <span className="px-2 py-0.5 bg-orange-500 text-white rounded-full text-[7px] font-black uppercase tracking-widest">Active</span>
-                                                )}
-                                            </div>
-                                            <h3 className="text-base font-black text-white uppercase italic mb-1 tracking-tight">Pay Per Event</h3>
-                                            <p className="text-gray-400 text-[10px] leading-snug mb-4 font-medium">No monthly costs. RAID takes a 20% commission from the total entry pool (Entry Fee × Max Participants).</p>
-                                            {host.paymentModel === 'subscription' && (
-                                                <button
-                                                    onClick={() => updatePaymentModel('commission')}
-                                                    className="w-full py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-white/10"
-                                                >
-                                                    Switch to Commission
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        {/* Subscription Plan */}
-                                        <div className={`p-5 rounded-3xl border transition-all ${host.paymentModel === 'subscription' ? 'bg-blue-500/10 border-blue-500/50' : 'bg-gray-900/50 border-white/5 opacity-60 hover:opacity-100'}`}>
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className="p-2.5 bg-white/5 rounded-xl text-blue-400">
-                                                    <CreditCard size={20} />
-                                                </div>
-                                                {host.paymentModel === 'subscription' && (
-                                                    <span className="px-2 py-0.5 bg-blue-500 text-white rounded-full text-[7px] font-black uppercase tracking-widest">Active</span>
-                                                )}
-                                            </div>
-                                            <h3 className="text-base font-black text-white uppercase italic mb-1 tracking-tight">Monthly Subscription</h3>
-                                            <p className="text-gray-400 text-[10px] leading-snug mb-4 font-medium">₵200 per month. Unlimited hosting with zero commissions.</p>
-                                            {host.paymentModel !== 'subscription' && (
-                                                <button
-                                                    onClick={() => updatePaymentModel('subscription')}
-                                                    className="w-full py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-white/10"
-                                                >
-                                                    Switch to Monthly
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Strategy Banner */}
-                                    <div className="p-6 bg-white/5 rounded-3xl border border-white/5 flex items-start gap-4">
-                                        <div className="p-2 bg-orange-500/10 rounded-lg text-orange-500 shrink-0">
-                                            <AlertCircle size={18} />
-                                        </div>
-                                        <div>
-                                            <p className="text-white text-xs font-bold uppercase tracking-wider mb-1">Important Note</p>
-                                            <p className="text-gray-500 text-[11px] leading-relaxed">
-                                                Switching plans takes effect immediately. For Monthly users, tournament creation is disabled if the subscription payment is overdue.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Status & Payment */}
-                                <div className="space-y-6">
-                                    <div className="bg-gray-900/50 border border-white/5 p-8 rounded-[2.5rem] flex flex-col justify-between h-full">
-                                        <div>
-                                            <h3 className="text-lg font-black text-white uppercase tracking-wider mb-6">Billing Status</h3>
-                                            <div className="space-y-6">
-                                                <div>
-                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Current Balance Due</p>
-                                                    <p className="text-4xl font-black text-white italic tracking-tighter">
-                                                        ₵{host.paymentModel === 'subscription' && host.subscriptionStatus !== 'active' ? '200.00' : '0.00'}
-                                                    </p>
-                                                </div>
-
-                                                <div className="space-y-3">
-                                                    <div className="flex items-center justify-between text-[11px] font-bold">
-                                                        <span className="text-gray-500 uppercase">Payment Status</span>
-                                                        <span className={host.paymentModel === 'subscription' ? (host.subscriptionStatus === 'active' ? 'text-green-500' : 'text-red-500') : 'text-green-500'}>
-                                                            {host.paymentModel === 'subscription' ? (host.subscriptionStatus === 'active' ? 'PAID / ACTIVE' : 'OVERDUE') : 'COMMISSION MODE'}
-                                                        </span>
-                                                    </div>
-                                                    {host.paymentModel === 'subscription' && host.subscriptionExpiry && (
-                                                        <div className="flex items-center justify-between text-[11px] font-bold">
-                                                            <span className="text-gray-500 uppercase">Expiry Date</span>
-                                                            <span className="text-white">{new Date(host.subscriptionExpiry.seconds * 1000).toLocaleDateString()}</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {host.paymentModel === 'subscription' && host.subscriptionStatus !== 'active' && (
-                                            <button
-                                                onClick={handleMockPayment}
-                                                className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20 active:scale-95 mt-8"
-                                            >
-                                                Pay ₵200 now
-                                            </button>
-                                        )}
-
-                                        {(host.paymentModel !== 'subscription' || host.subscriptionStatus === 'active') && (
-                                            <div className="mt-8 p-4 bg-green-500/10 rounded-2xl border border-green-500/20 text-center">
-                                                <p className="text-green-500 text-[10px] font-black uppercase tracking-widest">No outstanding payments</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     {activeTab === "settings" && (
                         <div className="space-y-8">
@@ -380,56 +221,7 @@ export default function HostPortal() {
                     )}
                 </div>
             </div>
-            {/* Plan Required Modal */}
-            {showPlanModal && (
-                <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-                    <div className="bg-[#0a0a0a] border border-white/10 p-8 rounded-[2.5rem] max-w-xl w-full space-y-8 animate-in zoom-in-95 duration-300 shadow-2xl shadow-orange-500/10">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-2">
-                                <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">Choose your strategy</h2>
-                                <p className="text-gray-400 text-sm font-medium tracking-wide">Select a payment plan to begin creating events.</p>
-                            </div>
-                            <button onClick={() => setShowPlanModal(false)} className="p-2 text-gray-500 hover:text-white transition-colors">
-                                <X size={24} />
-                            </button>
-                        </div>
 
-                        <div className="grid grid-cols-1 gap-4">
-                            <button
-                                onClick={() => updatePaymentModel('commission')}
-                                className="p-6 rounded-3xl border border-white/5 bg-white/5 hover:bg-orange-500/10 hover:border-orange-500/50 transition-all text-left group"
-                            >
-                                <div className="flex justify-between items-center mb-4">
-                                    <div className="p-3 bg-white/5 rounded-2xl text-orange-500 group-hover:scale-110 transition-transform">
-                                        <Zap size={24} />
-                                    </div>
-                                    <span className="text-[10px] font-black uppercase text-orange-500 tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity">Select Plan</span>
-                                </div>
-                                <h3 className="text-xl font-black text-white uppercase italic mb-1">Pay Per Event</h3>
-                                <p className="text-gray-400 text-xs font-medium leading-relaxed">No upfront costs. 20% commission of the total entry pool (Entry Fee × Max Participants) applies per event.</p>
-                            </button>
-
-                            <button
-                                onClick={() => updatePaymentModel('subscription')}
-                                className="p-6 rounded-3xl border border-white/5 bg-white/5 hover:bg-blue-500/10 hover:border-blue-500/50 transition-all text-left group"
-                            >
-                                <div className="flex justify-between items-center mb-4">
-                                    <div className="p-3 bg-white/5 rounded-2xl text-blue-400 group-hover:scale-110 transition-transform">
-                                        <CreditCard size={24} />
-                                    </div>
-                                    <span className="text-[10px] font-black uppercase text-blue-400 tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity">Select Plan</span>
-                                </div>
-                                <h3 className="text-xl font-black text-white uppercase italic mb-1">Monthly Subscription</h3>
-                                <p className="text-gray-400 text-xs font-medium leading-relaxed">₵200 per month. Unlimited hosting with zero commissions.</p>
-                            </button>
-                        </div>
-
-                        <p className="text-center text-[10px] text-gray-600 font-black uppercase tracking-widest italic">
-                            You can switch plans anytime in the Payments tab
-                        </p>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
