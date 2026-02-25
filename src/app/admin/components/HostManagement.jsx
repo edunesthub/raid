@@ -28,7 +28,8 @@ import {
     ChevronUp,
     DollarSign,
     Zap,
-    Trash2
+    Trash2,
+    RotateCcw
 } from "lucide-react";
 
 const calculateItemCommission = (item) => {
@@ -38,7 +39,7 @@ const calculateItemCommission = (item) => {
     return (fee * participants) * 0.20;
 };
 
-const HostActivityModal = ({ isOpen, onClose, host, stats }) => {
+const HostActivityModal = ({ isOpen, onClose, host, stats, onStatusUpdate }) => {
     if (!isOpen || !host) return null;
 
     return (
@@ -67,12 +68,23 @@ const HostActivityModal = ({ isOpen, onClose, host, stats }) => {
                             </div>
                         </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-3 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-2xl border border-white/5 transition-all"
-                    >
-                        <XCircle size={24} />
-                    </button>
+                    <div className="flex items-center gap-3">
+                        {host.status === 'terminated' && (
+                            <button
+                                onClick={() => onStatusUpdate(host.id, 'approved')}
+                                className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 active:scale-95 shadow-xl shadow-orange-500/20"
+                            >
+                                <RotateCcw size={16} />
+                                Undo Termination
+                            </button>
+                        )}
+                        <button
+                            onClick={onClose}
+                            className="p-3 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-2xl border border-white/5 transition-all"
+                        >
+                            <XCircle size={24} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Content */}
@@ -296,9 +308,12 @@ export default function HostManagement() {
     };
 
     const handleStatusUpdate = async (hostId, newStatus) => {
+        const host = hosts.find(h => h.id === hostId);
         const confirmMessage = newStatus === 'terminated'
             ? "WARNING: Are you sure you want to terminate this host? They will lose access to their portal immediately."
-            : `Are you sure you want to ${newStatus === 'approved' ? 'approve' : 'reject'} this host?`;
+            : (newStatus === 'approved' && host?.status === 'terminated')
+                ? "Are you sure you want to undo the termination of this host?"
+                : `Are you sure you want to ${newStatus === 'approved' ? 'approve' : 'reject'} this host?`;
 
         if (!confirm(confirmMessage)) return;
 
@@ -400,7 +415,7 @@ export default function HostManagement() {
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    {(host.status === 'pending_approval' || host.status === 'approved') && (
+                                    {(host.status === 'pending_approval' || host.status === 'approved' || host.status === 'terminated') && (
                                         <div className="flex gap-1.5">
                                             {host.status === 'pending_approval' && (
                                                 <button
@@ -427,6 +442,15 @@ export default function HostManagement() {
                                                     title="Terminate Host"
                                                 >
                                                     <Trash2 size={18} className="group-hover/term:scale-110 transition-transform" />
+                                                </button>
+                                            )}
+                                            {host.status === 'terminated' && (
+                                                <button
+                                                    onClick={() => handleStatusUpdate(host.id, 'approved')}
+                                                    className="p-2.5 bg-orange-500/10 hover:bg-orange-500 text-orange-500 hover:text-white rounded-xl border border-orange-500/20 transition-all active:scale-95 shadow-lg shadow-orange-500/5 focus:outline-none"
+                                                    title="Undo Termination"
+                                                >
+                                                    <RotateCcw size={18} />
                                                 </button>
                                             )}
                                         </div>
