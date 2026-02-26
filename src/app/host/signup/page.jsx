@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft } from "lucide-react";
 import { COUNTRIES } from "@/utils/countries";
+import TermsModal from "@/app/components/TermsModal";
 
 export default function HostSignup() {
     const [formData, setFormData] = useState({
@@ -18,14 +19,22 @@ export default function HostSignup() {
         phoneNumber: "",
         email: "",
         password: "",
+        termsAccepted: false,
     });
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [showTerms, setShowTerms] = useState(false);
     const router = useRouter();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+
+        if (!formData.termsAccepted) {
+            setError("You must accept the Tournament Creation Terms & Conditions to sign up.");
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -49,7 +58,8 @@ export default function HostSignup() {
                 country: formData.country,
                 phoneNumber: formData.phoneNumber,
                 role: "host",
-                createdAt: new Date(),
+                createdAt: serverTimestamp(),
+                termsAcceptedAt: serverTimestamp(),
                 status: "pending_approval" // Admin might need to approve hosts
             });
 
@@ -164,6 +174,28 @@ export default function HostSignup() {
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             />
                         </div>
+
+                        <div className="flex items-start gap-3 px-1 pt-2">
+                            <div className="flex items-center h-5">
+                                <input
+                                    id="terms"
+                                    type="checkbox"
+                                    checked={formData.termsAccepted}
+                                    onChange={(e) => setFormData({ ...formData, termsAccepted: e.target.checked })}
+                                    className="w-4 h-4 bg-black/40 border border-white/10 rounded accent-orange-500 cursor-pointer"
+                                />
+                            </div>
+                            <label htmlFor="terms" className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed">
+                                I accept the{" "}
+                                <button
+                                    type="button"
+                                    onClick={() => setShowTerms(true)}
+                                    className="text-orange-500 hover:text-orange-400 transition-colors underline decoration-2 underline-offset-4"
+                                >
+                                    Tournament Creation Terms & Conditions
+                                </button>
+                            </label>
+                        </div>
                     </div>
 
                     <button
@@ -173,6 +205,7 @@ export default function HostSignup() {
                     >
                         {loading ? "Creating Account..." : "Create Host Account"}
                     </button>
+
                 </form>
 
                 <div className="text-center pt-2">
@@ -184,6 +217,15 @@ export default function HostSignup() {
                     </p>
                 </div>
             </div>
+
+            <TermsModal
+                isOpen={showTerms}
+                onClose={() => setShowTerms(false)}
+                onAccept={() => {
+                    setFormData({ ...formData, termsAccepted: true });
+                    setShowTerms(false);
+                }}
+            />
         </div>
     );
 }
