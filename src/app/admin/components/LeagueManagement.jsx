@@ -33,6 +33,7 @@ import LeagueForm from "./LeagueForm";
 import LeagueStandingsEditor from "./LeagueStandingsEditor";
 import LeagueMatchesEditor from "./LeagueMatchesEditor";
 import LeagueTeamsEditor from "./LeagueTeamsEditor";
+import LeagueStatsEditor from "./LeagueStatsEditor";
 import { toast } from "react-hot-toast";
 
 export default function LeagueManagement({ hostId, restriction, onPlanRequired }) {
@@ -41,7 +42,7 @@ export default function LeagueManagement({ hostId, restriction, onPlanRequired }
     const [searchTerm, setSearchTerm] = useState("");
     const [showForm, setShowForm] = useState(false);
     const [selectedLeague, setSelectedLeague] = useState(null);
-    const [activeView, setActiveView] = useState("list"); // list, standings, matches, teams
+    const [activeView, setActiveView] = useState("list"); // list, standings, matches, teams, stats
     const [managedLeagueId, setManagedLeagueId] = useState(null);
 
     useEffect(() => {
@@ -103,6 +104,12 @@ export default function LeagueManagement({ hostId, restriction, onPlanRequired }
         setActiveView("teams");
     };
 
+    const openStats = (league) => {
+        setManagedLeagueId(league.id);
+        setSelectedLeague(league);
+        setActiveView("stats");
+    };
+
     if (activeView === "standings") {
         return (
             <LeagueStandingsEditor
@@ -124,6 +131,15 @@ export default function LeagueManagement({ hostId, restriction, onPlanRequired }
     if (activeView === "teams") {
         return (
             <LeagueTeamsEditor
+                leagueId={managedLeagueId}
+                onBack={() => setActiveView("list")}
+            />
+        );
+    }
+
+    if (activeView === "stats") {
+        return (
+            <LeagueStatsEditor
                 leagueId={managedLeagueId}
                 onBack={() => setActiveView("list")}
             />
@@ -233,6 +249,13 @@ export default function LeagueManagement({ hostId, restriction, onPlanRequired }
                                         className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all border border-transparent hover:border-white/10 group/btn"
                                     >
                                         <span className="flex items-center gap-2.5"><Calendar size={16} className="text-orange-500" /> Manage Matches</span>
+                                        <ChevronRight size={14} className="opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all font-bold" />
+                                    </button>
+                                    <button
+                                        onClick={() => openStats(league)}
+                                        className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all border border-transparent hover:border-white/10 group/btn"
+                                    >
+                                        <span className="flex items-center gap-2.5"><Trophy size={16} className="text-orange-500" /> Player Stats</span>
                                         <ChevronRight size={14} className="opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all font-bold" />
                                     </button>
                                 </div>

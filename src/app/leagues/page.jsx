@@ -17,7 +17,8 @@ import {
     ListOrdered,
     History,
     FileText,
-    ArrowRight
+    ArrowRight,
+    Star
 } from 'lucide-react';
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
@@ -60,6 +61,7 @@ export default function LeaguesPage() {
     const [leagueInfo, setLeagueInfo] = React.useState(null);
     const [standings, setStandings] = React.useState([]);
     const [matches, setMatches] = React.useState([]);
+    const [playerStats, setPlayerStats] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const [detailsLoading, setDetailsLoading] = React.useState(false);
 
@@ -67,6 +69,7 @@ export default function LeaguesPage() {
         { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={18} /> },
         { id: 'standing', label: 'Standings', icon: <ListOrdered size={18} /> },
         { id: 'matches', label: 'Fixtures & Results', icon: <Calendar size={18} /> },
+        { id: 'stats', label: 'Stats', icon: <TrendingUp size={18} /> },
     ];
 
     React.useEffect(() => {
@@ -122,6 +125,15 @@ export default function LeaguesPage() {
                 if (lastCompletedRound) setActiveRound(lastCompletedRound);
                 else setActiveRound(matchesData[0].round);
             }
+
+            // Fetch Player Stats
+            const statsQ = query(collection(db, "league_player_stats"), where("league_id", "==", league.id));
+            const statsSnap = await getDocs(statsQ);
+            let statsData = statsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            // Sort in memory to avoid index requirements
+            statsData.sort((a, b) => (b.goals || 0) - (a.goals || 0));
+            setPlayerStats(statsData);
         } catch (error) {
             console.error("Error loading league details:", error);
         } finally {
@@ -457,6 +469,99 @@ export default function LeaguesPage() {
                     </div>
                 )}
 
+                {/* 3. STATS VIEW */}
+                {activeTab === 'stats' && (
+                    <div className="animate-in fade-in duration-500 space-y-8 px-4">
+                        {/* Top Scorers */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 px-1">
+                                <Trophy size={16} className="text-orange-500" /> Top Scorers
+                            </h3>
+                            <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="bg-white/5 border-b border-white/5 text-[9px] font-black text-gray-500 uppercase tracking-widest">
+                                            <th className="px-4 py-3 w-12 text-center">#</th>
+                                            <th className="px-4 py-3">Player</th>
+                                            <th className="px-4 py-3">Team</th>
+                                            <th className="px-4 py-3 text-center text-orange-500">Goals</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/[0.03]">
+                                        {playerStats.filter(p => (p.goals || 0) > 0).sort((a, b) => (b.goals || 0) - (a.goals || 0)).map((player, idx) => (
+                                            <tr key={player.id || idx} className="active:bg-white/5 transition-colors">
+                                                <td className="px-4 py-4 text-center">
+                                                    <span className={`text-xs font-black ${idx === 0 ? 'text-orange-500' : 'text-gray-500'}`}>{idx + 1}</span>
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-bold text-white uppercase tracking-tight">{player.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{player.team}</span>
+                                                </td>
+                                                <td className="px-4 py-4 text-center">
+                                                    <span className="text-sm font-black text-white bg-orange-500/10 px-3 py-1 rounded-lg border border-orange-500/20">{player.goals || 0}</span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {playerStats.filter(p => (p.goals || 0) > 0).length === 0 && (
+                                            <tr>
+                                                <td colSpan="4" className="py-12 text-center text-gray-600 font-bold uppercase text-[10px] tracking-widest">No goals recorded yet</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* Top Assists */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 px-1">
+                                <Star size={16} className="text-blue-500" /> Top Assists
+                            </h3>
+                            <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="bg-white/5 border-b border-white/5 text-[9px] font-black text-gray-500 uppercase tracking-widest">
+                                            <th className="px-4 py-3 w-12 text-center">#</th>
+                                            <th className="px-4 py-3">Player</th>
+                                            <th className="px-4 py-3">Team</th>
+                                            <th className="px-4 py-3 text-center text-blue-500">Assists</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/[0.03]">
+                                        {playerStats.filter(p => (p.assists || 0) > 0).sort((a, b) => (b.assists || 0) - (a.assists || 0)).map((player, idx) => (
+                                            <tr key={player.id || idx} className="active:bg-white/5 transition-colors">
+                                                <td className="px-4 py-4 text-center">
+                                                    <span className={`text-xs font-black ${idx === 0 ? 'text-blue-500' : 'text-gray-500'}`}>{idx + 1}</span>
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-bold text-white uppercase tracking-tight">{player.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{player.team}</span>
+                                                </td>
+                                                <td className="px-4 py-4 text-center">
+                                                    <span className="text-sm font-black text-white bg-blue-500/10 px-3 py-1 rounded-lg border border-blue-500/20">{player.assists || 0}</span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {playerStats.filter(p => (p.assists || 0) > 0).length === 0 && (
+                                            <tr>
+                                                <td colSpan="4" className="py-12 text-center text-gray-600 font-bold uppercase text-[10px] tracking-widest">No assists recorded yet</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* 3. OVERVIEW VIEW */}
                 {activeTab === 'overview' && (
                     <div className="animate-in fade-in duration-700 space-y-12 pb-12">
@@ -571,6 +676,30 @@ export default function LeaguesPage() {
                                                 </div>
                                             );
                                         })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Stats Summary */}
+                            {playerStats.length > 0 && (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between px-5">
+                                        <h3 className="text-xs md:text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+                                            <TrendingUp size={14} className="text-orange-500" /> Top Performer
+                                        </h3>
+                                        <button onClick={() => setActiveTab('stats')} className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center gap-1">All Stats <ChevronRight size={14} /></button>
+                                    </div>
+                                    <div className="bg-[#0a0a0a] border-y border-white/5 p-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center border border-orange-500/20">
+                                                <Trophy size={24} className="text-orange-500" />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Top Scorer</p>
+                                                <p className="text-sm font-black text-white uppercase italic">{playerStats[0]?.name || "N/A"}</p>
+                                                <p className="text-[9px] font-bold text-orange-500 uppercase">{playerStats[0]?.goals || 0} Goals • {playerStats[0]?.team}</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             )}
