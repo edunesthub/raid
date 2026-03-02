@@ -99,7 +99,17 @@ export default function LeaguesPage() {
             // Fetch Standings
             const standingsQ = query(collection(db, "league_standings"), where("league_id", "==", league.id), orderBy("pts", "desc"));
             const standingsSnap = await getDocs(standingsQ);
-            setStandings(standingsSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+            let standingsData = standingsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            // Sort by manual position if any exists, otherwise pts desc
+            standingsData.sort((a, b) => {
+                const posA = parseInt(a.pos) || 999;
+                const posB = parseInt(b.pos) || 999;
+                if (posA !== posB) return posA - posB;
+                return (parseInt(b.pts) || 0) - (parseInt(a.pts) || 0);
+            });
+
+            setStandings(standingsData);
 
             // Fetch Matches
             const matchesQ = query(collection(db, "league_matches"), where("league_id", "==", league.id), orderBy("time", "asc"));
