@@ -4,7 +4,7 @@ import { ArrowLeft, Save, Camera, Loader2, User, Globe, Calendar, Mail, Phone, I
 import Link from 'next/link';
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { db } from "../../../lib/firebase";
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { usernameService } from '@/services/usernameService';
 import { authValidation } from '@/services/authValidation';
@@ -117,7 +117,7 @@ export default function EditProfilePage() {
 
       if (user?.id) {
         const userRef = doc(db, 'users', user.id);
-        await updateDoc(userRef, { avatarUrl: data.secure_url, updatedAt: new Date() });
+        await setDoc(userRef, { avatarUrl: data.secure_url, updatedAt: new Date() }, { merge: true });
       }
     } catch (err) {
       console.error('Error uploading avatar:', err);
@@ -191,12 +191,12 @@ export default function EditProfilePage() {
       }
 
       const userRef = doc(db, 'users', user.id);
-      await updateDoc(userRef, {
+      await setDoc(userRef, {
         ...safeFormData,
         username_lowercase: safeFormData.username.toLowerCase().trim(),
         avatarUrl: avatarUrl || '',
         updatedAt: new Date(),
-      });
+      }, { merge: true });
 
       setSuccess(true);
       setTimeout(() => {

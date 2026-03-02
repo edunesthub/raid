@@ -9,7 +9,8 @@ import {
     doc,
     updateDoc,
     orderBy,
-    getDoc
+    getDoc,
+    setDoc
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { toast } from "react-hot-toast";
@@ -318,10 +319,10 @@ export default function HostManagement() {
         if (!confirm(confirmMessage)) return;
 
         try {
-            await updateDoc(doc(db, "users", hostId), {
+            await setDoc(doc(db, "users", hostId), {
                 status: newStatus,
                 updatedAt: new Date()
-            });
+            }, { merge: true });
             setHosts(hosts.map(h => h.id === hostId ? { ...h, status: newStatus } : h));
             toast.success(`Host ${newStatus} successfully!`);
         } catch (error) {

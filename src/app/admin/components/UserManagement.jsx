@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, getDoc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, query, orderBy, setDoc } from 'firebase/firestore';
 import { Eye, X, Search, Trash2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -60,11 +60,11 @@ export default function UserManagement() {
   const saveUserRoles = async () => {
     if (!selectedUser) return;
     try {
-      await updateDoc(doc(db, 'users', selectedUser.id), {
+      await setDoc(doc(db, 'users', selectedUser.id), {
         role: roleEditing.role,
         adminRole: roleEditing.adminRole,
         isAdmin: roleEditing.role === 'admin',
-      });
+      }, { merge: true });
       setUsers((prev) => prev.map(u => u.id === selectedUser.id ? { ...u, role: roleEditing.role, adminRole: roleEditing.adminRole, isAdmin: roleEditing.role === 'admin' } : u));
       alert('User roles updated');
     } catch (err) {
