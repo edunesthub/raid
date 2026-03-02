@@ -10,7 +10,7 @@ import {
   updateProfile,
   sendPasswordResetEmail
 } from "firebase/auth";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 export const AuthContext = createContext(undefined);
@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let unsubscribeSnapshot = null;
 
-    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       // Unsubscribe from previous snapshot listener if exists
       if (unsubscribeSnapshot) {
         unsubscribeSnapshot();
@@ -33,6 +33,30 @@ export function AuthProvider({ children }) {
       if (firebaseUser) {
         // Set up real-time listener for user document
         const userRef = doc(db, "users", firebaseUser.uid);
+
+        // Initial check and creation if missing
+        try {
+          const docSnap = await getDoc(userRef);
+          if (!docSnap.exists()) {
+            await setDoc(userRef, {
+              uid: firebaseUser.uid,
+              username: firebaseUser.email.split('@')[0],
+              username_lowercase: firebaseUser.email.split('@')[0].toLowerCase(),
+              email: firebaseUser.email,
+              firstName: firebaseUser.displayName?.split(' ')[0] || '',
+              lastName: firebaseUser.displayName?.split(' ')[1] || '',
+              avatarUrl: firebaseUser.photoURL || '',
+              createdAt: serverTimestamp(),
+              country: 'Ghana',
+              walletBalance: 0,
+              role: 'user', // default role
+              onboardingComplete: false
+            });
+          }
+        } catch (error) {
+          console.error("Error checking/creating user profile:", error);
+        }
+
         unsubscribeSnapshot = onSnapshot(userRef, (docSnapshot) => {
           const userData = docSnapshot.data();
 
@@ -48,10 +72,12 @@ export function AuthProvider({ children }) {
             country: userData?.country || 'Ghana',
             firstName: userData?.firstName || firebaseUser.displayName?.split(' ')[0] || '',
             lastName: userData?.lastName || firebaseUser.displayName?.split(' ')[1] || '',
+            role: userData?.role || 'user',
+            walletBalance: userData?.walletBalance || 0,
           });
           setIsLoading(false);
         }, (error) => {
-          console.error("Error fetching user profile:", error);
+          console.error("Error fetching user profile snapshot:", error);
           setIsLoading(false);
         });
       } else {
