@@ -89,6 +89,11 @@ export default function LeaguesPage() {
         fetchLeagues();
     }, []);
 
+    // Scroll to top when view changes
+    React.useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [view]);
+
     const handleSelectLeague = async (league) => {
         // Scroll to top when opening league details
         window.scrollTo(0, 0);
@@ -239,7 +244,10 @@ export default function LeaguesPage() {
             {/* --- Back Button --- */}
             <div className="fixed top-24 left-4 z-[60] md:left-8">
                 <button
-                    onClick={() => setView('list')}
+                    onClick={() => {
+                        window.scrollTo(0, 0);
+                        setView('list');
+                    }}
                     className="flex items-center justify-center bg-black/60 backdrop-blur-md border border-white/10 w-9 h-9 rounded-full text-white hover:bg-white/10 transition-all shadow-xl"
                 >
                     <ChevronLeft size={20} />
