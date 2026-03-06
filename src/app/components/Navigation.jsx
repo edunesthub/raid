@@ -173,9 +173,8 @@ export default function Navigation() {
       label: "Management",
       icon: <ShieldCheck className="w-5 h-5" />,
       children: [
-        ...(isAdmin ? [{ href: "/admin", label: "Admin Control", icon: <ShieldCheck className="w-4 h-4" /> }] : []),
-        ...(isHost ? [{ href: "/host", label: "Host Hub", icon: <Crown className="w-4 h-4" /> }] : []),
-        ...(isTeamManager ? [{ href: "/team-manager/dashboard", label: "Team Hub", icon: <UserCheck className="w-4 h-4" /> }] : []),
+        { href: "/host", label: " Host Portal", icon: <Crown className="w-4 h-4" /> },
+        { href: "/team-manager/dashboard", label: "Team Manager Portal", icon: <UserCheck className="w-4 h-4" /> },
       ]
     }] : []),
   ];
