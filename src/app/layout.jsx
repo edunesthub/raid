@@ -24,16 +24,17 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export default function RootLayout({ children }) {
   const pathname = usePathname();
 
-  // Pages that should hide navigation completely
-  const hideNav = ["/welcome", "/auth/login", "/auth/signup", "/auth/onboarding", "/admin/login"].includes(pathname) ||
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/host") ||
+  // Pages that should hide navigation completely (Auth, Chat)
+  const hideBar = ["/welcome", "/auth/login", "/auth/signup", "/auth/onboarding", "/admin/login"].includes(pathname) ||
     pathname.startsWith("/team-chat") ||
     pathname.startsWith("/league-chat") ||
     (pathname.includes("/tournament/") && pathname.endsWith("/chat"));
 
-  // Pages that should hide footer
-  const hideFooter = hideNav;
+  // Portal pages (Admin, Host, Manager) that have their own mobile UI
+  const isPortalPage = pathname.startsWith("/admin") || pathname.startsWith("/host") || pathname.startsWith("/team-manager");
+
+  const hideNav = hideBar;
+  const hideFooter = hideBar || isPortalPage;
   return (
     <html lang="en" className="h-full">
       <head>
@@ -65,12 +66,12 @@ export default function RootLayout({ children }) {
             {!hideNav && <Navigation />}
 
             {/* Main Content Area */}
-            <div className={`flex flex-1 ${!hideNav ? 'pt-16' : ''}`}>
+            <div className={`flex flex-1 ${!hideNav ? (isPortalPage ? 'md:pt-20' : 'pt-20 md:pt-20') : ''}`}>
               <main
-                className={`flex-1 ${!hideNav ? 'pb-24 md:pb-4' : ''}`}
+                className={`flex-1 ${!hideNav ? (isPortalPage ? 'pb-0' : 'pb-24 md:pb-4') : ''}`}
                 style={{
                   paddingTop: hideNav ? '0' : undefined,
-                  paddingBottom: hideNav ? '0' : undefined,
+                  paddingBottom: (hideNav || (isPortalPage && typeof window !== 'undefined' && window.innerWidth < 768)) ? '0' : undefined,
                 }}
               >
                 <div className="max-w-[1600px] mx-auto w-full">

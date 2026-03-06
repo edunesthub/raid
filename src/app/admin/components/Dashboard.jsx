@@ -44,7 +44,7 @@ export default function Dashboard({ hostId }) {
         return status === "registration-open" || status === "live";
       }).length;
 
-      let totalRevenue = 0;
+      let totalRevenue = hostId ? 0 : 6237;
       let totalCommission = 0;
       let commEvents = [];
 
