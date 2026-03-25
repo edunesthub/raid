@@ -137,10 +137,10 @@ export default function UserProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white font-black uppercase text-[10px] tracking-[0.3em]">Loading profile...</p>
+          <p className="text-white">Loading profile...</p>
         </div>
       </div>
     );
@@ -148,16 +148,16 @@ export default function UserProfilePage() {
 
   if (error || !user) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
-          <div className="text-6xl mb-6">😕</div>
-          <h2 className="text-2xl font-black text-white mb-3 uppercase tracking-widest">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="text-6xl mb-4">😕</div>
+          <h2 className="text-2xl font-bold text-white mb-2">
             {error || 'User not found'}
           </h2>
-          <p className="text-gray-500 font-bold uppercase text-xs tracking-widest mb-8">
+          <p className="text-gray-400 mb-6">
             The user you're looking for doesn't exist or has been removed.
           </p>
-          <Link href="/" className="bg-orange-500 hover:bg-orange-400 text-white px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20">
+          <Link href="/" className="btn-raid inline-block">
             Back to Home
           </Link>
         </div>
@@ -166,65 +166,71 @@ export default function UserProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pt-[88px] md:pt-[100px] pb-32 md:pb-16 flex flex-col">
-      <div className="max-w-[1600px] mx-auto w-full px-4 sm:px-6 md:px-10 lg:px-12 relative z-10">
+    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white py-6 px-4">
+      {/* Animated background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      </div>
+
+      <div className="max-w-6xl mx-auto relative z-10">
         <Link
-          href="/players"
-          className="inline-flex items-center text-gray-500 hover:text-orange-500 font-black uppercase text-[10px] tracking-widest transition-all mb-8 md:mb-12 group"
+          href="/"
+          className="inline-flex items-center text-gray-400 hover:text-white transition-colors mb-6"
         >
-          <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-          Back to Players
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back to Home
         </Link>
 
         {/* Profile Header Card */}
-        <div className="bg-white/[0.03] border border-white/10 p-6 md:p-10 rounded-[2.5rem] mb-8 relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/[0.02] via-transparent to-transparent"></div>
+        <div className="card-raid p-6 sm:p-8 mb-6 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/5 to-orange-500/0"></div>
 
-          <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8">
+          <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6">
             {/* Avatar */}
             <div className="relative">
-              <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 scale-125"></div>
-              <UserAvatar
-                user={user}
-                size="3xl"
-                className="relative border-4 border-white/10 group-hover:border-orange-500/50 group-hover:scale-105 transition-all duration-500 shadow-2xl"
-              />
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-purple-500 rounded-full blur-2xl opacity-30 animate-pulse"></div>
+              <div className="relative">
+                <UserAvatar
+                  user={user}
+                  size="3xl"
+                  className="border-4 border-orange-500 ring-4 ring-orange-500/30 shadow-2xl"
+                />
+              </div>
             </div>
 
             {/* User Info */}
-            <div className="flex-1 text-center md:text-left pt-2">
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-3">
-                <h1 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter">
+            <div className="flex-1 text-center sm:text-left">
+              <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
+                <h1 className="text-3xl sm:text-4xl font-bold text-white">
                   {user.username || 'Unknown User'}
                 </h1>
-                <div className="flex items-center gap-2">
-                  {user.country && (
-                    <span className="text-3xl" title={user.country}>
-                      {getCountryFlag(user.country)}
-                    </span>
-                  )}
-                  {stats.tournamentsWon > 0 && (
-                    <Trophy className="w-8 h-8 text-orange-500 drop-shadow-[0_0_10px_rgba(249,115,22,0.5)]" />
-                  )}
-                </div>
+                {user.country && (
+                  <span className="text-3xl sm:text-4xl" title={user.country}>
+                    {getCountryFlag(user.country)}
+                  </span>
+                )}
+                {stats.tournamentsWon > 0 && (
+                  <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" />
+                )}
               </div>
 
               {(user.firstName || user.lastName) && (
-                <p className="text-lg md:text-xl text-gray-500 font-bold uppercase tracking-widest mb-6">
+                <p className="text-xl text-gray-300 mb-4">
                   {user.firstName} {user.lastName}
                 </p>
               )}
 
               {user.bio && (
-                <p className="text-gray-400 text-sm md:text-base font-medium max-w-2xl leading-relaxed mb-8">
+                <p className="text-gray-400 mb-4 max-w-2xl">
                   {user.bio}
                 </p>
               )}
 
               {user.createdAt && (
-                <div className="flex items-center justify-center md:justify-start text-orange-500/60 text-[10px] font-black uppercase tracking-[0.2em]">
-                  <Calendar className="w-3.5 h-3.5 mr-2" />
-                  Elite Member Since {new Date(user.createdAt.toDate?.() || user.createdAt).getFullYear()}
+                <div className="flex items-center justify-center sm:justify-start text-gray-500 text-sm mt-2">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Joined {new Date(user.createdAt.toDate?.() || user.createdAt).toLocaleDateString()}
                 </div>
               )}
             </div>
@@ -232,63 +238,72 @@ export default function UserProfilePage() {
         </div>
 
         {/* Stats Cards Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
-          {[
-            { label: 'Tournaments Played', value: stats.tournamentsPlayed || 0, icon: Target, color: 'text-orange-500' },
-            { label: 'Tournaments Won', value: stats.tournamentsWon || 0, icon: Crown, color: 'text-orange-500' },
-            { label: 'Total Earnings', value: `${currentUser?.country === 'Nigeria' ? '₦' : '₵'}${(stats.totalEarnings || 0).toLocaleString()}`, icon: null, emoji: '💰' },
-            { label: 'Win Rate', value: `${stats.winRate?.toFixed(1) || 0}%`, icon: TrendingUp, color: 'text-orange-500' }
-          ].map((stat, idx) => (
-            <div key={idx} className="bg-white/[0.03] border border-white/10 p-3 sm:p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] text-center hover:bg-white/[0.06] hover:border-orange-500/30 transition-all duration-300 group">
-              {stat.icon ? (
-                <stat.icon className={`w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 ${stat.color} mx-auto mb-2 md:mb-4 group-hover:scale-110 transition-transform`} />
-              ) : (
-                <div className="text-xl sm:text-3xl md:text-4xl mb-2 md:mb-4 group-hover:scale-110 transition-transform">{stat.emoji}</div>
-              )}
-              <p className="text-xl sm:text-2xl md:text-3xl font-black text-white mb-1 md:mb-2 uppercase tracking-tighter">
-                {stat.value}
-              </p>
-              <p className="text-gray-500 text-[8px] md:text-xs font-black uppercase tracking-[0.1em] md:tracking-[0.2em]">{stat.label}</p>
-            </div>
-          ))}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="card-raid p-4 sm:p-6 text-center bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/30 hover:scale-105 transition-transform">
+            <Trophy className="w-8 h-8 sm:w-10 sm:h-10 text-purple-500 mx-auto mb-2" />
+            <p className="text-3xl sm:text-4xl font-bold text-white mb-1">
+              {stats.tournamentsPlayed || 0}
+            </p>
+            <p className="text-gray-400 text-xs sm:text-sm">Tournaments Played</p>
+          </div>
+
+          <div className="card-raid p-4 sm:p-6 text-center bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border border-yellow-500/30 hover:scale-105 transition-transform">
+            <Crown className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-500 mx-auto mb-2" />
+            <p className="text-3xl sm:text-4xl font-bold text-white mb-1">
+              {stats.tournamentsWon || 0}
+            </p>
+            <p className="text-gray-400 text-xs sm:text-sm">Tournaments Won</p>
+          </div>
+
+          <div className="card-raid p-4 sm:p-6 text-center bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/30 hover:scale-105 transition-transform">
+            <div className="text-3xl sm:text-4xl mb-2">💰</div>
+            <p className="text-3xl sm:text-4xl font-bold text-white mb-1">
+              {currentUser?.country === 'Nigeria' ? '₦' : '₵'}{(stats.totalEarnings || 0).toLocaleString()}
+            </p>
+            <p className="text-gray-400 text-xs sm:text-sm">Total Earnings</p>
+          </div>
+
+          <div className="card-raid p-4 sm:p-6 text-center bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/30 hover:scale-105 transition-transform">
+            <TrendingUp className="w-8 h-8 sm:w-10 sm:h-10 text-blue-500 mx-auto mb-2" />
+            <p className="text-3xl sm:text-4xl font-bold text-white mb-1">
+              {stats.winRate?.toFixed(1) || 0}%
+            </p>
+            <p className="text-gray-400 text-xs sm:text-sm">Win Rate</p>
+          </div>
         </div>
 
         {/* Achievements Section */}
         {achievements.length > 0 && (
-          <div className="bg-white/[0.03] border border-white/10 p-6 md:p-10 rounded-[2.5rem] mb-8">
-            <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-8 flex items-center gap-3">
-              <Star className="w-8 h-8 text-orange-500" />
+          <div className="card-raid p-4 sm:p-6 mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-6 flex items-center gap-2">
+              <Star className="w-6 h-6 text-yellow-500" />
               Achievements
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {achievements.map((achievement, index) => {
                 const badge = getPlacementBadge(achievement.placement);
                 const Icon = badge.icon;
- 
+
                 return (
                   <div
                     key={index}
-                    className="bg-white/[0.04] border border-white/5 rounded-2xl p-5 hover:bg-white/[0.08] hover:border-orange-500/30 transition-all duration-300 group cursor-default"
+                    className={`${badge.bg} border ${badge.border} rounded-xl p-4 hover:scale-105 transition-all cursor-pointer`}
                   >
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black border ${
-                        achievement.placement === 1 ? 'bg-orange-500/10 text-orange-500 border-orange-500/40 shadow-[0_0_20px_rgba(249,115,22,0.2)]' :
-                        achievement.placement === 2 ? 'bg-gray-300/10 text-gray-300 border-gray-300/40 shadow-[0_0_20px_rgba(209,213,219,0.15)]' :
-                        'bg-[#b08d57]/10 text-[#b08d57] border-[#b08d57]/40 shadow-[0_0_20px_rgba(176,141,87,0.15)]'
-                      }`}>
-                        <Icon className="w-6 h-6" />
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={`w-12 h-12 ${badge.bg} border ${badge.border} rounded-full flex items-center justify-center`}>
+                        <Icon className={`w-6 h-6 ${badge.color}`} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-white font-black uppercase text-[10px] tracking-widest opacity-60 mb-0.5">{badge.text}</p>
-                        <p className="text-white font-black uppercase text-xs md:text-sm tracking-tight truncate group-hover:text-orange-500 transition-colors">{achievement.tournament.name}</p>
+                        <p className={`${badge.color} font-bold text-sm`}>{badge.text}</p>
+                        <p className="text-white font-semibold text-xs truncate">{achievement.tournament.name}</p>
                       </div>
                     </div>
- 
-                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                      <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">{achievement.tournament.game}</span>
-                      <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">
-                        {achievement.placementAt && new Date(achievement.placementAt.toDate()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">{achievement.tournament.game}</span>
+                      <span className="text-gray-500">
+                        {achievement.placementAt && new Date(achievement.placementAt.toDate()).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
@@ -300,46 +315,42 @@ export default function UserProfilePage() {
 
         {/* Recent Tournaments */}
         {recentTournaments.length > 0 && (
-          <div className="bg-white/[0.03] border border-white/10 p-6 md:p-10 rounded-[2.5rem] mb-8">
-            <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-8 flex items-center gap-3">
-              <Target className="w-8 h-8 text-orange-500" />
+          <div className="card-raid p-4 sm:p-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-6 flex items-center gap-2">
+              <Target className="w-6 h-6 text-orange-500" />
               Recent Tournaments
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+            <div className="space-y-3">
               {recentTournaments.map((tournament, index) => (
                 <Link
                   key={index}
                   href={`/tournament/${tournament.id}`}
-                  className="bg-white/[0.04] border border-white/5 rounded-2xl p-5 hover:bg-white/[0.08] hover:border-orange-500/30 transition-all duration-300 group"
+                  className="block bg-gray-800/50 border border-gray-700 rounded-xl p-4 hover:border-orange-500/50 transition-all hover:scale-102"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <h3 className="text-white font-black uppercase text-xs md:text-sm tracking-tight truncate group-hover:text-orange-500 transition-colors mb-1">{tournament.name}</h3>
-                      <p className="text-gray-500 font-black uppercase text-[9px] tracking-widest">{tournament.game}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-white font-semibold truncate mb-1">{tournament.name}</h3>
+                      <p className="text-gray-400 text-sm">{tournament.game}</p>
                     </div>
- 
-                    <div className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${tournament.status === 'completed' ? 'bg-white/5 text-gray-500' :
-                        tournament.status === 'live' ? 'bg-green-500/10 text-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)] animate-pulse' :
-                          'bg-orange-500/10 text-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.3)]'
+
+                    <div className="flex items-center gap-3 ml-4">
+                      {tournament.placement && (
+                        <div className={`${getPlacementBadge(tournament.placement).bg} px-3 py-1 rounded-full border ${getPlacementBadge(tournament.placement).border}`}>
+                          <span className={`${getPlacementBadge(tournament.placement).color} text-sm font-bold`}>
+                            {getPlacementBadge(tournament.placement).emoji} {tournament.placement}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className={`px-3 py-1 rounded-full text-xs font-semibold ${tournament.status === 'completed' ? 'bg-gray-700 text-gray-300' :
+                        tournament.status === 'live' ? 'bg-green-500/20 text-green-400 animate-pulse' :
+                          'bg-yellow-500/20 text-yellow-400'
                         }`}>
-                        {tournament.status === 'completed' ? 'Done' :
-                          tournament.status === 'live' ? 'Live' : 'Soon'}
-                    </div>
-                  </div>
- 
-                  <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                    {tournament.placement ? (
-                      <div className="flex items-center gap-1.5 font-black uppercase text-[10px] tracking-tight">
-                        <span className="text-gray-500">Placement:</span>
-                        <span className={getPlacementBadge(tournament.placement).color}>{getPlacementBadge(tournament.placement).text}</span>
+                        {tournament.status === 'completed' ? '✓ Done' :
+                          tournament.status === 'live' ? '🔴 Live' : '⏰ Soon'}
                       </div>
-                    ) : (
-                      <span className="text-[10px] font-black text-gray-600 uppercase italic">Participated</span>
-                    )}
-                    <span className="text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Target size={14} />
-                    </span>
+                    </div>
                   </div>
                 </Link>
               ))}
@@ -349,16 +360,31 @@ export default function UserProfilePage() {
 
         {/* Empty State for No Tournaments */}
         {achievements.length === 0 && recentTournaments.length === 0 && (
-          <div className="bg-white/[0.02] border border-white/10 border-dashed p-6 sm:p-12 md:p-20 text-center rounded-[2rem] md:rounded-[3rem] shadow-2xl">
-            <Trophy className="w-12 h-12 md:w-20 md:h-20 text-gray-800 mx-auto mb-6 opacity-50" />
-            <h3 className="text-lg md:text-2xl font-black text-white mb-3 uppercase tracking-widest">No Tournament History</h3>
-            <p className="text-gray-500 font-bold uppercase tracking-widest text-[9px] md:text-xs mb-8">This player hasn't participated in any tournaments yet.</p>
-            <Link href="/tournament" className="inline-block bg-orange-500 hover:bg-orange-400 text-white px-6 md:px-10 py-3 md:py-4 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20">
+          <div className="card-raid p-12 text-center">
+            <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-white mb-2">No Tournament History</h3>
+            <p className="text-gray-400 mb-6">This player hasn't participated in any tournaments yet.</p>
+            <Link href="/tournament" className="btn-raid inline-block">
               Browse Tournaments
             </Link>
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        
+        .delay-1000 {
+          animation-delay: 1000ms;
+        }
+
+        .hover\:scale-102:hover {
+          transform: scale(1.02);
+        }
+      `}</style>
     </div>
   );
 }
