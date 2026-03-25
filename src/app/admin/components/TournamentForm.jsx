@@ -363,7 +363,7 @@ export default function TournamentForm({ tournament, onClose, onCreated, hostId 
             </label>
             <input
               name="tournament_name"
-              placeholder={`e.g., RAID Championship ${new Date().getFullYear()}`}
+              placeholder="e.g., RAID Championship 2024"
               value={form.tournament_name}
               onChange={handleChange}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition"
