@@ -35,19 +35,29 @@ const ChallengeCreationWalkthrough = ({ onSuccess }) => {
   const handleBack = () => setStep(prev => prev - 1);
 
   const handleSubmit = async () => {
-    if (!user) return;
+    if (!user) {
+      toast.error('Auth Error: No user session found');
+      return;
+    }
+    
+    console.log('[Arena] Creating challenge with data:', formData);
     setLoading(true);
+    
     try {
       const result = await arenaService.createChallenge({
         ...formData,
         creatorId: user.id
       });
+      
+      console.log('[Arena] Challenge created:', result);
       setCreatedChallenge(result);
       setStep(5);
+      
       if (onSuccess) onSuccess(result);
-      toast.success('Challenge created successfully!');
+      toast.success('Battle Room Ready!');
     } catch (error) {
-      toast.error('Failed to create challenge. Please try again.');
+      console.error('[Arena] Creation failed:', error);
+      toast.error(`Arena Error: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -61,7 +71,7 @@ const ChallengeCreationWalkthrough = ({ onSuccess }) => {
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto p-6 bg-[#0f0f10]/80 backdrop-blur-2xl border border-white/5 rounded-3xl shadow-2xl relative overflow-hidden">
+    <div className="w-full max-w-xl mx-auto p-4 md:p-6 bg-[#0f0f10]/80 backdrop-blur-2xl border border-white/5 rounded-2xl md:rounded-3xl shadow-2xl relative overflow-hidden">
       {/* Background Decorative Gradients */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
         <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-orange-500/10 blur-[100px] rounded-full" />
@@ -70,9 +80,9 @@ const ChallengeCreationWalkthrough = ({ onSuccess }) => {
 
       <div className="relative z-10">
         {/* Progress Bar */}
-        <div className="flex items-center justify-between mb-10 px-2">
+        <div className="flex items-center justify-between mb-6 md:mb-10 px-2">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className={`h-1.5 rounded-full transition-all duration-500 ${
+            <div key={i} className={`h-1 rounded-full transition-all duration-500 ${
               step >= i ? 'bg-orange-500 w-[24%] shadow-[0_0_10px_rgba(249,115,22,0.6)]' : 'bg-white/5 w-[20%]'
             }`} />
           ))}
@@ -81,21 +91,21 @@ const ChallengeCreationWalkthrough = ({ onSuccess }) => {
         {/* Step 1: Select Game */}
         {step === 1 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter mb-2">Select Your <span className="text-orange-500">Battlefield</span></h2>
-            <p className="text-gray-400 text-sm mb-8 font-medium">Choose the game you'll be competing in.</p>
-            <div className="grid grid-cols-2 gap-4">
+            <h2 className="text-xl md:text-3xl font-black text-white italic uppercase tracking-tighter mb-1">Select <span className="text-orange-500">Game</span></h2>
+            <p className="text-gray-400 text-[10px] md:text-sm mb-6 md:mb-8 font-medium">Choose your competition.</p>
+            <div className="grid grid-cols-2 gap-3 md:gap-4">
               {GAMES.map(game => (
                 <button
                   key={game.id}
                   onClick={() => { setFormData({...formData, game: game.name}); handleNext(); }}
-                  className={`group p-6 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-3 ${
+                  className={`group p-4 md:p-6 rounded-xl md:rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 md:gap-3 ${
                     formData.game === game.name 
                       ? 'bg-orange-500 border-orange-400 shadow-xl shadow-orange-500/20' 
                       : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10'
                   }`}
                 >
-                  <span className="text-4xl group-hover:scale-110 transition-transform duration-300">{game.icon}</span>
-                  <span className={`font-black uppercase tracking-widest text-xs ${formData.game === game.name ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>{game.name}</span>
+                  <span className="text-2xl md:text-4xl group-hover:scale-110 transition-transform duration-300">{game.icon}</span>
+                  <span className={`font-black uppercase tracking-widest text-[9px] md:text-xs ${formData.game === game.name ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>{game.name}</span>
                 </button>
               ))}
             </div>
@@ -105,35 +115,35 @@ const ChallengeCreationWalkthrough = ({ onSuccess }) => {
         {/* Step 2: Name & Settings */}
         {step === 2 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter mb-2">Match <span className="text-orange-500">Settings</span></h2>
-            <p className="text-gray-400 text-sm mb-8 font-medium">Nail down the details of your challenge.</p>
+            <h2 className="text-xl md:text-3xl font-black text-white italic uppercase tracking-tighter mb-1">Match <span className="text-orange-500">Settings</span></h2>
+            <p className="text-gray-400 text-[10px] md:text-sm mb-6 md:mb-8 font-medium">Nail down the details.</p>
             
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-orange-500">Challenge Name</label>
+            <div className="space-y-6 md:space-y-8">
+              <div className="space-y-3">
+                <label className="text-[9px] font-black uppercase tracking-widest text-orange-500">Challenge Name</label>
                 <input 
                   type="text"
                   placeholder="e.g. 1v1 Midnight Slayer"
                   value={formData.name}
                   onChange={e => setFormData({...formData, name: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white font-bold focus:border-orange-500/50 outline-none transition-colors placeholder:text-gray-600"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-5 text-sm md:text-white font-bold focus:border-orange-500/50 outline-none transition-colors placeholder:text-gray-600"
                 />
               </div>
 
-              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-orange-500">Rounds (Best of)</label>
-                <div className="flex gap-4">
+              <div className="space-y-3">
+                <label className="text-[9px] font-black uppercase tracking-widest text-orange-500">Rounds (Best of)</label>
+                <div className="flex gap-3">
                   {ROUNDS.map(r => (
                     <button
                       key={r}
                       onClick={() => setFormData({...formData, rounds: r})}
-                      className={`flex-1 py-4 rounded-xl font-black border transition-all ${
+                      className={`flex-1 py-3 md:py-4 rounded-lg md:rounded-xl font-black border transition-all text-xs ${
                         formData.rounds === r 
                           ? 'bg-orange-500 border-orange-400 text-white' 
                           : 'bg-white/5 border-white/5 text-gray-400'
                       }`}
                     >
-                      {r} {r === 1 ? 'Round' : 'Rounds'}
+                      {r} {r === 1 ? 'Round' : 'Rds'}
                     </button>
                   ))}
                 </div>
@@ -156,24 +166,24 @@ const ChallengeCreationWalkthrough = ({ onSuccess }) => {
         {/* Step 3: Visibility */}
         {step === 3 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter mb-2">Crowd or <span className="text-orange-500">Private</span></h2>
-            <p className="text-gray-400 text-sm mb-8 font-medium">Decide who can see and join this match.</p>
+            <h2 className="text-xl md:text-3xl font-black text-white italic uppercase tracking-tighter mb-1">Crowd or <span className="text-orange-500">Private</span></h2>
+            <p className="text-gray-400 text-[10px] md:text-sm mb-6 md:mb-8 font-medium">Who can see this match?</p>
             
-            <div className="space-y-4 mb-8">
+            <div className="space-y-3 mb-6 md:mb-8">
               <button
                 onClick={() => setFormData({...formData, visibility: 'Public'})}
-                className={`w-full p-6 rounded-3xl border transition-all text-left flex items-center gap-6 ${
+                className={`w-full p-4 md:p-6 rounded-2xl border transition-all text-left flex items-center gap-4 md:gap-6 ${
                   formData.visibility === 'Public' 
                     ? 'bg-orange-500 border-orange-400 shadow-xl shadow-orange-500/20' 
                     : 'bg-white/5 border-white/10 hover:bg-white/10'
                 }`}
               >
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${formData.visibility === 'Public' ? 'bg-white/20' : 'bg-white/5'}`}>
-                  <Globe className={formData.visibility === 'Public' ? 'text-white' : 'text-gray-400'} />
+                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center ${formData.visibility === 'Public' ? 'bg-white/20' : 'bg-white/5'}`}>
+                  <Globe className={formData.visibility === 'Public' ? 'text-white' : 'text-gray-400'} size={20} />
                 </div>
                 <div>
-                  <h3 className={`font-black uppercase tracking-tighter text-lg ${formData.visibility === 'Public' ? 'text-white' : 'text-white'}`}>Public Arena</h3>
-                  <p className={`text-xs ${formData.visibility === 'Public' ? 'text-white/70' : 'text-gray-500'}`}>Listed in the hub for anyone to join.</p>
+                  <h3 className={`font-black uppercase tracking-tighter text-base md:text-lg ${formData.visibility === 'Public' ? 'text-white' : 'text-white'}`}>Public Arena</h3>
+                  <p className={`text-[10px] md:text-xs ${formData.visibility === 'Public' ? 'text-white/70' : 'text-gray-500'}`}>Listed in the hub.</p>
                 </div>
               </button>
 
@@ -205,10 +215,10 @@ const ChallengeCreationWalkthrough = ({ onSuccess }) => {
         {/* Step 4: Final Confirmation */}
         {step === 4 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter mb-2">Ready to <span className="text-orange-500">Launch?</span></h2>
-            <p className="text-gray-400 text-sm mb-8 font-medium">Review your challenge details before going live.</p>
+            <h2 className="text-xl md:text-3xl font-black text-white italic uppercase tracking-tighter mb-1">Ready to <span className="text-orange-500">Launch?</span></h2>
+            <p className="text-gray-400 text-[10px] md:text-sm mb-6 md:mb-8 font-medium">Review your challenge details.</p>
             
-            <div className="bg-white/5 border border-white/5 rounded-3xl p-6 space-y-4 mb-8">
+            <div className="bg-white/5 border border-white/5 rounded-2xl p-4 md:p-6 space-y-3 md:space-y-4 mb-6 md:mb-8 text-xs md:text-sm">
               <div className="flex justify-between items-center border-b border-white/5 pb-4">
                 <span className="text-gray-500 font-bold uppercase text-[10px]">Game</span>
                 <span className="text-white font-black">{formData.game}</span>

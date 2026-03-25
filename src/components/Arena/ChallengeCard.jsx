@@ -21,23 +21,23 @@ const ChallengeCard = ({ challenge }) => {
       {/* Glossy Overlay */}
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-orange-500/10 via-transparent to-white/5 opacity-50"></div>
       
-      <div className="p-5 flex flex-col gap-4">
+      <div className="p-4 flex flex-col gap-3">
         {/* Header: Game + Visibility */}
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-orange-500/10 rounded-xl border border-orange-500/20 flex items-center justify-center text-2xl">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 bg-orange-500/10 rounded-lg border border-orange-500/20 flex items-center justify-center text-xl">
               {getGameIcon(challenge.game)}
             </div>
             <div>
-              <h3 className="text-white font-bold text-lg leading-tight group-hover:text-orange-400 transition-colors">
+              <h3 className="text-white font-bold text-sm leading-tight group-hover:text-orange-400 transition-colors">
                 {challenge.name}
               </h3>
-              <p className="text-orange-500/80 text-xs font-black uppercase tracking-widest">
+              <p className="text-orange-500/80 text-[9px] font-black uppercase tracking-widest">
                 {challenge.game}
               </p>
             </div>
           </div>
-          <div className={`px-2 py-1 rounded-full flex items-center gap-1.5 border ${
+          <div className={`px-1.5 py-0.5 rounded-full flex items-center gap-1 border ${
             challenge.visibility === 'Private' 
               ? 'bg-red-500/10 border-red-500/20 text-red-500' 
               : 'bg-green-500/10 border-green-500/20 text-green-500'
@@ -49,15 +49,14 @@ const ChallengeCard = ({ challenge }) => {
           </div>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 flex flex-col items-center justify-center">
-            <span className="text-[10px] text-gray-500 font-bold uppercase">Rounds</span>
-            <span className="text-white font-black text-sm">{challenge.rounds}</span>
+          <div className="bg-white/5 border border-white/10 rounded-lg p-2 flex flex-col items-center justify-center">
+            <span className="text-[8px] text-gray-500 font-bold uppercase">Rounds</span>
+            <span className="text-white font-black text-xs">{challenge.rounds}</span>
           </div>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 flex flex-col items-center justify-center">
-            <span className="text-[10px] text-gray-500 font-bold uppercase">Players</span>
-            <span className="text-white font-black text-sm">
+          <div className="bg-white/5 border border-white/10 rounded-lg p-2 flex flex-col items-center justify-center">
+            <span className="text-[8px] text-gray-500 font-bold uppercase">Players</span>
+            <span className="text-white font-black text-xs">
               {challenge.currentParticipants}/{challenge.maxParticipants}
             </span>
           </div>
@@ -77,10 +76,10 @@ const ChallengeCard = ({ challenge }) => {
         <Link
           href={`/arena/${challenge.id}`}
           onClick={() => setIsNavigating(true)}
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black uppercase text-xs py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-orange-500/20"
+          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black uppercase text-[10px] py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-orange-500/20"
         >
-          <Swords size={14} />
-          {isNavigating ? 'Entering...' : 'Join Challenge'}
+          <Swords size={12} />
+          {isNavigating ? 'Entering...' : 'Join Room'}
         </Link>
       </div>
     </div>

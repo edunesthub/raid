@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navigation from "./components/Navigation";
 import { Analytics } from "@vercel/analytics/next";
-import AppProviders from "./AppProviders";
+import GlobalProviders from "./GlobalProviders";
 import PWAInstallPrompt from "../components/PWAInstallPrompt";
 import OfflineLoader from "../components/OfflineLoader";
 import UpdatePrompt from "@/components/UpdatePrompt";
@@ -60,7 +60,7 @@ export default function RootLayout({ children }) {
           height: "100%",
         }}
       >
-        <AppProviders>
+        <GlobalProviders>
           <div className="flex flex-col h-full min-h-screen">
             {/* Navigation - only show on regular pages */}
             {!hideNav && <Navigation />}
@@ -97,7 +97,7 @@ export default function RootLayout({ children }) {
           <UpdatePrompt />
           {!hideNav && <ProfileCompletionPrompt hide={hideNav} />}
           <OfflineLoader />
-        </AppProviders>
+        </GlobalProviders>
 
         <Analytics />
         <Toaster
