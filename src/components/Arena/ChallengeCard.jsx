@@ -18,8 +18,17 @@ const ChallengeCard = ({ challenge }) => {
 
   return (
     <div className="relative group bg-[#0f0f10]/95 backdrop-blur-xl border border-orange-500/30 rounded-2xl overflow-hidden transition-all duration-500 hover:scale-[1.03] hover:shadow-[0_0_40px_-10px_rgba(255,120,0,0.5)]">
+      {/* Dynamic Grid Background Overlay (Grid-Lock style) */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(rgba(249,115,22,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(249,115,22,0.1)_1px,transparent_1px)] bg-[size:10px_10px]"></div>
+      
       {/* Glossy Overlay */}
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-orange-500/10 via-transparent to-white/5 opacity-50"></div>
+
+      {/* Live Pulse Indicator */}
+      <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-0.5 bg-black/40 backdrop-blur-md rounded-full border border-white/5 z-20">
+        <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div>
+        <span className="text-[7px] font-black uppercase tracking-widest text-white/50">Live</span>
+      </div>
       
       <div className="p-4 flex flex-col gap-3">
         {/* Header: Game + Visibility */}
@@ -37,15 +46,30 @@ const ChallengeCard = ({ challenge }) => {
               </p>
             </div>
           </div>
-          <div className={`px-1.5 py-0.5 rounded-full flex items-center gap-1 border ${
-            challenge.visibility === 'Private' 
-              ? 'bg-red-500/10 border-red-500/20 text-red-500' 
-              : 'bg-green-500/10 border-green-500/20 text-green-500'
-          }`}>
-            {challenge.visibility === 'Private' ? <Lock size={10} /> : <Globe size={10} />}
-            <span className="text-[10px] font-bold uppercase tracking-tighter">
-              {challenge.visibility}
-            </span>
+          <div className="flex items-center gap-3">
+            <div className={`px-1.5 py-0.5 rounded-full flex items-center gap-1 border ${
+              challenge.visibility === 'Private' 
+                ? 'bg-red-500/10 border-red-500/20 text-red-500' 
+                : 'bg-green-500/10 border-green-500/20 text-green-500'
+            }`}>
+              {challenge.visibility === 'Private' ? <Lock size={8} /> : <Globe size={8} />}
+              <span className="text-[8px] font-bold uppercase tracking-tighter">
+                {challenge.visibility}
+              </span>
+            </div>
+            
+            {/* Avatar Stack Mockup */}
+            <div className="flex -space-x-2">
+              {[1, 2].map((i) => (
+                <div key={i} className={`w-5 h-5 rounded-full border border-black bg-gray-900 overflow-hidden flex items-center justify-center ${i > challenge.currentParticipants ? 'opacity-20' : ''}`}>
+                  {i <= challenge.currentParticipants ? (
+                    <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${challenge.id}${i}`} className="w-full h-full object-cover" />
+                  ) : (
+                    <Users size={8} className="text-gray-700" />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

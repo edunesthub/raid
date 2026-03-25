@@ -47,15 +47,22 @@ export default function ArenaPage() {
   return (
     <div className="min-h-screen bg-black text-white pb-20">
       {/* Hero Header - Reduced height for mobile */}
-      <section className="relative h-48 md:h-64 w-full flex items-center justify-center overflow-hidden border-b border-white/5">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-20"></div>
+      <section className="relative h-48 md:h-64 w-full flex items-center justify-center overflow-hidden border-b border-orange-500/10">
+        {/* Animated Background Grid */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.07] bg-[linear-gradient(rgba(249,115,22,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(249,115,22,0.1)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-10"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60"></div>
+        
         <div className="relative z-10 text-center px-4">
-          <h1 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2">
-            Raid <span className="text-orange-500">Arena</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-500/10 border border-orange-500/20 rounded-full mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(249,115,22,1)]"></div>
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-orange-500">{challenges.length} Active Rooms</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter mb-2 text-white">
+            Raid <span className="text-orange-500 drop-shadow-[0_0_15px_rgba(249,115,22,0.4)]">Arena</span>
           </h1>
-          <p className="text-gray-400 font-medium max-w-lg mx-auto text-[10px] md:text-xs border-l-2 border-orange-500 pl-3">
-            Casual matches, high stakes. Create your room or join a global challenge.
+          <p className="text-gray-500 font-medium max-w-sm mx-auto text-[9px] md:text-xs tracking-wider md:tracking-widest opacity-60">
+            ELITE MATCHMAKING • REAL-TIME CHALLENGES • XP REWARDS
           </p>
         </div>
       </section>
@@ -63,21 +70,22 @@ export default function ArenaPage() {
       <div className="container-mobile -mt-10 relative z-20">
         {/* Quick Actions / Stats Bar */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-          <div className="bg-[#0f0f10] border border-orange-500/20 rounded-2xl p-4 flex items-center justify-between shadow-xl backdrop-blur-xl">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-500/10 rounded-xl flex items-center justify-center text-orange-500">
+          <div className="group bg-[#0f0f10] border border-orange-500/20 rounded-2xl p-4 flex items-center justify-between shadow-xl backdrop-blur-xl relative overflow-hidden transition-all hover:border-orange-500/40">
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="flex items-center gap-3 relative z-10">
+              <div className="w-10 h-10 bg-orange-500/10 rounded-xl flex items-center justify-center text-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.1)] group-hover:scale-110 transition-transform">
                 <Plus size={20} />
               </div>
               <div>
-                <h3 className="font-bold text-sm">Start Fresh</h3>
-                <p className="text-[9px] text-gray-500">Create battle arena</p>
+                <h3 className="font-bold text-sm">Create Room</h3>
+                <p className="text-[9px] text-gray-600 font-mono tracking-tighter">SECURE MATCHMAKING ON</p>
               </div>
             </div>
             <button 
               onClick={() => setShowCreate(true)}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-black uppercase text-[9px] tracking-widest px-4 py-2.5 rounded-lg transition-all shadow-lg shadow-orange-500/20"
+              className="bg-orange-500 hover:bg-white hover:text-orange-600 text-white font-black uppercase text-[9px] tracking-[0.2em] px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-orange-500/20 relative z-10"
             >
-              Setup
+              LAUNCH
             </button>
           </div>
 
