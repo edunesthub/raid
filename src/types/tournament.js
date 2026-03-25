@@ -1,1 +1,0 @@
-// This file previously contained TypeScript interface and type definitions for tournaments. These are removed as part of the conversion to JavaScript.

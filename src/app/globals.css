@@ -1,20 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  /* RAID Esports Brand Colors - Black & Orange Theme */
-  --raid-black-primary: #000000;
-  --raid-black-secondary: #1a1a1a;
-  --raid-orange-primary: #ff8c00;
-  --raid-orange-secondary: #ff7700;
-  --raid-dark: #0a0a0a;
-  --raid-gray-dark: #1a1a1a;
-  --raid-gray-medium: #262626;
-  --raid-gray-light: #404040;
-  --raid-white: #ffffff;
-  --raid-text-light: #f5f5f5;
-
-  --background: var(--raid-dark);
-  --foreground: var(--raid-text-light);
+  /* RAID Esports Brand Colors - Premium Black & Vibrant Orange */
+  --raid-black-950: #050505;
+  --raid-black-900: #0a0a0d;
+  --raid-black-800: #121217;
+  --raid-orange-500: #ff6a00;
+  --raid-orange-600: #e65f00;
+  --raid-orange-400: #ff8533;
+  --raid-accent-purple: #8b5cf6;
+  
+  --background: var(--raid-black-950);
+  --foreground: #f8fafc;
+  
+  --glass-bg: rgba(18, 18, 23, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 @theme inline {
@@ -36,39 +36,56 @@
 
 /* Base styles */
 body {
-  background: var(--background);
+  background: #000;
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Esports UI Components - Black & Orange Theme */
-.gradient-raid {
-  background: linear-gradient(135deg, var(--raid-black-primary), var(--raid-orange-primary));
+/* Esports UI Components - Premium Aesthetics */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
 }
 
-.gradient-raid-dark {
-  background: linear-gradient(135deg, var(--raid-black-secondary), var(--raid-orange-secondary));
+.gradient-border {
+  position: relative;
+  background: var(--raid-black-900);
+  background-clip: padding-box;
+  border: 1px solid transparent;
 }
 
-.btn-raid {
-  @apply bg-gradient-to-r from-black to-orange-500 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:from-gray-900 hover:to-orange-600 transform hover:scale-105 transition-all duration-200;
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  background: linear-gradient(135deg, var(--raid-orange-500), var(--raid-accent-purple));
+  border-radius: inherit;
 }
 
-.btn-raid-outline {
-  @apply border-2 border-orange-500 text-orange-500 font-semibold py-2 px-4 rounded-lg hover:bg-orange-500 hover:text-white transition-all duration-200;
+.btn-raid-v2 {
+  @apply relative overflow-hidden px-8 py-3 rounded-xl font-bold uppercase tracking-wider transition-all duration-300;
+  background: linear-gradient(135deg, var(--raid-orange-500), #ff4d00);
+  box-shadow: 0 4px 20px rgba(255, 106, 0, 0.3);
 }
 
-.card-raid {
-  @apply bg-gray-900 border border-gray-800 rounded-lg shadow-lg hover:border-orange-500 transition-all duration-300;
+.btn-raid-v2:hover {
+  @apply -translate-y-0.5 shadow-orange-500/50 scale-105;
+  filter: brightness(1.1);
 }
 
-.text-raid-gradient {
-  background: linear-gradient(135deg, var(--raid-black-primary), var(--raid-orange-primary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.text-gradient-premium {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-orange-400 to-white;
+  background-size: 200% auto;
+  animation: shine 5s linear infinite;
+}
+
+@keyframes shine {
+  to { background-position: 200% center; }
 }
 
 /* Mobile-first responsive design */
@@ -149,15 +166,15 @@ body {
 
 html,
 body {
-  background: radial-gradient(circle at top left,
-      #0d0d0d 0%,
-      #0a0a0a 50%,
-      #000000 100%);
+  background: radial-gradient(circle at 50% 0%, #121217 0%, #050505 50%, #000000 100%);
   background-attachment: fixed;
   color-scheme: dark;
   overscroll-behavior: none;
   height: 100%;
   min-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 
@@ -437,7 +454,7 @@ body {
 body,
 #root,
 [data-radix-scroll-area-viewport] {
-  background-color: #000000 !important;
+  background-color: transparent;
 }
 
 /* Prevent mobile auto-zoom on focus - Font size must be at least 16px for iOS */

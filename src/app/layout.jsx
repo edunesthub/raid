@@ -36,7 +36,7 @@ export default function RootLayout({ children }) {
   const hideNav = hideBar;
   const hideFooter = hideBar || isPortalPage;
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full w-full overflow-x-hidden">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
         <meta name="theme-color" content="#000000" />
@@ -53,7 +53,7 @@ export default function RootLayout({ children }) {
       </head>
 
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-gray-100 h-full overflow-x-hidden`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-gray-100 h-full w-full overflow-x-hidden`}
         style={{
           minHeight: "100vh",
           minHeight: "100dvh",
@@ -61,22 +61,20 @@ export default function RootLayout({ children }) {
         }}
       >
         <AppProviders>
-          <div className="flex flex-col h-full min-h-screen">
+          <div className="flex flex-col h-full min-h-screen w-full overflow-x-clip relative">
             {/* Navigation - only show on regular pages */}
             {!hideNav && <Navigation />}
 
             {/* Main Content Area */}
-            <div className={`flex flex-1 ${!hideNav ? (isPortalPage ? 'md:pt-20' : 'pt-20 md:pt-20') : ''}`}>
+            <div className={`flex flex-1 ${!hideNav && isPortalPage ? 'md:pt-20' : ''}`}>
               <main
-                className={`flex-1 ${!hideNav ? (isPortalPage ? 'pb-0' : 'pb-24 md:pb-4') : ''}`}
+                className={`flex-1 ${!hideNav ? (isPortalPage ? 'pb-0' : (hideFooter ? 'pb-24 md:pb-4' : '')) : ''}`}
                 style={{
-                  paddingTop: hideNav ? '0' : undefined,
+                  paddingTop: hideNav || pathname === '/' ? '0' : undefined,
                   paddingBottom: (hideNav || (isPortalPage && typeof window !== 'undefined' && window.innerWidth < 768)) ? '0' : undefined,
                 }}
               >
-                <div className="max-w-[1600px] mx-auto w-full">
-                  {children}
-                </div>
+                {children}
               </main>
             </div>
 
