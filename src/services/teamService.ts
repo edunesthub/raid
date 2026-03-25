@@ -77,6 +77,15 @@ export async function getTeams() {
   return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
+export async function getTeamById(teamId: string) {
+  const teamRef = doc(db, "teams", teamId);
+  const snap = await getDoc(teamRef);
+  if (snap.exists()) {
+    return { id: teamId, ...snap.data() };
+  }
+  return null;
+}
+
 export async function addMemberToTeam(teamId: string, userEmail: string) {
   const teamRef = doc(db, "teams", teamId);
   await updateDoc(teamRef, { members: arrayUnion(userEmail) });
