@@ -27,20 +27,20 @@ export default function TeamDetailsModal({ isOpen, onClose, team, memberDetails 
     const canChat = isManager || isMember || isAdmin;
 
     return (
-        <div className="fixed inset-0 z-[100] bg-zinc-950 animate-fade-in overflow-hidden">
-            <div className="h-[100dvh] w-full bg-zinc-950 overflow-y-auto custom-scrollbar flex flex-col relative pt-[env(safe-area-inset-top,0px)]">
+        <div className="fixed inset-0 z-[100] bg-black animate-fade-in overflow-hidden">
+            <div className="h-[100dvh] w-full bg-black overflow-y-auto custom-scrollbar flex flex-col relative pt-[env(safe-area-inset-top,0px)]">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="fixed top-4 right-4 z-[120] p-3 bg-zinc-900/90 hover:bg-white/10 rounded-full text-white/70 hover:text-white transition-all backdrop-blur-xl border border-white/10 shadow-2xl active:scale-90"
+                    className="fixed top-4 right-4 z-[120] p-3 bg-white/[0.05] hover:bg-white/10 rounded-full text-white/70 hover:text-white transition-all backdrop-blur-xl border border-white/10 shadow-2xl active:scale-90"
                 >
                     <X size={20} />
                 </button>
 
                 {/* Header/Cover Image Section */}
-                <div className="relative h-32 sm:h-48 bg-gradient-to-br from-orange-600 to-orange-900 overflow-hidden">
+                <div className="relative h-32 sm:h-56 bg-gradient-to-br from-orange-600 to-orange-900 overflow-hidden">
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
                     <div className="absolute -top-12 -left-12 w-24 h-24 sm:w-48 sm:h-48 bg-white/10 rounded-full blur-3xl animate-pulse" />
                 </div>
 
@@ -48,19 +48,19 @@ export default function TeamDetailsModal({ isOpen, onClose, team, memberDetails 
                 <div className="relative flex-1 px-4 sm:px-12 md:px-24 pb-20 -mt-10 sm:-mt-16 max-w-7xl mx-auto w-full">
                     <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-10 mb-8 sm:mb-12">
                         <div className="relative self-start sm:self-auto">
-                            <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl bg-zinc-900 border-4 border-zinc-950 shadow-2xl flex items-center justify-center overflow-hidden">
+                            <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl bg-black border-4 border-black shadow-2xl flex items-center justify-center overflow-hidden">
                                 {team.avatarUrl ? (
                                     <img src={team.avatarUrl} alt={team.name} className="w-full h-full object-cover" />
                                 ) : (
                                     <Shield className="text-orange-500" size={32} />
                                 )}
                             </div>
-                            <div className="absolute -bottom-1 -right-1 bg-green-500 w-5 h-5 rounded-full border-4 border-zinc-950 shadow-lg" title="Active" />
+                            <div className="absolute -bottom-1 -right-1 bg-green-500 w-5 h-5 rounded-full border-4 border-black shadow-lg" title="Active" />
                         </div>
 
                         <div className="flex-1 min-w-0">
-                            <h2 className="text-xl sm:text-4xl font-black text-white uppercase tracking-tighter mb-1 truncate">{team.name}</h2>
-                            <p className="text-orange-500 font-bold text-[10px] sm:text-sm tracking-[0.2em] uppercase mb-4 flex items-center gap-2">
+                            <h2 className="text-xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-tighter italic mb-1 truncate leading-tight">{team.name}</h2>
+                            <p className="text-orange-500 font-bold text-[10px] sm:text-sm tracking-[0.2em] uppercase mb-6 flex items-center gap-2 italic">
                                 {team.slogan || "RAID Arena Competitor"}
                             </p>
 
@@ -95,23 +95,23 @@ export default function TeamDetailsModal({ isOpen, onClose, team, memberDetails 
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
                                 {/* Manager */}
-                                <div className="flex items-center justify-between p-3 bg-orange-500/5 border border-orange-500/10 rounded-2xl">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                <div className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/10 rounded-2xl shadow-xl">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
                                             {memberDetails[team.manager]?.avatarUrl ? (
                                                 <img src={memberDetails[team.manager].avatarUrl} alt="Manager" className="w-full h-full object-cover" />
                                             ) : (
-                                                <UserCircle className="text-orange-500" size={20} />
+                                                <UserCircle className="text-orange-500" size={24} />
                                             )}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="text-sm font-bold text-white leading-none mb-1 truncate">
+                                            <p className="text-sm font-black text-white uppercase tracking-tighter italic leading-none mb-1.5 truncate">
                                                 {memberDetails[team.manager]?.username || team.manager?.split('@')[0]}
                                             </p>
-                                            <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Team Manager</p>
+                                            <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest italic opacity-80">Team Manager</p>
                                         </div>
                                     </div>
-                                    <Mail size={14} className="text-white/20 flex-shrink-0" />
+                                    <Mail size={16} className="text-white/20 flex-shrink-0" />
                                 </div>
 
                                 {/* Members */}
@@ -119,22 +119,22 @@ export default function TeamDetailsModal({ isOpen, onClose, team, memberDetails 
                                     if (email === team.manager) return null;
                                     const member = memberDetails[email];
                                     return (
-                                        <div key={idx} className="flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded-2xl">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-zinc-800 border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                        <div key={idx} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
                                                     {member?.avatarUrl ? (
                                                         <img src={member.avatarUrl} alt={member.username} className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <span className="text-xs font-bold text-gray-500">
-                                                            {member?.username?.charAt(0).toUpperCase() || email.charAt(0).toUpperCase()}
+                                                        <span className="text-sm font-black text-white/40 uppercase italic">
+                                                            {member?.username?.charAt(0) || email.charAt(0)}
                                                         </span>
                                                     )}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="text-sm font-bold text-white leading-none truncate">
+                                                    <p className="text-sm font-black text-white uppercase tracking-tighter italic leading-none truncate">
                                                         {member?.username || email.split('@')[0]}
                                                     </p>
-                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Player</p>
+                                                    <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mt-1.5 italic">Player</p>
                                                 </div>
                                             </div>
                                         </div>
