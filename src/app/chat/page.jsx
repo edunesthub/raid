@@ -220,10 +220,10 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pt-[88px] md:pt-[100px] pb-32 md:pb-16">
+    <div className="min-h-screen bg-black pb-24 md:pb-0">
       {/* Header */}
-      <div className="border-b border-white/5 pb-8 px-6 md:px-10 lg:px-12">
-        <div className="max-w-[1600px] mx-auto">
+      <div className="bg-gradient-to-r from-black via-orange-900/10 to-black border-b border-orange-500/10 pt-8 pb-6 px-4">
+        <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center space-x-4">
               <div className="p-2.5 md:p-3 bg-orange-500/10 rounded-xl md:rounded-2xl border border-orange-500/20">
@@ -235,27 +235,24 @@ export default function ChatPage() {
               </div>
             </div>
 
-            <div className="flex w-full md:w-auto bg-white/[0.02] p-1.5 rounded-2xl border border-white/5 mt-4 md:mt-0">
+            <div className="flex bg-white/5 p-1 rounded-xl border border-white/5 self-start overflow-x-auto scrollbar-hide max-w-full">
               <button
                 onClick={() => setActiveTab("tournaments")}
-                className={`flex-1 md:flex-none flex justify-center items-center gap-1.5 md:gap-2 px-1 md:px-6 py-3 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'tournaments' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                className={`flex-shrink-0 flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'tournaments' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-white'}`}
               >
-                <Trophy className={`w-3.5 h-3.5 md:w-4 md:h-4 ${activeTab === 'tournaments' ? 'text-orange-500' : ''}`} />
-                <span className="truncate">Tourneys</span>
+                <Trophy size={14} /> Tournaments
               </button>
               <button
                 onClick={() => setActiveTab("teams")}
-                className={`flex-1 md:flex-none flex justify-center items-center gap-1.5 md:gap-2 px-1 md:px-6 py-3 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'teams' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                className={`flex-shrink-0 flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'teams' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-white'}`}
               >
-                <Users className={`w-3.5 h-3.5 md:w-4 md:h-4 ${activeTab === 'teams' ? 'text-orange-500' : ''}`} />
-                <span className="truncate">Squads</span>
+                <Users size={14} /> My Teams
               </button>
               <button
                 onClick={() => setActiveTab("leagues")}
-                className={`flex-1 md:flex-none flex justify-center items-center gap-1.5 md:gap-2 px-1 md:px-6 py-3 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'leagues' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                className={`flex-shrink-0 flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'leagues' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-white'}`}
               >
-                <Trophy className={`w-3.5 h-3.5 md:w-4 md:h-4 ${activeTab === 'leagues' ? 'text-orange-500' : ''}`} />
-                <span className="truncate">Leagues</span>
+                <Trophy size={14} /> Leagues
               </button>
             </div>
           </div>
@@ -263,7 +260,7 @@ export default function ChatPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-[1600px] mx-auto px-6 md:px-10 lg:px-12 pt-8 pb-12">
+      <div className="max-w-4xl mx-auto px-4 pt-4 pb-12">
         {loading ? (
           <div className="grid grid-cols-1 gap-4">
             {[1, 2, 3, 4].map((i) => (
@@ -272,15 +269,13 @@ export default function ChatPage() {
           </div>
         ) : activeTab === 'tournaments' ? (
           tournaments.length === 0 ? (
-            <div className="bg-white/[0.03] border border-white/10 rounded-[2rem] p-8 md:p-12 text-center max-w-2xl mx-auto">
-              <div className="w-20 h-20 bg-orange-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-orange-500/20">
-                <Trophy className="w-10 h-10 text-orange-500" />
-              </div>
-              <h3 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter mb-2">No active tournaments</h3>
-              <p className="text-gray-400 text-sm md:text-base font-medium mb-8 max-w-sm mx-auto leading-relaxed">Join a tournament to unlock its exclusive chat room and coordinate with other players.</p>
-              <Link href="/tournament" className="inline-flex items-center space-x-3 px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white transition-colors rounded-2xl w-full md:w-auto justify-center">
+            <div className="bg-white/5 border border-white/5 rounded-[2rem] p-8 md:p-12 text-center">
+              <Trophy className="w-12 md:w-16 h-12 md:h-16 text-gray-800 mx-auto mb-4 md:mb-6" />
+              <h3 className="text-xl md:text-2xl font-black text-white uppercase mb-2">No active tournaments</h3>
+              <p className="text-gray-500 text-sm md:text-base font-medium mb-6 md:mb-8 max-w-sm mx-auto leading-relaxed">Join a tournament to unlock its exclusive chat room and coordinate with other players.</p>
+              <Link href="/tournament" className="inline-flex items-center space-x-3 px-6 md:px-8 py-3 md:py-4 bg-orange-500 text-white rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-[0.2em] hover:bg-orange-600 transition-all shadow-xl shadow-orange-500/20 active:scale-95 w-full md:w-auto justify-center">
                 <Trophy className="w-4 h-4" />
-                <span className="font-black uppercase tracking-widest text-xs">Explore Tournaments</span>
+                <span>Explore Tournaments</span>
               </Link>
             </div>
           ) : (
@@ -289,21 +284,18 @@ export default function ChatPage() {
                 <Link
                   key={tournament.id}
                   href={`/tournament/${tournament.id}/chat`}
-                  className={`group relative bg-white/[0.03] border ${
-                    tournament.unreadCount > 0 ? 'border-orange-500/30' : 'border-white/10'
-                  } rounded-3xl p-4 md:p-5 hover:bg-white/[0.06] hover:border-orange-500/40 transition-all overflow-hidden`}
+                  className="group relative bg-white/5 border border-white/5 md:border-white/5 rounded-3xl p-4 md:p-5 hover:bg-white/[0.08] hover:border-orange-500/30 transition-all active:scale-[0.98] overflow-hidden"
                 >
-                  {/* Unread left-edge accent */}
-                  {tournament.unreadCount > 0 && (
-                    <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-orange-500 rounded-l-3xl" />
-                  )}
+                  {/* Glassmorphism Background Accent */}
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/5 blur-2xl rounded-full -mr-12 -mt-12 group-hover:bg-orange-500/10 transition-colors" />
+
 
                   <div className="flex items-center gap-3 md:gap-5 relative z-10">
                     <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-gray-900 border border-white/10 shadow-lg">
                       {tournament.tournament_flyer ? (
                         <Image src={tournament.tournament_flyer} alt={tournament.tournament_name} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-orange-500/10">
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-500/20 to-black">
                           <Trophy className="w-7 md:w-8 h-7 md:h-8 text-orange-500/50" />
                         </div>
                       )}
@@ -313,9 +305,7 @@ export default function ChatPage() {
                       <div className="flex items-center flex-wrap gap-2 mb-1.5">
                         <span className="text-[8px] md:text-[9px] font-black text-orange-500 uppercase tracking-[0.2em] bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/20">LIVE</span>
                       </div>
-                      <h3 className={`text-base md:text-xl font-black truncate uppercase italic tracking-tighter ${
-                        tournament.unreadCount > 0 ? 'text-white' : 'text-gray-300'
-                      }`}>
+                      <h3 className="text-base md:text-xl font-black text-white group-hover:text-orange-500 transition-colors truncate uppercase italic tracking-tighter">
                         {tournament.tournament_name || tournament.title || 'Unknown Tournament'}
                       </h3>
                       <div className="flex items-center gap-3 mt-1.5">
@@ -328,14 +318,13 @@ export default function ChatPage() {
                       </div>
                     </div>
 
-                    <div className={`relative p-2.5 md:p-3 rounded-2xl transition-all border ${
-                      tournament.unreadCount > 0
-                        ? 'bg-orange-500/10 text-orange-500 border-orange-500/30'
-                        : 'bg-white/5 text-gray-500 border-white/5 group-hover:bg-orange-500/10 group-hover:text-orange-500 group-hover:border-orange-500/20'
-                    }`}>
-                      <MessageCircle className="w-5 h-5 md:w-6 md:h-6" />
+                    <div className={`relative p-2 md:p-3 rounded-2xl transition-all border ${tournament.unreadCount > 0
+                      ? 'bg-orange-500 text-white border-orange-400 shadow-lg shadow-orange-500/40'
+                      : 'bg-orange-500/5 text-orange-500/40 border-orange-500/5 group-hover:bg-orange-500/10 group-hover:text-orange-500'
+                      }`}>
+                      <MessageCircle className="w-5 md:w-6 h-5 md:h-6" />
                       {tournament.unreadCount > 0 && (
-                        <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-5 h-5 bg-orange-500 text-white text-[9px] font-black rounded-full shadow-sm">
+                        <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[1.25rem] h-5 px-1 bg-white text-orange-600 text-[9px] font-black rounded-full shadow-sm border border-orange-500/20">
                           {tournament.unreadCount}
                         </span>
                       )}
@@ -347,15 +336,13 @@ export default function ChatPage() {
           )
         ) : activeTab === 'leagues' ? (
           leagues.length === 0 ? (
-            <div className="bg-white/[0.03] border border-white/10 rounded-[2rem] p-8 md:p-12 text-center max-w-2xl mx-auto">
-              <div className="w-20 h-20 bg-orange-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-orange-500/20">
-                <Trophy className="w-10 h-10 text-orange-500" />
-              </div>
-              <h3 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter mb-2">No leagues found</h3>
-              <p className="text-gray-400 text-sm md:text-base font-medium mb-8 max-w-sm mx-auto leading-relaxed">Engage in competitive leagues to unlock community chat rooms and stay updated.</p>
-              <Link href="/leagues" className="inline-flex items-center space-x-3 px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white transition-colors rounded-2xl w-full md:w-auto justify-center">
+            <div className="bg-white/5 border border-white/5 rounded-[2rem] p-8 md:p-12 text-center">
+              <Trophy className="w-12 md:w-16 h-12 md:h-16 text-gray-800 mx-auto mb-4 md:mb-6" />
+              <h3 className="text-xl md:text-2xl font-black text-white uppercase mb-2">No leagues found</h3>
+              <p className="text-gray-500 text-sm md:text-base font-medium mb-6 md:mb-8 max-w-sm mx-auto leading-relaxed">Engage in competitive leagues to unlock community chat rooms and stay updated.</p>
+              <Link href="/leagues" className="inline-flex items-center space-x-3 px-6 md:px-8 py-3 md:py-4 bg-orange-500 text-white rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-[0.2em] hover:bg-orange-600 transition-all shadow-xl shadow-orange-500/20 active:scale-95 w-full md:w-auto justify-center">
                 <Trophy className="w-4 h-4" />
-                <span className="font-black uppercase tracking-widest text-xs">Join a League</span>
+                <span>Join a League</span>
               </Link>
             </div>
           ) : (
@@ -364,33 +351,28 @@ export default function ChatPage() {
                 <Link
                   key={league.id}
                   href={`/league-chat/${league.id}`}
-                  className={`group relative bg-white/[0.03] border ${
-                    league.unreadCount > 0 ? 'border-orange-500/30' : 'border-white/10'
-                  } rounded-3xl p-4 md:p-5 hover:bg-white/[0.06] hover:border-orange-500/40 transition-all overflow-hidden`}
+                  className="group relative bg-white/5 border border-white/5 rounded-3xl p-4 md:p-5 hover:bg-white/[0.08] hover:border-green-500/30 transition-all active:scale-[0.98] overflow-hidden"
                 >
-                  {/* Unread left-edge accent */}
-                  {league.unreadCount > 0 && (
-                    <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-orange-500 rounded-l-3xl" />
-                  )}
+                  {/* Glassmorphism Background Accent */}
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 blur-2xl rounded-full -mr-12 -mt-12 group-hover:bg-green-500/10 transition-colors" />
+
 
                   <div className="flex items-center gap-3 md:gap-5 relative z-10">
                     <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-gray-900 border border-white/10 shadow-lg">
                       {league.league_flyer ? (
                         <Image src={league.league_flyer} alt={league.name} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-orange-500/10">
-                          <Trophy className="w-7 md:w-8 h-7 md:h-8 text-orange-500/50" />
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-500/20 to-black">
+                          <Trophy className="w-7 md:w-8 h-7 md:h-8 text-green-500/50" />
                         </div>
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center flex-wrap gap-2 mb-1.5">
-                        <span className="text-[8px] md:text-[9px] font-black text-orange-500 uppercase tracking-[0.2em] bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/20">PRO LEAGUE</span>
+                        <span className="text-[8px] md:text-[9px] font-black text-green-400 uppercase tracking-[0.2em] bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">PRO LEAGUE</span>
                       </div>
-                      <h3 className={`text-base md:text-xl font-black truncate uppercase italic tracking-tighter ${
-                        league.unreadCount > 0 ? 'text-white' : 'text-gray-300'
-                      }`}>
+                      <h3 className="text-base md:text-xl font-black text-white group-hover:text-green-400 transition-colors truncate uppercase italic tracking-tighter">
                         {league.name}
                       </h3>
                       <div className="flex items-center gap-3 mt-1.5">
@@ -403,14 +385,13 @@ export default function ChatPage() {
                       </div>
                     </div>
 
-                    <div className={`relative p-2.5 md:p-3 rounded-2xl transition-all border ${
-                      league.unreadCount > 0
-                        ? 'bg-orange-500/10 text-orange-500 border-orange-500/30'
-                        : 'bg-white/5 text-gray-500 border-white/5 group-hover:bg-orange-500/10 group-hover:text-orange-500 group-hover:border-orange-500/20'
-                    }`}>
-                      <MessageCircle className="w-5 h-5 md:w-6 md:h-6" />
+                    <div className={`relative p-2 md:p-3 rounded-2xl transition-all border ${league.unreadCount > 0
+                      ? 'bg-orange-500 text-white border-orange-400 shadow-lg shadow-orange-500/40'
+                      : 'bg-orange-500/5 text-orange-500/40 border-orange-500/5 group-hover:bg-orange-500/10 group-hover:text-orange-500'
+                      }`}>
+                      <MessageCircle className="w-5 md:w-6 h-5 md:h-6" />
                       {league.unreadCount > 0 && (
-                        <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-5 h-5 bg-orange-500 text-white text-[9px] font-black rounded-full shadow-sm">
+                        <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[1.25rem] h-5 px-1 bg-white text-orange-600 text-[9px] font-black rounded-full shadow-sm border border-orange-500/20">
                           {league.unreadCount}
                         </span>
                       )}
@@ -422,15 +403,13 @@ export default function ChatPage() {
           )
         ) : (
           teams.length === 0 ? (
-            <div className="bg-white/[0.03] border border-white/10 rounded-[2rem] p-8 md:p-12 text-center max-w-2xl mx-auto">
-              <div className="w-20 h-20 bg-orange-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-orange-500/20">
-                <Users className="w-10 h-10 text-orange-500" />
-              </div>
-              <h3 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter mb-2">No squads yet</h3>
-              <p className="text-gray-400 text-sm md:text-base font-medium mb-8 max-w-sm mx-auto leading-relaxed">Create a team or get invited to one to start chatting with your squad.</p>
-              <Link href="/team-manager" className="inline-flex items-center space-x-3 px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white transition-colors rounded-2xl w-full md:w-auto justify-center">
+            <div className="bg-white/5 border border-white/5 rounded-[2rem] p-8 md:p-12 text-center">
+              <Users className="w-12 md:w-16 h-12 md:h-16 text-gray-800 mx-auto mb-4 md:mb-6" />
+              <h3 className="text-xl md:text-2xl font-black text-white uppercase mb-2">No squads yet</h3>
+              <p className="text-gray-500 text-sm md:text-base font-medium mb-6 md:mb-8 max-w-sm mx-auto leading-relaxed">Create a team or get invited to one to start chatting with your squad.</p>
+              <Link href="/team-manager" className="inline-flex items-center space-x-3 px-6 md:px-8 py-3 md:py-4 bg-orange-500 text-white rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-[0.2em] hover:bg-orange-600 transition-all shadow-xl shadow-orange-500/20 active:scale-95 w-full md:w-auto justify-center">
                 <Users className="w-4 h-4" />
-                <span className="font-black uppercase tracking-widest text-xs">Go to Manager</span>
+                <span>Go to Manager</span>
               </Link>
             </div>
           ) : (
@@ -439,36 +418,31 @@ export default function ChatPage() {
                 <Link
                   key={team.id}
                   href={`/team-chat/${team.id}`}
-                  className={`group relative bg-white/[0.03] border ${
-                    team.unreadCount > 0 ? 'border-orange-500/30' : 'border-white/10'
-                  } rounded-3xl p-4 md:p-5 hover:bg-white/[0.06] hover:border-orange-500/40 transition-all overflow-hidden`}
+                  className="group relative bg-white/5 border border-white/5 rounded-3xl p-4 md:p-5 hover:bg-white/[0.08] hover:border-blue-500/30 transition-all active:scale-[0.98] overflow-hidden"
                 >
-                  {/* Unread left-edge accent */}
-                  {team.unreadCount > 0 && (
-                    <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-orange-500 rounded-l-3xl" />
-                  )}
+                  {/* Glassmorphism Background Accent */}
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 blur-2xl rounded-full -mr-12 -mt-12 group-hover:bg-blue-500/10 transition-colors" />
+
 
                   <div className="flex items-center gap-3 md:gap-5 relative z-10">
                     <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-gray-900 border border-white/10 shadow-lg">
                       {team.avatarUrl ? (
                         <Image src={team.avatarUrl} alt={team.name} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-orange-500/10">
-                          <Users className="w-7 md:w-8 h-7 md:h-8 text-orange-500/50" />
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500/20 to-black">
+                          <Users className="w-7 md:w-8 h-7 md:h-8 text-blue-500/50" />
                         </div>
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center flex-wrap gap-2 mb-1.5">
-                        <span className="text-[8px] md:text-[9px] font-black text-orange-500 uppercase tracking-[0.2em] bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/20">SQUAD</span>
+                        <span className="text-[8px] md:text-[9px] font-black text-blue-400 uppercase tracking-[0.2em] bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">SQUAD</span>
                         {team.manager === user.email && (
-                          <span className="text-[8px] md:text-[9px] font-black text-orange-500 uppercase tracking-[0.2em] bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/20">OWNER</span>
+                          <span className="text-[8px] md:text-[9px] font-black text-green-400 uppercase tracking-[0.2em] bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">OWNER</span>
                         )}
                       </div>
-                      <h3 className={`text-base md:text-xl font-black truncate uppercase italic tracking-tighter ${
-                        team.unreadCount > 0 ? 'text-white' : 'text-gray-300'
-                      }`}>
+                      <h3 className="text-base md:text-xl font-black text-white group-hover:text-blue-400 transition-colors truncate uppercase italic tracking-tighter">
                         {team.name}
                       </h3>
                       <div className="flex items-center gap-3 mt-1.5">
@@ -481,14 +455,13 @@ export default function ChatPage() {
                       </div>
                     </div>
 
-                    <div className={`relative p-2.5 md:p-3 rounded-2xl transition-all border ${
-                      team.unreadCount > 0
-                        ? 'bg-orange-500/10 text-orange-500 border-orange-500/30'
-                        : 'bg-white/5 text-gray-500 border-white/5 group-hover:bg-orange-500/10 group-hover:text-orange-500 group-hover:border-orange-500/20'
-                    }`}>
-                      <MessageCircle className="w-5 h-5 md:w-6 md:h-6" />
+                    <div className={`relative p-2 md:p-3 rounded-2xl transition-all border ${team.unreadCount > 0
+                      ? 'bg-orange-500 text-white border-orange-400 shadow-lg shadow-orange-500/40'
+                      : 'bg-orange-500/5 text-orange-500/40 border-orange-500/5 group-hover:bg-orange-500/10 group-hover:text-orange-500'
+                      }`}>
+                      <MessageCircle className="w-5 md:w-6 h-5 md:h-6" />
                       {team.unreadCount > 0 && (
-                        <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-5 h-5 bg-orange-500 text-white text-[9px] font-black rounded-full shadow-sm">
+                        <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[1.25rem] h-5 px-1 bg-white text-orange-600 text-[9px] font-black rounded-full shadow-sm border border-orange-500/20">
                           {team.unreadCount}
                         </span>
                       )}

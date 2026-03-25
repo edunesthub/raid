@@ -95,20 +95,19 @@ export default function TournamentsPage() {
     filters.searchTerm.trim() !== "";
 
   return (
-    <div className="min-h-screen bg-black pt-[88px] md:pt-[100px] pb-32 md:pb-16">
-      <div className="max-w-[1600px] mx-auto px-6 md:px-10 lg:px-12">
-        {/* Header */}
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-3xl md:text-4xl font-black text-white uppercase italic tracking-tighter mb-2">Tournaments</h1>
-          <p className="text-gray-400 text-sm md:text-base font-medium">
-            Browse and join competitive gaming tournaments
-          </p>
-        </div>
+    <div className="container-mobile min-h-screen py-6">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white mb-2">All Tournaments</h1>
+        <p className="text-gray-400">
+          Browse and join competitive gaming tournaments
+        </p>
+      </div>
 
       {/* Modern Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 md:gap-4 mb-8 bg-white/[0.02] border border-white/5 rounded-2xl p-2 md:p-3 backdrop-blur-md">
+      <div className="flex items-center gap-3 mb-8 bg-gray-900/70 border border-gray-700 rounded-xl px-4 py-3 backdrop-blur-sm shadow-md">
         {/* Search input */}
-        <div className="relative flex-1 bg-white/[0.03] border border-white/5 rounded-xl transition-colors focus-within:border-orange-500/50">
+        <div className="relative flex-1">
           <input
             type="text"
             placeholder="Search tournaments, games, or organizers..."
@@ -116,10 +115,10 @@ export default function TournamentsPage() {
             onChange={(e) =>
               setFilters({ ...filters, searchTerm: e.target.value })
             }
-            className="w-full bg-transparent border-none focus:outline-none text-white placeholder-gray-500 pl-11 pr-10 py-3.5 md:py-4 text-sm font-medium"
+            className="w-full bg-transparent border-none focus:outline-none text-white placeholder-gray-400 pl-10 pr-8"
           />
           <svg
-            className="absolute left-3.5 md:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -134,10 +133,10 @@ export default function TournamentsPage() {
           {filters.searchTerm && (
             <button
               onClick={() => setFilters({ ...filters, searchTerm: "" })}
-              className="absolute right-3.5 md:right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
             >
               <svg
-                className="w-4 h-4 md:w-5 md:h-5"
+                className="w-4 h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -156,10 +155,10 @@ export default function TournamentsPage() {
         {/* Filter button */}
         <button
           onClick={() => setShowFilterModal(true)}
-          className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-black uppercase tracking-widest text-[10px] md:text-xs px-6 py-3.5 md:py-4 rounded-xl transition-all w-full sm:w-auto active:scale-95"
+          className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-gray-200 font-medium px-4 py-2 rounded-lg transition-all"
         >
           <svg
-            className="w-4 h-4 text-orange-500"
+            className="w-5 h-5 text-orange-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -177,15 +176,15 @@ export default function TournamentsPage() {
 
       {/* Filter Modal */}
       {showFilterModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-gray-950 border border-white/10 rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl relative">
-            <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tighter text-white mb-6 text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+            <h2 className="text-xl font-bold text-white mb-6 text-center">
               Filter Tournaments
             </h2>
 
             {/* Status */}
-            <div className="mb-6">
-              <label className="block text-gray-400 text-[10px] md:text-xs font-bold uppercase tracking-widest mb-2">
+            <div className="mb-5">
+              <label className="block text-gray-300 text-sm font-medium mb-2">
                 Status
               </label>
               <select
@@ -193,20 +192,19 @@ export default function TournamentsPage() {
                 onChange={(e) =>
                   setFilters({ ...filters, status: e.target.value })
                 }
-                className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm font-medium focus:outline-none focus:border-orange-500 transition-colors"
-                style={{ WebkitAppearance: 'none' }}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
               >
-                <option className="bg-gray-900" value="all">All Status</option>
-                <option className="bg-gray-900" value="registration-open">Registration Open</option>
-                <option className="bg-gray-900" value="upcoming">Upcoming</option>
-                <option className="bg-gray-900" value="live">Live</option>
-                <option className="bg-gray-900" value="completed">Completed</option>
+                <option value="all">All Status</option>
+                <option value="registration-open">Registration Open</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="live">Live</option>
+                <option value="completed">Completed</option>
               </select>
             </div>
 
             {/* Game */}
-            <div className="mb-8">
-              <label className="block text-gray-400 text-[10px] md:text-xs font-bold uppercase tracking-widest mb-2">
+            <div className="mb-5">
+              <label className="block text-gray-300 text-sm font-medium mb-2">
                 Game
               </label>
               <select
@@ -214,12 +212,11 @@ export default function TournamentsPage() {
                 onChange={(e) =>
                   setFilters({ ...filters, game: e.target.value })
                 }
-                className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm font-medium focus:outline-none focus:border-orange-500 transition-colors"
-                style={{ WebkitAppearance: 'none' }}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
               >
-                <option className="bg-gray-900" value="all">All Games</option>
+                <option value="all">All Games</option>
                 {availableGames.map((game) => (
-                  <option className="bg-gray-900" key={game} value={game}>
+                  <option key={game} value={game}>
                     {game}
                   </option>
                 ))}
@@ -227,31 +224,32 @@ export default function TournamentsPage() {
             </div>
 
             {/* Buttons */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowFilterModal(false)}
-                className="flex-1 px-4 py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all text-center"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => setShowFilterModal(false)}
-                className="flex-1 px-4 py-3.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all text-center"
-              >
-                Apply
-              </button>
-            </div>
-            
-            {hasActiveFilters && (
-              <div className="mt-4 text-center">
+            <div className="flex items-center justify-between mt-6">
+              {hasActiveFilters ? (
                 <button
                   onClick={clearFilters}
-                  className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-orange-500 hover:text-orange-400 transition-all"
+                  className="text-sm text-orange-500 hover:text-orange-400 transition-all"
                 >
-                  Clear All Filters
+                  Clear Filters
+                </button>
+              ) : (
+                <span></span>
+              )}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowFilterModal(false)}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg text-sm font-medium transition-all"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => setShowFilterModal(false)}
+                  className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-sm font-medium transition-all"
+                >
+                  Apply
                 </button>
               </div>
-            )}
+            </div>
           </div>
         </div>
       )}
@@ -265,18 +263,10 @@ export default function TournamentsPage() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-500/5 border border-red-500/20 rounded-[2rem] p-8 md:p-12 text-center max-w-2xl mx-auto mt-8 backdrop-blur-sm">
-          <div className="text-4xl mb-4">⚠️</div>
-          <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">
-            Failed to load tournaments
-          </h3>
-          <p className="text-gray-400 text-sm font-medium mb-6">
-            {error}
-          </p>
-          <button
-            onClick={loadTournaments}
-            className="inline-flex items-center space-x-3 px-8 py-3.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 transition-all rounded-xl font-black uppercase tracking-widest text-xs"
-          >
+        <div className="bg-red-600/10 border border-red-600/30 rounded-lg p-6 text-center">
+          <p className="text-red-400 mb-2">⚠️ Failed to load tournaments</p>
+          <p className="text-gray-400 text-sm mb-4">{error}</p>
+          <button onClick={loadTournaments} className="btn-raid">
             Try Again
           </button>
         </div>
@@ -301,36 +291,23 @@ export default function TournamentsPage() {
 
       {/* Empty */}
       {!loading && !error && filteredTournaments.length === 0 && (
-        <div className="bg-white/[0.03] border border-white/10 rounded-[2rem] p-8 md:p-12 text-center max-w-2xl mx-auto mt-8">
-          <div className="w-20 h-20 bg-orange-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-orange-500/20">
-            <svg
-              className="w-10 h-10 text-orange-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-          <h3 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter mb-2">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-12 text-center">
+          <div className="text-6xl mb-4">🔍</div>
+          <h3 className="text-xl font-bold text-white mb-2">
             No Tournaments Found
           </h3>
-          <p className="text-gray-400 text-sm md:text-base font-medium mb-8 max-w-sm mx-auto leading-relaxed">
+          <p className="text-gray-400 mb-6">
             {hasActiveFilters
               ? "Try adjusting your search or filters to see more results."
               : "Check back soon for exciting tournaments!"}
           </p>
           {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              className="inline-flex items-center space-x-3 px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white transition-colors rounded-2xl w-full md:w-auto justify-center font-black uppercase tracking-widest text-xs"
-            >
+            <button onClick={clearFilters} className="btn-raid">
               Clear Filters
             </button>
           )}
         </div>
       )}
-      </div>
     </div>
   );
 }
