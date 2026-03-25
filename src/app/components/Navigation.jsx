@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, cloneElement, useEffect, useRef } from "react";
 import Image from "next/image";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import NotificationBadge from "@/components/NotificationBadge";
 import {
   Home,
@@ -192,8 +192,8 @@ export default function Navigation() {
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md">
-        <div className="max-w-[1600px] mx-auto px-6 md:px-10 lg:px-12">
+      <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5">
+        <div className="max-w-[1600px] mx-auto px-6">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center">
@@ -331,7 +331,7 @@ export default function Navigation() {
 
       {/* MOBILE HEADER */}
       {!isPortalPage && (
-        <nav className="md:hidden fixed top-0 left-0 right-0 z-50 bg-black">
+        <nav className="md:hidden fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800">
           <div className="px-4 flex items-center justify-between h-16">
             <Link href="/" className="flex items-center">
               <Image

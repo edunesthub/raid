@@ -13,13 +13,13 @@ const withPWA = require("next-pwa")({
     /_ssgManifest\.js$/,
   ],
   // Disable precaching for Next.js build artifacts
-  publicExcludes: ["!workbox-*.js", "!sw.js"],
+  publicExcludes: ['!workbox-*.js', '!sw.js'],
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.(?:gstatic|googleapis)\.com\/.*/i,
-      handler: "CacheFirst",
+      handler: 'CacheFirst',
       options: {
-        cacheName: "google-fonts",
+        cacheName: 'google-fonts',
         expiration: {
           maxEntries: 20,
           maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
@@ -28,9 +28,9 @@ const withPWA = require("next-pwa")({
     },
     {
       urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/,
-      handler: "CacheFirst",
+      handler: 'CacheFirst',
       options: {
-        cacheName: "firebase-storage",
+        cacheName: 'firebase-storage',
         expiration: {
           maxEntries: 50,
           maxAgeSeconds: 24 * 60 * 60,
@@ -39,17 +39,17 @@ const withPWA = require("next-pwa")({
     },
     {
       urlPattern: /^https:\/\/api\.paystack\.co\/.*/,
-      handler: "NetworkFirst",
+      handler: 'NetworkFirst',
       options: {
-        cacheName: "paystack-api",
+        cacheName: 'paystack-api',
         networkTimeoutSeconds: 3,
       },
     },
     {
       urlPattern: /_next\/static\/.*/,
-      handler: "CacheFirst",
+      handler: 'CacheFirst',
       options: {
-        cacheName: "next-static",
+        cacheName: 'next-static',
         expiration: {
           maxEntries: 100,
           maxAgeSeconds: 24 * 60 * 60,
@@ -58,9 +58,9 @@ const withPWA = require("next-pwa")({
     },
     {
       urlPattern: /_next\/image.*/,
-      handler: "CacheFirst",
+      handler: 'CacheFirst',
       options: {
-        cacheName: "next-images",
+        cacheName: 'next-images',
         expiration: {
           maxEntries: 50,
           maxAgeSeconds: 24 * 60 * 60, // 1 day
@@ -69,9 +69,9 @@ const withPWA = require("next-pwa")({
     },
     {
       urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
-      handler: "CacheFirst",
+      handler: 'CacheFirst',
       options: {
-        cacheName: "image-cache",
+        cacheName: 'image-cache',
         expiration: {
           maxEntries: 60,
           maxAgeSeconds: 7 * 24 * 60 * 60, // 1 week

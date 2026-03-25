@@ -1,0 +1,1 @@
+// This file previously contained TypeScript interface definitions for clans and games. These are removed as part of the conversion to JavaScript.

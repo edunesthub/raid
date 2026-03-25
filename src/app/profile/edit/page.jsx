@@ -1,269 +1,482 @@
-"use client";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { useAuth } from "@/app/contexts/AuthContext";
-import { db } from "@/lib/firebase";
-import { 
-  ChevronLeft, Camera, User, Mail, Globe, 
-  Calendar, Phone, Sparkles, Loader2, Save, X, Trash2
-} from "lucide-react";
-import Link from "next/link";
-import { COUNTRIES } from "@/utils/countries";
-import { GENERIC_AVATARS } from "@/utils/avatars";
+'use client';
+import React, { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, Save, Camera, Loader2, User, Globe, Calendar, Mail, Phone, Info, ShieldCheck, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { useAuth } from "../../contexts/AuthContext.jsx";
+import { db } from "../../../lib/firebase";
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
+import { usernameService } from '@/services/usernameService';
+import { authValidation } from '@/services/authValidation';
+import { COUNTRIES } from '@/utils/countries';
+import { GENERIC_AVATARS } from '@/utils/avatars';
+import UserAvatar from '@/components/UserAvatar';
 
 export default function EditProfilePage() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const router = useRouter();
 
   const [formData, setFormData] = useState({
-    username: "",
-    firstName: "",
-    lastName: "",
-    country: "",
-    bio: "",
-    dateOfBirth: "",
-    phone: "",
+    username: '',
+    firstName: '',
+    lastName: '',
+    contact: '',
+    email: '',
+    bio: '',
+    country: 'Ghana',
+    dateOfBirth: '',
   });
-
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    if (user?.id) fetchUserData();
-  }, [user?.id]);
+  // Avatar states
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef(null);
 
-  const fetchUserData = async () => {
+  // Load profile from Firebase
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        if (!user?.id) {
+          setLoading(false);
+          return;
+        }
+
+        const docRef = doc(db, "users", user.id);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setFormData({
+            username: data.username || '',
+            firstName: data.firstName || '',
+            lastName: data.lastName || '',
+            contact: data.contact || '',
+            email: data.email || user.email || '',
+            bio: data.bio || '',
+            country: data.country || 'Ghana',
+            dateOfBirth: data.dateOfBirth || '',
+          });
+
+          if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
+        } else {
+          setFormData({
+            username: user.username || '',
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            contact: user.contact || '',
+            email: user.email || '',
+            bio: '',
+            country: user.country || 'Ghana',
+          });
+        }
+      } catch (err) {
+        console.error("Error loading profile:", err);
+        setError("Failed to load profile data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isAuthenticated && user) {
+      loadProfile();
+    } else {
+      setLoading(false);
+    }
+  }, [user, isAuthenticated]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (error) setError('');
+    if (success) setSuccess(false);
+  };
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     try {
-      const docSnap = await getDoc(doc(db, "users", user.id));
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setFormData({
-          username: data.username || "",
-          firstName: data.firstName || "",
-          lastName: data.lastName || "",
-          country: data.country || "",
-          bio: data.bio || "",
-          dateOfBirth: data.dateOfBirth || "",
-          phone: data.phone || "",
-        });
-        if (data.avatarUrl) setAvatarPreview(data.avatarUrl);
+      setUploadingAvatar(true);
+      const formDataCloud = new FormData();
+      formDataCloud.append('file', file);
+      formDataCloud.append('upload_preset', 'raid_avatars');
+      formDataCloud.append('folder', 'avatars');
+
+      const cloudName = 'drgz6qqo5';
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: 'POST',
+        body: formDataCloud
+      });
+      const data = await res.json();
+
+      if (!data.secure_url) throw new Error('Upload failed');
+      setAvatarUrl(data.secure_url);
+
+      if (user?.id) {
+        const userRef = doc(db, 'users', user.id);
+        await setDoc(userRef, { avatarUrl: data.secure_url, updatedAt: new Date() }, { merge: true });
       }
     } catch (err) {
-      console.error("Error fetching user data:", err);
-      setError("Failed to load profile data");
+      console.error('Error uploading avatar:', err);
+      setError(err.message || 'Avatar upload failed.');
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
-  const handleAvatarChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setAvatarFile(file);
-      setAvatarPreview(URL.createObjectURL(file));
-      setError("");
-    }
+  const handleGenericAvatarSelect = (url) => {
+    setAvatarUrl(url);
   };
 
-  const uploadToCloudinary = async (file) => {
-    const cloudData = new FormData();
-    cloudData.append('file', file);
-    cloudData.append('upload_preset', 'raid_avatars');
-    const res = await fetch(`https://api.cloudinary.com/v1_1/drgz6qqo5/image/upload`, { method: 'POST', body: cloudData });
-    const d = await res.json();
-    return d.secure_url;
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    setIsSaving(true);
-    setError("");
-    try {
-      let avatarUrl = avatarPreview;
-      if (avatarFile) avatarUrl = await uploadToCloudinary(avatarFile);
+    if (!user?.id) {
+      setError('Session expired. Please log in again.');
+      return;
+    }
 
-      await updateDoc(doc(db, "users", user.id), {
-        ...formData,
-        avatarUrl,
+    const safeFormData = {
+      username: formData.username?.trim() || user.username || "",
+      firstName: formData.firstName?.trim() || user.firstName || "",
+      lastName: formData.lastName?.trim() || user.lastName || "",
+      contact: formData.contact?.trim() || user.contact || "",
+      email: formData.email?.trim() || user.email || "",
+      bio: formData.bio?.trim() || user.bio || "",
+      country: formData.country || user.country || "Ghana",
+      dateOfBirth: formData.dateOfBirth || user.dateOfBirth || "",
+    };
+
+    if (!safeFormData.username.trim()) {
+      setError('Username is required.');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError('');
+
+      const currentUsername = (user.username || '').toLowerCase().trim();
+      const incomingUsername = safeFormData.username.toLowerCase().trim();
+      const usernameChanged = incomingUsername !== currentUsername;
+
+      if (usernameChanged) {
+        const formatValidation = usernameService.validateUsernameFormat(safeFormData.username);
+        if (!formatValidation.isValid) {
+          setError(formatValidation.error);
+          setSaving(false);
+          return;
+        }
+
+        const isAvailable = await usernameService.isUsernameAvailable(safeFormData.username, user.id);
+        if (!isAvailable) {
+          const suggestions = await usernameService.generateSuggestions(safeFormData.username);
+          setError(`Username taken. Try: ${suggestions.join(', ')}`);
+          setSaving(false);
+          return;
+        }
+      }
+
+      const currentPhone = (user.phone || user.contact || '').trim();
+      const incomingPhone = safeFormData.contact.trim();
+      if (incomingPhone && incomingPhone !== currentPhone) {
+        const isPhoneAvailable = await authValidation.isPhoneAvailable(incomingPhone);
+        if (!isPhoneAvailable) {
+          setError("Phone number is already in use by another user.");
+          setSaving(false);
+          return;
+        }
+      }
+
+      const userRef = doc(db, 'users', user.id);
+      await setDoc(userRef, {
+        ...safeFormData,
+        username_lowercase: safeFormData.username.toLowerCase().trim(),
+        avatarUrl: avatarUrl || '',
         updatedAt: new Date(),
-      });
+      }, { merge: true });
 
       setSuccess(true);
       setTimeout(() => {
-        router.push("/profile");
-        router.refresh();
+        window.location.href = '/profile';
       }, 1500);
     } catch (err) {
-      setError(err.message || "Failed to update profile");
-    } finally {
-      setIsSaving(false);
+      console.error('Error saving profile:', err);
+      setError(err.message || 'Update failed. Try again.');
+      setSaving(false);
     }
   };
 
-  if (authLoading) return <div className="min-h-screen bg-black flex items-center justify-center"><Loader2 className="w-8 h-8 text-orange-500 animate-spin" /></div>;
+  if (!isAuthenticated && !loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-center">
+          <ShieldCheck className="w-16 h-16 text-red-500 mx-auto mb-4 opacity-20" />
+          <p className="text-gray-500 font-black uppercase tracking-widest mb-4">Access Denied</p>
+          <Link href="/auth/login" className="text-orange-500 font-bold hover:text-orange-400">
+            Sign In
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500 font-black uppercase tracking-widest animate-pulse">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-black pt-24 pb-24 relative overflow-hidden">
-      {/* Background Ambience */}
+    <div className="min-h-screen bg-black text-white selection:bg-orange-500 selection:text-white overflow-x-hidden">
+      {/* Dynamic Background */}
       <div className="fixed inset-0 z-0">
-        <div className="absolute top-[10%] left-[-5%] w-[40%] h-[40%] bg-orange-600/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[10%] right-[-5%] w-[40%] h-[40%] bg-purple-600/5 blur-[120px] rounded-full" />
+        <div className="absolute top-0 left-0 w-[60%] h-[60%] bg-orange-600/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-0 right-0 w-[60%] h-[60%] bg-blue-600/5 blur-[120px] rounded-full" />
       </div>
 
-      <div className="max-w-[1600px] mx-auto px-4 md:px-8 relative z-10">
-        {/* Navigation */}
-        <div className="flex items-center gap-6 mb-12">
-          <button onClick={() => router.back()} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all active:scale-90">
-            <ChevronLeft size={24} />
-          </button>
-          <div>
-            <h1 className="text-3xl font-black italic text-white uppercase tracking-tighter leading-none mb-1">Modify Profile.</h1>
-            <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.3em]">Operational Metadata Calibration</p>
+      <div className="relative z-10 container-mobile py-8 md:py-12">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-12">
+          <Link href="/profile" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 hover:bg-white/10 transition-all active:scale-90">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div className="text-center">
+            <h1 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter text-white">
+              Edit <span className="text-orange-500">Profile</span>
+            </h1>
+            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-1">Update your profile information</p>
           </div>
+          <div className="w-10 h-10 opacity-0" />
         </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Avatar Calibration Column */}
-          <div className="lg:col-span-4 space-y-8">
-            <div className="glass-panel p-8 md:p-12 rounded-[3rem] relative overflow-hidden text-center group">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-purple-600 opacity-50" />
-              
-              <div className="relative inline-block mb-10 group/avatar">
-                <div className="relative w-48 h-48 rounded-full p-1.5 bg-gradient-to-tr from-orange-500 to-purple-600 shadow-[0_0_60px_rgba(249,115,22,0.2)]">
-                  <div className="w-full h-full rounded-full bg-black flex items-center justify-center overflow-hidden border-4 border-black">
-                    {avatarPreview ? (
-                      <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover transition-transform duration-700 group-hover/avatar:scale-110" />
-                    ) : (
-                      <User className="w-16 h-16 text-gray-800" />
-                    )}
+        {/* Status Messages */}
+        <div className="max-w-2xl mx-auto space-y-4 mb-8">
+          {success && (
+            <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-4 flex items-center gap-3 animate-in slide-in-from-top duration-500">
+              <Sparkles className="text-green-400 w-5 h-5 flex-shrink-0" />
+              <p className="text-green-400 text-xs font-black uppercase tracking-widest">Profile updated successfully.</p>
+            </div>
+          )}
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 flex items-center gap-3 animate-shake">
+              <ShieldCheck className="text-red-400 w-5 h-5 flex-shrink-0" />
+              <p className="text-red-400 text-xs font-black uppercase tracking-widest">{error}</p>
+            </div>
+          )}
+        </div>
+
+        <form onSubmit={handleSave} className="max-w-3xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pb-24">
+
+          {/* Sidebar: Avatar Configuration */}
+          <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-8">
+            <div className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 text-center relative overflow-hidden group">
+              <div className="relative inline-block mb-6">
+                <div className="relative border-4 border-orange-500/30 shadow-2xl rounded-full p-1 bg-gradient-to-tr from-orange-500 to-blue-500 transition-all duration-700">
+                  <div className="bg-black rounded-full p-1">
+                    <UserAvatar user={{ ...user, avatarUrl }} size="3xl" />
                   </div>
-                  <button type="button" onClick={() => document.getElementById('avatar-input').click()} className="absolute bottom-2 right-2 w-14 h-14 bg-white text-black rounded-full flex items-center justify-center shadow-2xl hover:bg-orange-500 hover:text-white transition-all scale-100 hover:scale-110 active:scale-90 shadow-[0_0_20px_rgba(0,0,0,0.5)] border-4 border-black">
-                    <Camera size={24} />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center hover:bg-orange-600 transition shadow-xl border-2 border-black z-20 group-hover:scale-110"
+                  >
+                    {uploadingAvatar ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
                   </button>
                 </div>
-                <input id="avatar-input" type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
               </div>
 
-              <div className="space-y-4">
-                <p className="text-[10px] font-black italic text-orange-500 uppercase tracking-[0.3em] mb-6">Identity Projection Selection</p>
-                <div className="flex flex-wrap justify-center gap-3">
-                  {GENERIC_AVATARS.slice(0, 8).map((url, i) => (
-                    <button key={i} type="button" onClick={() => {setAvatarPreview(url); setAvatarFile(null);}} className={`w-12 h-12 rounded-full overflow-hidden border-2 transition-all ${avatarPreview === url ? 'border-orange-500 scale-110 shadow-lg' : 'border-white/5 hover:border-white/20'}`}>
-                      <img src={url} alt="Preset" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all opacity-60 hover:opacity-100" />
-                    </button>
-                  ))}
-                </div>
+              <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] mb-4">Choose an Avatar</h3>
+              <div className="flex flex-wrap justify-center gap-3">
+                {GENERIC_AVATARS.map((url, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleGenericAvatarSelect(url)}
+                    className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all hover:scale-110 active:scale-95 ${avatarUrl === url ? 'border-orange-500 ring-2 ring-orange-500/20' : 'border-white/10 hover:border-white/30'}`}
+                  >
+                    <img src={url} alt="Preset" className="w-full h-full object-cover bg-gray-900" />
+                  </button>
+                ))}
               </div>
+              <input type="file" ref={fileInputRef} accept="image/*" onChange={handleAvatarUpload} className="hidden" />
             </div>
 
-            <div className="glass-panel p-8 rounded-[2rem] border-red-500/10">
-              <h3 className="text-xs font-black italic text-red-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <Trash2 size={14} /> Danger Zone
-              </h3>
-              <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-6 leading-relaxed">Identity termination is irreversible. Backup tactical data before proceeding.</p>
-              <button disabled type="button" className="w-full py-4 bg-red-500/5 hover:bg-red-500/20 text-red-500 border border-red-500/10 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all opacity-50 cursor-not-allowed">
-                Deactivate Operative
-              </button>
+            <div className="bg-orange-500/5 border border-orange-500/10 rounded-3xl p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <Info className="w-4 h-4 text-orange-500" />
+                <span className="text-[10px] font-black uppercase text-orange-500 tracking-widest">Tip</span>
+              </div>
+              <p className="text-[10px] text-gray-500 font-bold uppercase leading-relaxed tracking-wider">
+                A clear profile picture helps other players recognize you in tournaments.
+              </p>
             </div>
           </div>
 
-          {/* Form Calibration Column */}
-          <div className="lg:col-span-8 space-y-12">
-            <div className="glass-panel p-8 md:p-12 rounded-[3.5rem] relative">
-              
-              {/* Status Notifications */}
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 mb-8 flex items-center gap-4 animate-shake">
-                  <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center">
-                    <X className="text-red-500" size={20} />
-                  </div>
-                  <p className="text-red-400 text-xs font-black uppercase tracking-widest">{error}</p>
+          {/* Main: Profile Details */}
+          <div className="lg:col-span-8 space-y-6">
+
+            {/* Module: Core Identity */}
+            <div className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-6 md:p-8 space-y-6">
+              <div className="flex items-center gap-3 mb-2">
+                <User className="w-4 h-4 text-blue-400" />
+                <h2 className="text-xs font-black uppercase text-white tracking-[0.2em]">Personal Information</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 mb-2 block">Username</label>
+                  <input
+                    type="text"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-orange-500 transition-all font-black italic uppercase text-lg tracking-tighter"
+                    required
+                  />
                 </div>
-              )}
-
-              {success && (
-                <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-6 mb-8 flex items-center gap-4 animate-in fade-in slide-in-from-top-4">
-                  <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
-                    <Save className="text-green-500" size={20} />
-                  </div>
-                  <p className="text-green-400 text-xs font-black uppercase tracking-widest">Profile Configuration Updated Successfully.</p>
+                <div>
+                  <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 mb-2 block">First Name</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-all font-bold uppercase tracking-tight"
+                  />
                 </div>
-              )}
-
-              <div className="space-y-10">
-                {/* Core Identity */}
-                <section className="space-y-6">
-                  <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-                    <User className="text-orange-500" size={16} />
-                    <h3 className="text-xs font-black text-white uppercase tracking-[0.3em]">Core Identity</h3>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Game ID</label>
-                      <div className="relative">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                        <input type="text" value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-white focus:outline-none border-orange-500/50 transition-all font-black" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Tactical Bio</label>
-                      <div className="relative">
-                        <Sparkles className="absolute left-4 top-4 w-4 h-4 text-orange-500" />
-                        <textarea rows={3} value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} className="w-full bg-white/[0.03] border border-white/10 rounded-[2rem] pl-12 pr-6 py-4 text-white focus:outline-none border-orange-500/50 transition-all text-sm leading-relaxed" />
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                {/* Personal Records */}
-                <section className="space-y-6">
-                  <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-                    <Globe className="text-purple-500" size={16} />
-                    <h3 className="text-xs font-black text-white uppercase tracking-[0.3em]">Operational Data</h3>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">First Designation</label>
-                      <input type="text" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none border-orange-500/50 transition-all uppercase italic font-black" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Last Designation</label>
-                      <input type="text" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none border-orange-500/50 transition-all uppercase italic font-black" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Battle Sector</label>
-                      <div className="relative">
-                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                        <select value={formData.country} onChange={(e) => setFormData({...formData, country: e.target.value})} className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-white focus:outline-none border-orange-500/50 transition-all appearance-none uppercase font-black">
-                          {COUNTRIES.map(c => <option key={c.code} value={c.name} className="bg-black">{c.flag} {c.name.toUpperCase()}</option>)}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Mobile Transmission (SMS)</label>
-                      <div className="relative">
-                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                        <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-white focus:outline-none border-orange-500/50 transition-all font-black tracking-widest" />
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                <div className="pt-6">
-                  <button type="submit" disabled={isSaving} className="w-full md:w-auto px-12 py-5 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white rounded-2xl font-black uppercase text-xs tracking-[0.3em] shadow-[0_0_30px_rgba(249,115,22,0.3)] hover:shadow-[0_0_50px_rgba(249,115,22,0.4)] transition-all flex items-center justify-center gap-4 group active:scale-95 disabled:opacity-50">
-                    {isSaving ? (
-                      <><Loader2 className="w-5 h-5 animate-spin" /> <span>Syncing Data...</span></>
-                    ) : (
-                      <><Save size={18} className="group-hover:scale-110 transition-transform" /> <span>Commit Configuration</span></>
-                    )}
-                  </button>
+                <div>
+                  <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 mb-2 block">Last Name</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-all font-bold uppercase tracking-tight"
+                  />
                 </div>
               </div>
             </div>
+
+            {/* Module: Public Transmission */}
+            <div className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-6 md:p-8 space-y-6">
+              <div className="flex items-center gap-3 mb-2">
+                <Sparkles className="w-4 h-4 text-orange-400" />
+                <h2 className="text-xs font-black uppercase text-white tracking-[0.2em]">Bio</h2>
+              </div>
+              <div>
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 mb-2 block">Briefly describe yourself</label>
+                <textarea
+                  name="bio"
+                  value={formData.bio}
+                  onChange={handleChange}
+                  rows="4"
+                  placeholder="Write a short bio..."
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-orange-500 transition-all text-sm leading-relaxed resize-none text-gray-300 italic"
+                />
+              </div>
+            </div>
+
+            {/* Module: Contact Details */}
+            <div className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-6 md:p-8 space-y-6">
+              <div className="flex items-center gap-3 mb-2">
+                <Globe className="w-4 h-4 text-green-400" />
+                <h2 className="text-xs font-black uppercase text-white tracking-[0.2em]">Contact Details</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 mb-2 block flex items-center gap-2">
+                    <Globe className="w-3 h-3" /> Region
+                  </label>
+                  <select
+                    name="country"
+                    value={formData.country}
+                    onChange={handleChange}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-green-500 transition-all font-bold uppercase tracking-tight appearance-none text-white cursor-pointer"
+                  >
+                    <option value="" disabled className="bg-black">Select Region</option>
+                    {COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.name} className="bg-black">
+                        {c.flag} {c.name.toUpperCase()}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 mb-2 block flex items-center gap-2">
+                    <Calendar className="w-3 h-3" /> Date of Birth
+                  </label>
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
+                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-purple-500 transition-all font-bold uppercase tracking-tight text-white cursor-pointer"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 mb-2 block flex items-center gap-2">
+                    <Mail className="w-3 h-3" /> Email Address (Read-Only)
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    readOnly
+                    className="w-full bg-white/[0.01] border border-white/5 rounded-2xl px-5 py-4 text-gray-600 font-bold uppercase tracking-tight cursor-not-allowed"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 mb-2 block flex items-center gap-2">
+                    <Phone className="w-3 h-3" /> Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    name="contact"
+                    value={formData.contact}
+                    onChange={handleChange}
+                    placeholder="+X XXX XXX XXXX"
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-orange-500 transition-all font-black tracking-widest"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col md:flex-row gap-4 pt-6">
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex-1 flex items-center justify-center gap-3 bg-orange-500 hover:bg-orange-600 text-white font-black uppercase text-sm tracking-[0.2em] py-5 rounded-3xl transition-all shadow-[0_0_30px_rgba(249,115,22,0.3)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Saving Changes...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+              <Link
+                href="/profile"
+                className="md:w-1/3 flex items-center justify-center gap-3 bg-white/5 border border-white/10 text-gray-500 hover:text-white hover:border-white/30 font-black uppercase text-sm tracking-[0.2em] py-5 rounded-3xl transition-all active:scale-95"
+              >
+                Cancel
+              </Link>
+            </div>
+
           </div>
         </form>
       </div>
