@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, Trophy, User, MessageCircle } from "lucide-react";
+import { Home, Trophy, User, MessageCircle, Swords } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { collection, query, where, getDocs, getDoc, doc } from "firebase/firestore";
@@ -86,6 +86,7 @@ export default function BottomNav() {
 
   const tabs = [
     { name: "Home", href: "/", icon: Home },
+    { name: "Arena", href: "/arena", icon: Swords },
     { name: "Chat", href: "/chat", icon: MessageCircle, badge: totalUnreadCount },
     { name: "Tournaments", href: "/tournament", icon: Trophy },
     { name: "Profile", href: "/profile", icon: User },

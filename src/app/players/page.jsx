@@ -1,182 +1,161 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { Search, Users, User, MapPin } from "lucide-react";
-import { collection, query, getDocs, limit, where, orderBy, startAfter } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import UserAvatar from "@/components/UserAvatar";
+import { UserPlus, Search, Trophy, Shield, Zap, SearchX } from "lucide-react";
+import { userService } from "@/services/userService";
+import { friendService } from "@/services/friendService";
+import { useAuth } from "@/app/contexts/AuthContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { getCountryFlag } from "@/utils/countryFlags";
+import toast from "react-hot-toast";
 
 export default function PlayersPage() {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [players, setPlayers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [isSearching, setIsSearching] = useState(false);
-    const [error, setError] = useState(null);
+  const { user } = useAuth();
+  const [players, setPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pendingRequests, setPendingRequests] = useState([]);
 
-    useEffect(() => {
-        if (searchTerm.trim().length >= 2) {
-            const delaySearch = setTimeout(() => {
-                handleSearch();
-            }, 500);
-            return () => clearTimeout(delaySearch);
-        } else if (searchTerm.trim() === "") {
-            loadInitialPlayers();
-        }
-    }, [searchTerm]);
+  useEffect(() => {
+    fetchPlayers();
+  }, []);
 
-    const loadInitialPlayers = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const playersRef = collection(db, "users");
-            const q = query(playersRef, orderBy("createdAt", "desc"), limit(24));
-            const snapshot = await getDocs(q);
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setPlayers(data);
-        } catch (err) {
-            console.error("Error loading players:", err);
-            setError("Failed to load players. Please try again later.");
-        } finally {
-            setLoading(false);
-        }
-    };
+  const fetchPlayers = async () => {
+    setLoading(true);
+    try {
+      const data = await userService.searchUsersByName("");
+      setPlayers(data.filter(p => p.id !== user?.uid)); // Exclude self
+    } catch (error) {
+      toast.error("Failed to load players");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleSearch = async () => {
-        if (!searchTerm.trim()) return;
+  const handleSearch = async (e) => {
+    setSearchTerm(e.target.value);
+    if (!e.target.value) {
+      fetchPlayers();
+      return;
+    }
+    setLoading(true);
+    try {
+      const results = await userService.searchUsersByName(e.target.value);
+      setPlayers(results.filter(p => p.id !== user?.uid));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setIsSearching(true);
-        try {
-            const usersRef = collection(db, "users");
-            const searchLower = searchTerm.toLowerCase();
+  const sendRequest = async (targetId) => {
+    try {
+      await friendService.sendFriendRequest(user.uid, targetId);
+      toast.success("Friend request sent!");
+      setPendingRequests(prev => [...prev, targetId]);
+    } catch (error) {
+      toast.error(error.message || "Failed to send request");
+    }
+  };
 
-            // Similar logic to UserSearchBar but for a full page grid
-            const snapshot = await getDocs(query(usersRef, limit(1000)));
-            const results = snapshot.docs
-                .map(doc => ({ id: doc.id, ...doc.data() }))
-                .filter(user => {
-                    const username = (user.username || "").toLowerCase();
-                    const firstName = (user.firstName || "").toLowerCase();
-                    const lastName = (user.lastName || "").toLowerCase();
-                    return (
-                        username.includes(searchLower) ||
-                        firstName.includes(searchLower) ||
-                        lastName.includes(searchLower)
-                    );
-                });
-
-            setPlayers(results.slice(0, 50));
-        } catch (err) {
-            console.error("Error searching players:", err);
-        } finally {
-            setIsSearching(false);
-        }
-    };
-
-    return (
-        <div className="container-mobile min-h-screen py-8">
-            <div className="max-w-6xl mx-auto">
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-                    <div>
-                        <h1 className="text-4xl font-black text-white mb-2 flex items-center gap-3">
-                            <Users className="w-10 h-10 text-orange-500" />
-                            PLAYERS
-                        </h1>
-                        <p className="text-gray-400 font-medium tracking-wide">
-                            Connect and compete with the RAID Arena community
-                        </p>
-                    </div>
-
-                    <div className="relative w-full md:w-96">
-                        <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${isSearching ? 'text-orange-500' : 'text-gray-500'}`} />
-                        <input
-                            type="text"
-                            placeholder="Search by username or name..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-gray-900/50 border border-gray-800 rounded-2xl pl-12 pr-4 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all font-bold"
-                        />
-                        {isSearching && (
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Players Grid */}
-                {loading && !isSearching ? (
-                    <div className="flex flex-col items-center justify-center py-20">
-                        <LoadingSpinner size="lg" />
-                        <p className="text-gray-500 mt-4 font-black uppercase text-[10px] tracking-[0.2em]">Discovering Players...</p>
-                    </div>
-                ) : error ? (
-                    <div className="card-raid p-12 text-center border-red-500/20">
-                        <p className="text-red-400 mb-4">{error}</p>
-                        <button onClick={loadInitialPlayers} className="btn-raid px-8">Retry</button>
-                    </div>
-                ) : players.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                        {players.map((player) => (
-                            <Link
-                                key={player.id}
-                                href={`/users/${player.id}`}
-                                className="group relative bg-gray-900/40 border border-white/5 rounded-3xl p-5 hover:bg-gray-800/60 hover:border-orange-500/30 transition-all duration-300 flex flex-col items-center text-center overflow-hidden"
-                            >
-                                <div className="absolute top-0 right-0 p-3">
-                                    <div className="text-xl opacity-80 group-hover:opacity-100 transition-opacity">
-                                        {player.country ? getCountryFlag(player.country) : '🏳️'}
-                                    </div>
-                                </div>
-
-                                <div className="relative mb-4">
-                                    <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-                                    <UserAvatar
-                                        user={player}
-                                        size="xl"
-                                        className="relative border-2 border-white/5 group-hover:border-orange-500/50 transition-all duration-300"
-                                    />
-                                </div>
-
-                                <h3 className="text-white font-black text-lg mb-1 truncate w-full group-hover:text-orange-500 transition-colors uppercase tracking-tight">
-                                    {player.username || "Anonymous"}
-                                </h3>
-
-                                <div className="flex items-center gap-1 text-gray-500 text-[10px] font-black uppercase tracking-widest mb-4">
-                                    <User className="w-3 h-3" />
-                                    <span className="truncate max-w-[120px]">
-                                        {player.firstName && player.lastName
-                                            ? `${player.firstName} ${player.lastName}`
-                                            : player.firstName || player.lastName || "RAID PLAYER"}
-                                    </span>
-                                </div>
-
-                                <div className="w-full mt-auto space-y-3">
-                                    <div className="flex items-center justify-center gap-1.5 py-2 px-3 bg-white/5 rounded-xl border border-white/5">
-                                        <MapPin className="w-3 h-3 text-gray-500" />
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase">
-                                            {player.city ? `${player.city}, ` : ''}{player.country || "GLOBAL"}
-                                        </span>
-                                    </div>
-
-                                    <div className="h-px bg-white/5 w-full"></div>
-
-                                    <span className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em] group-hover:translate-x-1 transition-transform inline-flex items-center gap-2">
-                                        View Profile <span className="text-sm">→</span>
-                                    </span>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-20 bg-gray-900/20 rounded-3xl border border-dashed border-white/5">
-                        <Users className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold text-white mb-2 uppercase tracking-wide">No Players Found</h3>
-                        <p className="text-gray-500 font-medium">Try searching with a different term</p>
-                    </div>
-                )}
-            </div>
+  return (
+    <div className="min-h-screen bg-black text-white pb-20">
+      <section className="container-mobile pt-10">
+        <div className="mb-10 text-center">
+          <h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter mb-4">
+            Find <span className="text-orange-500">Rivals</span>
+          </h1>
+          <p className="text-gray-400 font-medium max-w-lg mx-auto text-sm md:text-base border-r-2 border-orange-500 pr-4">
+            Connect with friends, build your squad, and prepare for glory.
+          </p>
         </div>
-    );
+
+        {/* Search Bar */}
+        <div className="relative mb-12">
+          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-orange-500">
+            <Search size={22} />
+          </div>
+          <input 
+            type="text" 
+            placeholder="Search players by username, email, or name..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className="w-full bg-[#0f0f10] border border-orange-500/20 rounded-2xl py-6 pl-16 pr-8 text-sm font-bold focus:border-orange-500/50 outline-none transition-all placeholder:text-gray-600 shadow-2xl"
+          />
+        </div>
+
+        {/* Player Grid */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4 px-2">
+            <h2 className="text-lg font-black uppercase italic tracking-tighter flex items-center gap-2">
+              <Zap className="text-orange-500" fill="currentColor" size={18} />
+              Global Warriors
+            </h2>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+              Showing {players.length} Players
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="py-20 flex justify-center"><LoadingSpinner /></div>
+          ) : players.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {players.map(player => (
+                <div key={player.id} className="group relative bg-[#0f0f10] hover:bg-[#151516] border border-white/5 hover:border-orange-500/30 rounded-3xl p-6 transition-all duration-300 flex items-center gap-4 overflow-hidden">
+                  {/* Glossy Overlay */}
+                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-orange-500/5 via-transparent to-white/5 opacity-50"></div>
+                  
+                  <div className="relative">
+                    <img 
+                      src={player.avatarUrl || '/assets/avatar-placeholder.png'} 
+                      alt={player.username}
+                      className="w-16 h-16 rounded-2xl object-cover border-2 border-orange-500/20 group-hover:border-orange-500/50 transition-all duration-300"
+                    />
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-4 border-black rounded-full"></div>
+                  </div>
+
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-bold text-lg text-white group-hover:text-orange-400 transition-colors">
+                        {player.username}
+                      </h3>
+                      {player.isVerified && <Shield size={14} className="text-blue-500 fill-blue-500/20" />}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                        <Trophy size={10} className="text-orange-500" />
+                        LVL {player.level || 1}
+                      </div>
+                      <div className="w-1 h-1 bg-white/20 rounded-full"></div>
+                      <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                        {player.rank || 'Bronze'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => sendRequest(player.id)}
+                    disabled={pendingRequests.includes(player.id)}
+                    className={`h-12 w-12 rounded-2xl border transition-all flex items-center justify-center relative z-10 ${
+                      pendingRequests.includes(player.id)
+                        ? 'bg-white/5 border-white/5 text-gray-600'
+                        : 'bg-orange-500/10 border-orange-500/20 text-orange-500 hover:bg-orange-500 hover:text-white hover:shadow-lg hover:shadow-orange-500/20 active:scale-90'
+                    }`}
+                  >
+                    <UserPlus size={20} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-24 text-center bg-[#0f0f10] border border-white/5 rounded-3xl">
+              <SearchX size={64} className="mx-auto text-gray-800 mb-6" />
+              <h3 className="text-xl font-bold text-white mb-2 italic uppercase">No Warriors Found</h3>
+              <p className="text-gray-500 text-sm mb-0">Try a different search term or explore your friends list.</p>
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  );
 }

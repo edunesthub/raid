@@ -62,6 +62,7 @@ export function AuthProvider({ children }) {
 
           setUser({
             id: firebaseUser.uid,
+            uid: firebaseUser.uid,
             email: firebaseUser.email,
             username: userData?.username || firebaseUser.email.split('@')[0],
             contact: userData?.contact || userData?.phone || '',

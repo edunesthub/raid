@@ -1,29 +1,39 @@
 "use client";
 
-import { AuthProvider } from "./contexts/AuthContext"; 
+import { useEffect } from "react";
+import { AuthProvider } from "@/app/contexts/AuthContext"; 
 import { useViewportHeight } from "@/hooks/useViewportHeight";
 import { useServiceWorker } from "@/hooks/useServiceWorker";
-import { useEffect } from "react";
 import { initializeStatusBar } from "@/utils/statusBar";
+import { useFriendRequests } from "@/hooks/useFriendRequests";
+import { useAutoStatsUpdate } from "@/hooks/useAutoStatsUpdate";
 
+/**
+ * Component that uses Auth-dependent hooks.
+ * Must be rendered as a child of AuthProvider.
+ */
 function ViewportProvider({ children }) {
+  // non-auth hooks
   useViewportHeight();
   useServiceWorker();
   
-  // This will now make the entire notch/status-bar area solid black on iOS
   useEffect(() => {
     initializeStatusBar();
   }, []);
+
+  // auth-dependent hooks
+  useFriendRequests();
+  useAutoStatsUpdate();
   
   return <>{children}</>;
 }
 
 export default function AppProviders({ children }) {
   return (
-    <ViewportProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <ViewportProvider>
         {children}
-      </AuthProvider>
-    </ViewportProvider>
+      </ViewportProvider>
+    </AuthProvider>
   );
 }

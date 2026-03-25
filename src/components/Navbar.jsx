@@ -28,11 +28,14 @@ export function Navbar() {
         </Link>
         {isAuthenticated && (
           <>
+            <Link href="/arena" className={`nav-link ${pathname === '/arena' ? 'nav-link-active' : ''}`}>
+              Arena
+            </Link>
+            <Link href="/players" className={`nav-link ${pathname === '/players' ? 'nav-link-active' : ''}`}>
+              Players
+            </Link>
             <Link href="/clans" className={`nav-link ${pathname === '/clans' ? 'nav-link-active' : ''}`}>
               Clans
-            </Link>
-            <Link href="/about" className={`nav-link ${pathname === '/about' ? 'nav-link-active' : ''}`}>
-              About
             </Link>
             <Link href="/leagues" className={`nav-link ${pathname === '/leagues' ? 'nav-link-active' : ''}`}>
               Leagues

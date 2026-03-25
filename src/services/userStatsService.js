@@ -37,6 +37,9 @@ class UserStatsService {
             second: 0,
             third: 0
           },
+          xp: 0,
+          level: 1,
+          rank: 'Bronze',
           lastUpdated: serverTimestamp()
         });
         console.log(`[Stats] Initialized stats for user ${userId}`);
@@ -257,6 +260,7 @@ class UserStatsService {
           'placements.second': increment(1),
           totalEarnings: increment(tournamentData.second_place || 0),
           bestPlacement: !currentBest || 2 < currentBest ? 2 : currentBest,
+          xp: increment(30), // 30 XP for 2nd place
           lastUpdated: serverTimestamp()
         });
 
@@ -278,6 +282,7 @@ class UserStatsService {
           'placements.third': increment(1),
           totalEarnings: increment(tournamentData.third_place || 0),
           bestPlacement: !currentBest || 3 < currentBest ? 3 : currentBest,
+          xp: increment(20), // 20 XP for 3rd place
           lastUpdated: serverTimestamp()
         });
 
@@ -291,6 +296,54 @@ class UserStatsService {
     } catch (error) {
       console.error('[Stats] Error updating stats for tournament completion:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Update stats for an arena/challenge result
+   */
+  async updateStatsForArenaChallenge(userId, result) {
+    try {
+      const statsRef = doc(db, 'userStats', userId);
+      const isWinner = result === 'win';
+      const xpGained = isWinner ? 50 : 10;
+
+      await updateDoc(statsRef, {
+        xp: increment(xpGained),
+        lastUpdated: serverTimestamp()
+      });
+
+      // Recalculate level after XP gain
+      await this.updateUserLevel(userId);
+      return true;
+    } catch (error) {
+      console.error('Error updating arena stats:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update user level based on XP
+   */
+  async updateUserLevel(userId) {
+    try {
+      const statsRef = doc(db, 'userStats', userId);
+      const statsDoc = await getDoc(statsRef);
+      if (!statsDoc.exists()) return;
+
+      const data = statsDoc.data();
+      const currentXP = data.xp || 0;
+      const newLevel = Math.floor(Math.sqrt(currentXP / 10)) + 1; // Example formula
+      const ranks = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Master', 'Grandmaster', 'Legendary'];
+      const newRank = ranks[Math.min(Math.floor((newLevel - 1) / 5), ranks.length - 1)];
+
+      await updateDoc(statsRef, {
+        level: newLevel,
+        rank: newRank,
+        lastUpdated: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Error updating user level:', error);
     }
   }
 
@@ -359,7 +412,10 @@ class UserStatsService {
             first: 0,
             second: 0,
             third: 0
-          }
+          },
+          xp: 0,
+          level: 1,
+          rank: 'Bronze'
         };
       }
 
