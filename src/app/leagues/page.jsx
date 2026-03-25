@@ -165,72 +165,66 @@ export default function LeaguesPage() {
 
     if (view === 'list') {
         return (
-            <div className="min-h-screen bg-black pt-[88px] md:pt-[100px] pb-32 md:pb-16">
-                <div className="max-w-[1600px] mx-auto px-6 md:px-10 lg:px-12">
-                    <div className="mb-6 md:mb-8">
-                        <h1 className="text-3xl md:text-4xl font-black text-white italic uppercase tracking-tighter mb-2">
-                            All <span className="text-orange-500">Leagues</span>
-                        </h1>
-                        <p className="text-gray-400 text-sm md:text-base font-medium">
-                            Select a league to view standings, fixtures and results
-                        </p>
-                    </div>
+            <div className="h-[100dvh] bg-[#050505] flex flex-col overflow-hidden">
+                <div className="flex-none pt-24 pb-8 px-6 bg-gradient-to-b from-orange-500/10 to-transparent">
+                    <h1 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter mb-4">
+                        All <span className="text-orange-500">Leagues</span>
+                    </h1>
+                    <p className="text-gray-500 text-sm md:text-base font-bold uppercase tracking-widest">Select a league to view standings, fixtures and results</p>
+                </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 items-start">
-                        {leagueList.map((league) => (
-                            <div
-                                key={league.id}
-                                onClick={() => handleSelectLeague(league)}
-                                className="group relative bg-white/[0.03] border border-white/10 rounded-[2rem] overflow-hidden hover:border-orange-500/50 hover:shadow-[0_20px_40px_-20px_rgba(249,115,22,0.15)] hover:-translate-y-1 hover:bg-white/[0.05] transition-all duration-300 cursor-pointer p-2 md:p-3"
-                            >
-                                <div className="flex items-stretch gap-4">
-                                    {/* League Image/Icon */}
-                                    <div className="relative w-24 h-24 md:w-28 md:h-28 flex-shrink-0 overflow-hidden bg-black/50 border border-white/5 shadow-inner rounded-3xl">
-                                        {league.league_flyer ? (
-                                            <Image
-                                                src={league.league_flyer}
-                                                alt={league.name}
-                                                fill
-                                                className="object-cover group-hover:scale-110 transition-transform duration-500"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <Trophy size={32} className="text-orange-500/50" />
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* League Info */}
-                                    <div className="flex-1 min-w-0 py-2 pr-2 flex flex-col justify-center">
-                                        <h3 className="text-base md:text-lg font-black text-white uppercase tracking-tighter truncate group-hover:text-orange-500 transition-colors mb-1">
-                                            {league.name}
-                                        </h3>
-                                        <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] md:text-[10px] text-gray-300 uppercase font-black tracking-widest w-fit mb-3">
-                                            {league.season}
+                <div className="flex-1 overflow-y-auto px-6 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start content-start scrollbar-hide">
+                    {leagueList.map((league) => (
+                        <div
+                            key={league.id}
+                            onClick={() => handleSelectLeague(league)}
+                            className="group relative bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden hover:border-orange-500/50 transition-all cursor-pointer"
+                        >
+                            <div className="flex items-stretch gap-3 p-0">
+                                {/* League Image/Icon */}
+                                <div className="relative w-20 md:w-24 flex-shrink-0 overflow-hidden bg-orange-500/10">
+                                    {league.league_flyer ? (
+                                        <Image
+                                            src={league.league_flyer}
+                                            alt={league.name}
+                                            fill
+                                            className="object-cover group-hover:scale-110 transition-transform duration-300"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <Trophy size={36} className="text-orange-500" />
                                         </div>
-                                        <div className="flex items-center gap-3 md:gap-4 mt-auto">
-                                            <div className="flex items-center gap-1.5">
-                                                <Trophy className="w-3.5 h-3.5 text-orange-500/80" />
-                                                <span className="text-[10px] md:text-[11px] font-black tracking-widest uppercase text-white">{league.prize_pool}</span>
-                                            </div>
-                                            <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
-                                            <div className="flex items-center gap-1.5">
-                                                <Calendar className="w-3.5 h-3.5 text-gray-500" />
-                                                <span className="text-[10px] md:text-[11px] font-bold text-gray-400">{league.start_date}</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    )}
+                                </div>
 
-                                    {/* Arrow Icon */}
-                                    <div className="flex items-center pr-2">
-                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 border border-white/10 group-hover:bg-orange-500 group-hover:border-orange-500 transition-all duration-300">
-                                            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
+                                {/* League Info */}
+                                <div className="flex-1 min-w-0 py-3 pr-3">
+                                    <h3 className="text-sm md:text-base font-black text-white uppercase tracking-tight truncate group-hover:text-orange-500 transition-colors">
+                                        {league.name}
+                                    </h3>
+                                    <p className="text-[9px] md:text-[10px] text-gray-400 uppercase font-bold tracking-widest mt-0.5">
+                                        {league.season}
+                                    </p>
+                                    <div className="flex items-center gap-3 mt-1.5">
+                                        <div className="flex items-center gap-1">
+                                            <Trophy className="w-3 h-3 text-orange-500/60" />
+                                            <span className="text-[10px] font-bold text-orange-500">{league.prize_pool}</span>
+                                        </div>
+                                        <div className="w-px h-3 bg-white/10" />
+                                        <div className="flex items-center gap-1">
+                                            <Calendar className="w-3 h-3 text-gray-500" />
+                                            <span className="text-[9px] font-bold text-gray-400">{league.start_date}</span>
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Arrow Icon */}
+                                <div className="flex items-center pr-3">
+                                    <ChevronRight className="w-5 h-5 text-gray-600 group-hover:text-orange-500 transition-colors" />
+                                </div>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         );
@@ -246,12 +240,9 @@ export default function LeaguesPage() {
     }
 
     return (
-        <div className="min-h-screen bg-black pt-[88px] md:pt-[100px] pb-32 md:pb-16 relative">
-            {/* Background Blur Elements */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-orange-600/5 blur-[120px] pointer-events-none" />
-
+        <div className="min-h-screen bg-[#050505] pb-24">
             {/* --- Back Button --- */}
-            <div className="absolute top-[108px] md:top-[120px] left-6 md:left-10 lg:left-12 z-[60]">
+            <div className="fixed top-24 left-4 z-[60] md:left-8">
                 <button
                     onClick={() => {
                         window.scrollTo(0, 0);
@@ -263,10 +254,10 @@ export default function LeaguesPage() {
                 </button>
             </div>
 
-            <div className="max-w-[1600px] mx-auto">
-                {/* --- Compact Hero Section --- */}
-                <div className="flex-none pt-20 md:pt-4 pb-8 border-b border-white/5 relative z-10 px-6 md:px-10 lg:px-12">
-                    <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-12 lg:gap-16 md:pl-20">
+            {/* --- Compact Hero Section --- */}
+            <div className="flex-none pt-20 pb-4 md:pb-8 bg-gradient-to-b from-orange-500/10 to-transparent border-b border-white/5 relative z-10">
+                <div className="px-4 md:px-8 max-w-full">
+                    <div className="flex items-center gap-6 md:gap-16">
                         {/* Compact Poster Left */}
                         <div className="relative w-20 h-28 md:w-40 md:h-52 flex-shrink-0">
                             <div className="absolute inset-0 bg-orange-500/40 blur-2xl rounded-xl" />
@@ -306,32 +297,33 @@ export default function LeaguesPage() {
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* --- Navigation Tabs --- */}
-                <div className="sticky top-[88px] md:top-[100px] bg-black/80 backdrop-blur-xl border-b border-white/10 z-50 px-4 md:px-10 lg:px-12 -mx-6 md:mx-0">
-                    <div className="w-full">
-                        <div className="flex items-center gap-2 py-3 overflow-x-auto scrollbar-hide no-scrollbar snap-x">
-                            {tabs.map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`
-                                        flex-shrink-0 snap-center flex items-center justify-center px-4 py-2.5 rounded-xl transition-all duration-300 font-black text-[10px] md:text-xs uppercase tracking-widest
-                                        ${activeTab === tab.id
-                                            ? 'bg-orange-500 text-white shadow-[0_10px_20px_-10px_rgba(249,115,22,0.5)]'
-                                            : 'bg-white/[0.03] text-gray-500 hover:text-white hover:bg-white/[0.08] border border-white/5'
-                                        }
-                                    `}
-                                >
-                                    {tab.label}
-                                </button>
-                            ))}
-                        </div>
+            {/* --- Navigation Tabs --- */}
+            <div className="sticky top-16 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 z-50">
+                <div className="w-full px-2">
+                    <div className="grid grid-cols-4 gap-1 py-3">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`
+                                    flex items-center justify-center px-1 py-2.5 rounded-full transition-all duration-300 font-black text-[9px] uppercase tracking-tighter
+                                    ${activeTab === tab.id
+                                        ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/10'
+                                        : 'bg-white/5 text-gray-500 hover:text-white'
+                                    }
+                                `}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
+            </div>
 
-                {/* --- Main Content Area --- */}
-                <div className="pb-8 pt-8 px-6 md:px-10 lg:px-12">
+            {/* --- Main Content Area --- */}
+            <div className="md:container-mobile pb-8 pt-4">
 
                 {/* 1. STANDINGS VIEW */}
                 {activeTab === 'standing' && (
@@ -785,7 +777,6 @@ export default function LeaguesPage() {
                         </div>
                     </div>
                 )}
-                </div>
             </div>
         </div>
     );

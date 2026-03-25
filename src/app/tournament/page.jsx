@@ -183,110 +183,47 @@ export default function TournamentsPage() {
               Filter Tournaments
             </h2>
 
-            {/* Status Custom Select */}
-            <div className="mb-6 relative z-30">
+            {/* Status */}
+            <div className="mb-6">
               <label className="block text-gray-400 text-[10px] md:text-xs font-bold uppercase tracking-widest mb-2">
                 Status
               </label>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    document.getElementById('status-dropdown').classList.toggle('hidden');
-                    document.getElementById('game-dropdown').classList.add('hidden');
-                  }}
-                  className="w-full flex items-center justify-between bg-white/[0.03] border border-white/10 hover:border-white/20 hover:bg-white/[0.05] rounded-xl px-4 py-3.5 text-white text-sm font-medium focus:outline-none focus:border-orange-500 transition-all shadow-sm"
-                >
-                  <span className="capitalize">{filters.status.replace('-', ' ')}</span>
-                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                
-                {/* Custom Options Menu */}
-                <div id="status-dropdown" className="hidden absolute z-50 top-[calc(100%+8px)] left-0 w-full bg-[#121217] border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
-                  {[
-                    { val: "all", label: "All Status" },
-                    { val: "registration-open", label: "Registration Open" },
-                    { val: "upcoming", label: "Upcoming" },
-                    { val: "live", label: "Live" },
-                    { val: "completed", label: "Completed" }
-                  ].map(opt => (
-                    <button
-                      key={opt.val}
-                      type="button"
-                      onClick={() => {
-                        setFilters({ ...filters, status: opt.val });
-                        document.getElementById('status-dropdown').classList.add('hidden');
-                      }}
-                      className="w-full text-left px-5 py-3.5 text-sm font-medium transition-colors hover:bg-white/[0.06] flex items-center justify-between group border-b border-white/5 last:border-0"
-                    >
-                      <span className={filters.status === opt.val ? 'text-orange-500 font-bold' : 'text-gray-300 group-hover:text-white'}>
-                        {opt.label}
-                      </span>
-                      {filters.status === opt.val && (
-                        <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <select
+                value={filters.status}
+                onChange={(e) =>
+                  setFilters({ ...filters, status: e.target.value })
+                }
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm font-medium focus:outline-none focus:border-orange-500 transition-colors"
+                style={{ WebkitAppearance: 'none' }}
+              >
+                <option className="bg-gray-900" value="all">All Status</option>
+                <option className="bg-gray-900" value="registration-open">Registration Open</option>
+                <option className="bg-gray-900" value="upcoming">Upcoming</option>
+                <option className="bg-gray-900" value="live">Live</option>
+                <option className="bg-gray-900" value="completed">Completed</option>
+              </select>
             </div>
 
-            {/* Game Custom Select */}
-            <div className="mb-8 relative z-20">
+            {/* Game */}
+            <div className="mb-8">
               <label className="block text-gray-400 text-[10px] md:text-xs font-bold uppercase tracking-widest mb-2">
                 Game
               </label>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    document.getElementById('game-dropdown').classList.toggle('hidden');
-                    document.getElementById('status-dropdown').classList.add('hidden');
-                  }}
-                  className="w-full flex items-center justify-between bg-white/[0.03] border border-white/10 hover:border-white/20 hover:bg-white/[0.05] rounded-xl px-4 py-3.5 text-white text-sm font-medium focus:outline-none focus:border-orange-500 transition-all shadow-sm"
-                >
-                  <span className="capitalize">{filters.game === 'all' ? 'All Games' : filters.game}</span>
-                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                
-                {/* Custom Options Menu */}
-                <div id="game-dropdown" className="hidden absolute z-50 top-[calc(100%+8px)] left-0 w-full bg-[#121217] border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-56 overflow-y-auto scrollbar-hide">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFilters({ ...filters, game: 'all' });
-                      document.getElementById('game-dropdown').classList.add('hidden');
-                    }}
-                    className="w-full text-left px-5 py-3.5 text-sm font-medium transition-colors hover:bg-white/[0.06] flex items-center justify-between group border-b border-white/5"
-                  >
-                    <span className={filters.game === 'all' ? 'text-orange-500 font-bold' : 'text-gray-300 group-hover:text-white'}>
-                      All Games
-                    </span>
-                    {filters.game === 'all' && (
-                      <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                    )}
-                  </button>
-                  
-                  {availableGames.map((game) => (
-                    <button
-                      key={game}
-                      type="button"
-                      onClick={() => {
-                        setFilters({ ...filters, game: game });
-                        document.getElementById('game-dropdown').classList.add('hidden');
-                      }}
-                      className="w-full text-left px-5 py-3.5 text-sm font-medium transition-colors hover:bg-white/[0.06] flex items-center justify-between group border-b border-white/5 last:border-0"
-                    >
-                      <span className={filters.game === game ? 'text-orange-500 font-bold' : 'text-gray-300 group-hover:text-white'}>
-                        {game}
-                      </span>
-                      {filters.game === game && (
-                        <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <select
+                value={filters.game}
+                onChange={(e) =>
+                  setFilters({ ...filters, game: e.target.value })
+                }
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm font-medium focus:outline-none focus:border-orange-500 transition-colors"
+                style={{ WebkitAppearance: 'none' }}
+              >
+                <option className="bg-gray-900" value="all">All Games</option>
+                {availableGames.map((game) => (
+                  <option className="bg-gray-900" key={game} value={game}>
+                    {game}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Buttons */}
