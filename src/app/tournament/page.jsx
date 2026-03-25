@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import TournamentCard from "@/components/TournamentCard.jsx";
 import LoadingSpinner from "@/components/LoadingSpinner.jsx";
 import { tournamentService } from "@/services/tournamentService";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function TournamentsPage() {
   const [tournaments, setTournaments] = useState([]);

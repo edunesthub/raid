@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "../../contexts/AuthContext.jsx";
+import { useAuth } from "../../contexts/AuthContext";
 import { Users, Trophy, DollarSign, AlertCircle, X, Zap, Target } from "lucide-react";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";

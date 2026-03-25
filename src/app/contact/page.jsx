@@ -1,17 +1,18 @@
 "use client";
 import React, { useState } from 'react';
+import { 
+  Instagram, Twitter, Facebook, MessageCircle, ExternalLink, 
+  User, Mail, MessageSquare, Send, Loader2 
+} from 'lucide-react';
 
 const WHATSAPP_NUMBER = "+233547921454";
 const WHATSAPP_COMMUNITY_LINK = "https://chat.whatsapp.com/Gjg0O27vntADU2WjTHmCgw";
 
 function formatWhatsAppNumber(number) {
-  // Convert "+233547921454" -> "233201624018" for wa.me format
   const digits = (number || "").replace(/[^\d+]/g, "");
   if (digits.startsWith("+")) return digits.slice(1);
   return digits;
 }
-
-import { Instagram, Twitter, Facebook, MessageCircle, ExternalLink } from 'lucide-react';
 
 const ContactPage = () => {
   const [name, setName] = useState("");
@@ -24,7 +25,6 @@ const ContactPage = () => {
     e.preventDefault();
     if (sending) return;
 
-    // Basic validation
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
     const trimmedSubject = subject.trim();
@@ -35,7 +35,6 @@ const ContactPage = () => {
       return;
     }
 
-    // Compose WhatsApp text
     const lines = [
       `New contact request`,
       `Name: ${trimmedName}`,
@@ -50,166 +49,211 @@ const ContactPage = () => {
     const url = `https://wa.me/${phone}?text=${text}`;
 
     setSending(true);
-    // Prefer full redirect for mobile compatibility
     window.location.href = url;
     setTimeout(() => setSending(false), 3000);
   };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white">
-      <div className="container mx-auto px-4 py-10">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-extrabold tracking-tight mb-2">Contact Us</h1>
-          <p className="text-gray-400 text-sm">We usually respond within 24 hours.</p>
+    <div className="min-h-[100dvh] bg-black relative overflow-x-clip flex flex-col items-center">
+      {/* Dynamic Background Elements */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute top-[10%] left-[-10%] w-[50%] h-[50%] bg-orange-600/10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[20%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 blur-[120px] rounded-full" />
+      </div>
+
+      <div className="max-w-[1600px] mx-auto px-6 md:px-10 lg:px-12 pt-[110px] md:pt-[140px] pb-12 md:pb-20 relative z-10 w-full animate-fade-in flex-1 flex flex-col">
+        {/* Header */}
+        <div className="text-center mb-12 md:mb-16">
+          <h1 className="text-4xl md:text-7xl font-black italic text-white uppercase tracking-tighter mb-4">
+            Contact <span className="text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.3)]">Us.</span>
+          </h1>
+          <p className="text-gray-500 text-[10px] md:text-sm font-bold uppercase tracking-[0.2em] max-w-xl mx-auto">
+            Get in touch with us. We usually respond within 24 hours.
+          </p>
         </div>
 
-        <section className="mb-8">
-          <div className="bg-gray-900/70 border border-gray-800 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-xl font-semibold text-raid-gold mb-2">Get in Touch</h2>
-            <p className="text-sm text-gray-400">
-              We'd love to hear from you! Whether you have questions, feedback, or need support,
-              our team is here to help. Use the form or WhatsApp to reach out.
-            </p>
-          </div>
-        </section>
+        {/* 2-Column Responsive Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 md:gap-12 flex-1">
+          
+          {/* Main Form Area (Logistics) - Left Column */}
+          <div className="lg:col-span-3">
+            <div className="glass-panel p-6 sm:p-10 md:p-12 rounded-[2rem] sm:rounded-[2.5rem] relative overflow-hidden group border border-white/5 h-full">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              <h2 className="text-2xl md:text-3xl font-black italic text-white uppercase tracking-tighter mb-2">
+                Send a <span className="text-orange-500">Message</span>
+              </h2>
+              <p className="text-gray-400 text-xs md:text-sm font-medium mb-8 leading-relaxed">
+                Send a direct message to our support team via WhatsApp for immediate processing.
+              </p>
 
-        <section className="mb-8">
-          <div className="bg-gray-900/70 border border-gray-800 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-xl font-semibold text-raid-gold mb-4">Send Us a Message</h2>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-400">Your Name</label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    className="mt-1 block w-full px-4 py-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500"
-                    placeholder="John Doe"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
+              <form className="space-y-6" onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {/* Name Input */}
+                  <div className="space-y-2">
+                    <label htmlFor="name" className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Your Name</label>
+                    <div className="relative group/input">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within/input:text-orange-500 transition-colors" />
+                      <input
+                        type="text"
+                        id="name"
+                        className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-orange-500/50 transition-all font-bold"
+                        placeholder="John Doe"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Email Input */}
+                  <div className="space-y-2">
+                    <label htmlFor="email" className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Email Address (Optional)</label>
+                    <div className="relative group/input">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within/input:text-orange-500 transition-colors" />
+                      <input
+                        type="email"
+                        id="email"
+                        className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-orange-500/50 transition-all font-bold"
+                        placeholder="john.doe@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-400">Your Email (optional)</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    className="mt-1 block w-full px-4 py-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500"
-                    placeholder="john.doe@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-400">Subject</label>
-                <input
-                  type="text"
-                  id="subject"
-                  name="subject"
-                  className="mt-1 block w-full px-4 py-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500"
-                  placeholder="Regarding a tournament issue"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-400">Your Message</label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={5}
-                  className="mt-1 block w-full px-4 py-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500"
-                  placeholder="Type your message here..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                ></textarea>
-              </div>
-              <button
-                type="submit"
-                disabled={sending}
-                className="w-full py-3 px-4 rounded-xl text-lg font-semibold text-white bg-orange-600 hover:bg-orange-500 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-              >
-                {sending ? 'Opening WhatsApp…' : 'Send via WhatsApp'}
-              </button>
-              <p className="text-xs text-gray-500 text-center">Messages are sent directly to our WhatsApp: {WHATSAPP_NUMBER}</p>
-            </form>
-          </div>
-        </section>
 
-        <section className="mb-8">
-          <div className="bg-green-600/10 border border-green-500/30 rounded-2xl p-4 md:p-6 shadow-xl flex items-center gap-4 md:gap-6">
-            <div className="flex-shrink-0 w-16 h-16 md:w-24 md:h-24 relative bg-green-500/10 rounded-2xl flex items-center justify-center p-3 md:p-4">
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-                alt="WhatsApp Logo"
-                className="w-full h-full object-contain"
-              />
+                {/* Subject Input */}
+                <div className="space-y-2">
+                  <label htmlFor="subject" className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Subject</label>
+                  <div className="relative group/input">
+                    <MessageSquare className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within/input:text-orange-500 transition-colors" />
+                    <input
+                      type="text"
+                      id="subject"
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-orange-500/50 transition-all font-bold"
+                      placeholder="Regarding a tournament issue"
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Message Textarea */}
+                <div className="space-y-2">
+                  <label htmlFor="message" className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Your Message</label>
+                  <div className="relative group/input">
+                    <textarea
+                      id="message"
+                      rows={6}
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-3xl p-6 text-white placeholder-gray-600 focus:outline-none focus:border-orange-500/50 transition-all italic text-sm md:text-base leading-relaxed"
+                      placeholder="Type your message here..."
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      required
+                    ></textarea>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={sending}
+                  className="w-full py-5 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-black uppercase text-xs sm:text-sm tracking-[0.2em] rounded-2xl shadow-[0_0_30px_rgba(249,115,22,0.4)] hover:shadow-[0_0_40px_rgba(249,115,22,0.6)] transition-all transform active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 mt-4"
+                >
+                  {sending ? (
+                    <><Loader2 className="w-5 h-5 animate-spin" /><span>Sending...</span></>
+                  ) : (
+                    <>Send Message <Send className="w-4 h-4" /></>
+                  )}
+                </button>
+                <p className="text-[9px] sm:text-[10px] text-gray-500 text-center font-bold uppercase tracking-widest mt-4 opacity-70">
+                  Messages are sent securely via WhatsApp: {WHATSAPP_NUMBER}
+                </p>
+              </form>
             </div>
-            <div className="flex-1 text-left">
-              <h2 className="text-lg md:text-xl font-semibold text-raid-gold mb-1 md:mb-3">Join our WhatsApp community</h2>
-              <p className="text-xs md:text-sm text-gray-400 mb-3 md:mb-4">Connect, chat and stay updated with the community.</p>
+          </div>
+
+          {/* Side Panels - Right Column */}
+          <div className="lg:col-span-2 space-y-6 md:space-y-8 h-full flex flex-col">
+            
+            {/* WhatsApp Community Banner */}
+            <div className="bg-gradient-to-br from-[#128C7E]/20 to-black border border-[#25D366]/30 rounded-[2rem] p-8 shadow-[0_0_30px_rgba(37,211,102,0.1)] relative overflow-hidden group hover:border-[#25D366]/60 transition-colors flex-1 flex flex-col justify-center">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#25D366]/10 blur-[50px] rounded-full translate-x-1/2 -translate-y-1/2 group-hover:bg-[#25D366]/20 transition-colors duration-500" />
+              
+              <div className="flex items-center gap-4 mb-6 relative z-10">
+                <div className="w-16 h-16 bg-[#25D366]/10 rounded-2xl flex items-center justify-center p-3 shadow-[0_0_20px_rgba(37,211,102,0.2)]">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" className="w-full h-full object-contain" />
+                </div>
+                <div>
+                  <h3 className="text-xl md:text-2xl font-black italic text-white uppercase tracking-tighter">Community <span className="text-[#25D366]">Hub</span></h3>
+                  <p className="text-[10px] text-[#25D366] font-bold uppercase tracking-widest flex items-center gap-2 mt-1">
+                    <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse" /> Always Active
+                  </p>
+                </div>
+              </div>
+              
+              <p className="text-sm text-gray-300 font-medium mb-8 leading-relaxed relative z-10 max-w-sm">
+                Connect with other players, find teams, and stay updated on tournaments. 
+              </p>
+              
               <a
                 href={WHATSAPP_COMMUNITY_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-semibold transition-colors shadow-lg shadow-orange-600/20"
+                className="w-full inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-2xl px-6 py-5 text-xs font-black uppercase tracking-[0.2em] transition-all shadow-[0_0_20px_rgba(37,211,102,0.3)] hover:shadow-[0_0_30px_rgba(37,211,102,0.5)] active:scale-95 relative z-10"
               >
-                <span>Join our WhatsApp Group</span>
-                <ExternalLink className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                Join WhatsApp Group <ExternalLink className="w-4 h-4 ml-1" />
               </a>
             </div>
-          </div>
-        </section>
 
-        <section className="mb-8">
-          <div className="bg-gray-900/70 border border-gray-800 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-xl font-semibold text-raid-gold mb-3">Business Inquiries</h2>
-            <p className="text-sm text-gray-400 mb-2">Partnerships, media, and other opportunities:</p>
-            <p className="text-sm font-medium text-raid-gold">
-              <a href="mailto:raid00arena@gmail.com" className="hover:underline">raid00arena@gmail.com</a>
-            </p>
-          </div>
-        </section>
-
-        <section className="mb-8">
-          <div className="bg-gray-900/70 border border-gray-800 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-xl font-semibold text-raid-gold mb-3">Social Media</h2>
-            <p className="text-sm text-gray-400 mb-4">Follow us for updates on tournaments and events:</p>
-            <div className="flex flex-wrap gap-4">
-              {[
-                { name: 'Twitter', icon: <Twitter className="w-5 h-5" />, href: "#", color: "#1DA1F2" },
-                { name: 'Facebook', icon: <Facebook className="w-5 h-5" />, href: "#", color: "#1877F2" },
-                { name: 'Instagram', icon: <Instagram className="w-5 h-5" />, href: "#", color: "#E4405F" },
-                { name: 'WhatsApp', icon: <MessageCircle className="w-5 h-5" />, href: WHATSAPP_COMMUNITY_LINK, color: "#25D366" },
-              ].map((social) => (
-                <a
-                  key={social.name}
-                  href={social.href}
-                  target={social.name === 'WhatsApp' ? "_blank" : undefined}
-                  rel={social.name === 'WhatsApp' ? "noopener noreferrer" : undefined}
-                  className="p-3 rounded-full bg-gray-800 border border-gray-700 hover:text-white transition-all duration-300 shadow-lg group"
-                  title={social.name}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = social.color;
-                    e.currentTarget.style.borderColor = social.color;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '';
-                    e.currentTarget.style.borderColor = '';
-                  }}
-                >
-                  <div style={{ color: social.color }} className="group-hover:text-white transition-colors duration-300">
-                    {social.icon}
-                  </div>
-                </a>
-              ))}
+            {/* Business Inquiries */}
+            <div className="glass-panel p-8 rounded-[2rem] border border-white/5 flex-none">
+              <h3 className="text-xl font-black italic text-white uppercase tracking-tighter mb-4">Business <span className="text-orange-500">Inquiries</span></h3>
+              <p className="text-xs text-gray-400 mb-6 leading-relaxed font-medium">
+                For strategic partnerships, sponsorship opportunities, and media coverage requests.
+              </p>
+              <a href="mailto:raid00arena@gmail.com" className="group flex items-center gap-4 bg-white/[0.03] hover:bg-orange-500/10 border border-white/10 hover:border-orange-500/30 rounded-2xl w-full p-4 transition-all">
+                <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center text-orange-500 group-hover:scale-110 group-hover:bg-orange-500 group-hover:text-white transition-all shadow-lg shadow-orange-500/0 group-hover:shadow-orange-500/20">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Direct Line</div>
+                  <div className="text-xs sm:text-sm font-bold text-white group-hover:text-orange-400 transition-colors">raid00arena@gmail.com</div>
+                </div>
+              </a>
             </div>
-          </div>
-        </section>
-      </div>
 
+            {/* Social Media Radar */}
+            <div className="glass-panel p-8 rounded-[2rem] border border-white/5 flex-none">
+              <h3 className="text-xl font-black italic text-white uppercase tracking-tighter mb-6">Social <span className="text-orange-500">Radar</span></h3>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { name: 'Twitter', icon: <Twitter className="w-5 h-5" />, href: "#", color: "hover:bg-[#1DA1F2] hover:border-[#1DA1F2]/50 hover:shadow-[0_0_20px_rgba(29,161,242,0.3)]" },
+                  { name: 'Facebook', icon: <Facebook className="w-5 h-5" />, href: "#", color: "hover:bg-[#1877F2] hover:border-[#1877F2]/50 hover:shadow-[0_0_20px_rgba(24,119,242,0.3)]" },
+                  { name: 'Instagram', icon: <Instagram className="w-5 h-5" />, href: "#", color: "hover:bg-[#E4405F] hover:border-[#E4405F]/50 hover:shadow-[0_0_20px_rgba(228,64,95,0.3)]" },
+                  { name: 'WhatsApp', icon: <MessageCircle className="w-5 h-5" />, href: WHATSAPP_COMMUNITY_LINK, color: "hover:bg-[#25D366] hover:border-[#25D366]/50 hover:shadow-[0_0_20px_rgba(37,211,102,0.3)]" },
+                ].map((social) => (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    target={social.name === 'WhatsApp' ? "_blank" : undefined}
+                    rel={social.name === 'WhatsApp' ? "noopener noreferrer" : undefined}
+                    className={`flex items-center gap-3 p-4 rounded-xl bg-white/[0.03] border border-white/10 text-gray-400 transition-all duration-300 group ${social.color}`}
+                  >
+                    <div className="group-hover:text-white transition-colors duration-300 transform group-hover:scale-110">
+                      {social.icon}
+                    </div>
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest group-hover:text-white transition-colors">{social.name}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

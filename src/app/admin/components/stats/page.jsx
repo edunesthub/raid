@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/app/contexts/AuthContext.jsx';
+import { useAuth } from '@/app/contexts/AuthContext';
 import { userStatsService } from '@/services/userStatsService';
 import { RefreshCw, Users, Trophy, DollarSign, TrendingUp } from 'lucide-react';
 
