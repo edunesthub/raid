@@ -167,7 +167,7 @@ export default function UserProfilePage() {
 
   return (
     <div className="min-h-screen bg-black pt-[88px] md:pt-[100px] pb-32 md:pb-16 flex flex-col">
-      <div className="max-w-[1600px] mx-auto w-full px-6 md:px-10 lg:px-12 relative z-10">
+      <div className="max-w-[1600px] mx-auto w-full px-4 sm:px-6 md:px-10 lg:px-12 relative z-10">
         <Link
           href="/players"
           className="inline-flex items-center text-gray-500 hover:text-orange-500 font-black uppercase text-[10px] tracking-widest transition-all mb-8 md:mb-12 group"
@@ -239,16 +239,16 @@ export default function UserProfilePage() {
             { label: 'Total Earnings', value: `${currentUser?.country === 'Nigeria' ? '₦' : '₵'}${(stats.totalEarnings || 0).toLocaleString()}`, icon: null, emoji: '💰' },
             { label: 'Win Rate', value: `${stats.winRate?.toFixed(1) || 0}%`, icon: TrendingUp, color: 'text-orange-500' }
           ].map((stat, idx) => (
-            <div key={idx} className="bg-white/[0.03] border border-white/10 p-4 sm:p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] text-center hover:bg-white/[0.06] hover:border-orange-500/30 transition-all duration-300 group">
+            <div key={idx} className="bg-white/[0.03] border border-white/10 p-3 sm:p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] text-center hover:bg-white/[0.06] hover:border-orange-500/30 transition-all duration-300 group">
               {stat.icon ? (
-                <stat.icon className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 ${stat.color} mx-auto mb-3 md:mb-4 group-hover:scale-110 transition-transform`} />
+                <stat.icon className={`w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 ${stat.color} mx-auto mb-2 md:mb-4 group-hover:scale-110 transition-transform`} />
               ) : (
-                <div className="text-2xl sm:text-3xl md:text-4xl mb-3 md:mb-4 group-hover:scale-110 transition-transform">{stat.emoji}</div>
+                <div className="text-xl sm:text-3xl md:text-4xl mb-2 md:mb-4 group-hover:scale-110 transition-transform">{stat.emoji}</div>
               )}
               <p className="text-xl sm:text-2xl md:text-3xl font-black text-white mb-1 md:mb-2 uppercase tracking-tighter">
                 {stat.value}
               </p>
-              <p className="text-gray-500 text-[8px] md:text-xs font-black uppercase tracking-[0.2em]">{stat.label}</p>
+              <p className="text-gray-500 text-[8px] md:text-xs font-black uppercase tracking-[0.1em] md:tracking-[0.2em]">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -349,11 +349,11 @@ export default function UserProfilePage() {
 
         {/* Empty State for No Tournaments */}
         {achievements.length === 0 && recentTournaments.length === 0 && (
-          <div className="bg-white/[0.02] border border-white/10 border-dashed p-8 sm:p-12 md:p-20 text-center rounded-[2rem] md:rounded-[3rem] shadow-2xl">
+          <div className="bg-white/[0.02] border border-white/10 border-dashed p-6 sm:p-12 md:p-20 text-center rounded-[2rem] md:rounded-[3rem] shadow-2xl">
             <Trophy className="w-12 h-12 md:w-20 md:h-20 text-gray-800 mx-auto mb-6 opacity-50" />
-            <h3 className="text-xl md:text-2xl font-black text-white mb-3 uppercase tracking-widest">No Tournament History</h3>
-            <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px] md:text-xs mb-8">This player hasn't participated in any tournaments yet.</p>
-            <Link href="/tournament" className="inline-block bg-orange-500 hover:bg-orange-400 text-white px-6 md:px-10 py-3 md:py-4 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20 whitespace-nowrap">
+            <h3 className="text-lg md:text-2xl font-black text-white mb-3 uppercase tracking-widest">No Tournament History</h3>
+            <p className="text-gray-500 font-bold uppercase tracking-widest text-[9px] md:text-xs mb-8">This player hasn't participated in any tournaments yet.</p>
+            <Link href="/tournament" className="inline-block bg-orange-500 hover:bg-orange-400 text-white px-6 md:px-10 py-3 md:py-4 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20">
               Browse Tournaments
             </Link>
           </div>
