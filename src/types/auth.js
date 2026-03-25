@@ -1,0 +1,1 @@
+// This file previously contained TypeScript type definitions for authentication. These are removed as part of the conversion to JavaScript.

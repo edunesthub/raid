@@ -1,113 +1,141 @@
-"use client";
-
+import React, { useState } from "react";
 import Link from "next/link";
-import { Users, Trophy, Zap, Clock, Calendar } from "lucide-react";
-import { formatCurrency } from "@/utils/formatters";
+import { Loader, Shield, Users } from "lucide-react";
 
-export default function TournamentCard({ tournament }) {
-  const isLive =
-    tournament.status === "live" || tournament.status === "ongoing";
-  const isFull =
-    (tournament.participants?.length || 0) >= (tournament.maxParticipants || 0);
+const TournamentCard = ({ tournament }) => {
+  const [isNavigating, setIsNavigating] = useState(false);
 
   return (
-    <Link
-      href={`/tournament/${tournament.id}`}
-      className="group relative block rounded-[2.5rem] bg-[#0d0d0d] border border-white/5 overflow-hidden transition-all duration-500 hover:-translate-y-3 hover:border-orange-500/30 hover:shadow-[0_40px_80px_-20px_rgba(249,115,22,0.2)]"
-    >
-      {/* Glow Effect on Hover */}
-      <div className="absolute -inset-1 bg-gradient-to-r from-orange-600 to-red-600 rounded-[2.5rem] opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-500" />
+    <div className="relative group bg-[#0f0f10]/90 backdrop-blur-md border border-orange-500/40 rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_25px_-5px_rgba(255,120,0,0.6)]">
+      {/* glowing accent edge */}
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-orange-500/15 via-transparent to-transparent opacity-80"></div>
 
-      {/* Hero Image / Banner */}
-      <div className="relative h-56 w-full overflow-hidden">
+      {/* IMAGE */}
+      <div className="relative w-full h-40 sm:h-48 overflow-hidden border-b border-orange-500/30">
         <img
-          src={tournament.bannerUrl || tournament.image || "/assets/tournament-thumb.png"}
-          alt={tournament.name || tournament.title}
-          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+          src={tournament.image}
+          alt={tournament.title}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/40 to-transparent" />
-        
-        {/* Animated Scanline Effect */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] pointer-events-none opacity-20" />
+        <span className="absolute top-3 left-3 px-2.5 py-1 text-[10px] sm:text-xs font-semibold rounded-full bg-black/70 border border-white/10 text-white shadow-md">
+          {tournament.country || tournament.region || 'Ghana'}
+        </span>
+        <span
+          className={`absolute top-3 right-3 px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-full text-white shadow-md ${tournament.status === "live"
+            ? "bg-green-500/90 animate-pulse"
+            : tournament.status === "registration-open"
+              ? "bg-blue-500/90"
+              : tournament.status === "upcoming"
+                ? "bg-yellow-500/90"
+                : "bg-gray-500/90"
+            }`}
+        >
+          {tournament.status === "registration-open"
+            ? "🔥 OPEN"
+            : tournament.status === "live"
+              ? "🔴 LIVE"
+              : tournament.status === "upcoming"
+                ? "⏰ SOON"
+                : "✅ ENDED"}
+        </span>
 
-        {/* Floating Badges */}
-        <div className="absolute top-6 left-6 flex flex-wrap gap-3">
-          {isLive && (
-            <div className="px-4 py-1.5 rounded-full bg-red-600 text-white text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 shadow-lg shadow-red-600/30 animate-pulse">
-              <span className="w-1.5 h-1.5 bg-white rounded-full" />
-              Broadcast Live
-            </div>
-          )}
-          <div className="px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 text-white text-[10px] font-bold uppercase tracking-[0.2em]">
-            {tournament.game || "Elite Arena"}
-          </div>
-        </div>
+        {tournament.participant_type === 'Team' && (
+          <span className="absolute bottom-3 right-3 px-2.5 py-1 text-[10px] sm:text-xs font-black rounded-full bg-blue-600/90 text-white shadow-md flex items-center gap-1 border border-blue-400/30 animate-pulse">
+            <Shield size={12} fill="currentColor" /> SQUAD
+          </span>
+        )}
 
-        {/* Prize Pool Display */}
-        <div className="absolute bottom-6 left-6">
-          <p className="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] mb-1">
-            Championship Prize
-          </p>
-          <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-black italic text-white leading-none tracking-tighter">
-              {formatCurrency(tournament.prizePool || tournament.first_place_value || 0, tournament.currency).split('.')[0]}
-            </span>
-            <span className="text-sm font-black text-white/40 uppercase">USD</span>
-          </div>
-        </div>
+        {tournament.participant_type === 'Duo' && (
+          <span className="absolute bottom-3 right-3 px-2.5 py-1 text-[10px] sm:text-xs font-black rounded-full bg-green-600/90 text-white shadow-md flex items-center gap-1 border border-green-400/30 animate-pulse">
+            <Users size={12} fill="currentColor" /> DUO
+          </span>
+        )}
       </div>
 
-      {/* Content Body */}
-      <div className="p-8 space-y-6">
-        <div className="relative">
-          <h3 className="text-2xl font-black italic text-white uppercase tracking-tighter line-clamp-1 group-hover:text-orange-500 transition-colors mb-2">
-            {tournament.name || tournament.title}
+      {/* CONTENT */}
+      <div className="p-4 flex flex-col gap-3">
+        {/* Title + Game */}
+        <div>
+          <h3 className="text-lg font-bold text-white line-clamp-1 tracking-wide">
+            {tournament.title}
           </h3>
-          <div className="flex items-center gap-3 text-white/40 font-bold uppercase tracking-widest text-[10px]">
-            <div className="w-4 h-[2px] bg-orange-500/50" />
-            {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "Commencing Soon"}
-          </div>
+          <p className="text-orange-400 text-xs uppercase tracking-wider font-semibold">
+            {tournament.game}
+          </p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
-            <div className="flex items-center gap-2 text-orange-500">
-              <Users size={14} />
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Slots</span>
-            </div>
-            <p className="text-lg font-black text-white italic tracking-tighter">
-              {tournament.participants?.length || 0} <span className="text-white/20">/</span> {tournament.maxParticipants || 100}
+        {/* Prize & Entry */}
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="border border-orange-500/40 rounded-lg p-2 bg-[#1a1a1d]/90 hover:bg-[#1e1e22]/90 transition-colors">
+            <p className="text-gray-400 text-xs text-center">Top Prize</p>
+            <p className="text-green-400 font-bold text-center truncate">
+              {tournament.first_place || '-'}
             </p>
           </div>
-          
-          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
-            <div className="flex items-center gap-2 text-orange-500">
-              <Zap size={14} />
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Format</span>
-            </div>
-            <p className="text-lg font-black text-white italic tracking-tighter uppercase whitespace-nowrap overflow-hidden text-ellipsis">
-              {tournament.format || "Knockout"}
+          <div className="border border-orange-500/40 rounded-lg p-2 bg-[#1a1a1d]/90 hover:bg-[#1e1e22]/90 transition-colors">
+            <p className="text-gray-400 text-xs">Entry Fee</p>
+            <p className="text-white font-semibold">
+              {tournament.currency || '₵'}{tournament.entryFee.toLocaleString()}
             </p>
           </div>
         </div>
 
-        {/* Footer CTA */}
-        <div className="pt-2">
-          <div className={`w-full py-4 rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-[0.2em] text-[11px] transition-all duration-300 ${
-            isFull 
-              ? "bg-white/5 text-white/20 border border-white/5 cursor-not-allowed"
-              : "bg-orange-600 text-white shadow-[0_10px_20px_-5px_rgba(249,115,22,0.4)] group-hover:bg-orange-500 group-hover:shadow-[0_15px_30px_-5px_rgba(249,115,22,0.5)] group-hover:scale-[1.02]"
-          }`}>
-            {isFull ? "Roster Full" : (
-              <>
-                Enter the Arena
-                <Zap size={14} />
-              </>
-            )}
+        {/* Players Progress */}
+        <div>
+          <div className="flex justify-between items-center text-xs text-gray-400 mb-1">
+            <span>{tournament.participant_type === 'Team' ? 'Squads' : 'Players'}</span>
+            <span className="text-white">
+              {tournament.currentPlayers}/{tournament.maxPlayers}
+            </span>
+          </div>
+          <div className="w-full bg-[#1b1b1f] border border-orange-500/30 rounded-full h-2 overflow-hidden">
+            <div
+              className="bg-gradient-to-r from-orange-500 to-orange-400 h-full rounded-full transition-all duration-300"
+              style={{
+                width: `${(tournament.currentPlayers / tournament.maxPlayers) * 100
+                  }%`,
+              }}
+            />
           </div>
         </div>
+
+
+
+        {/* CTA */}
+        <Link
+          href={`/tournament/${tournament.id}/`}
+          onClick={() => setIsNavigating(true)}
+          className="block w-full text-center bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-sm font-bold py-2 rounded-xl transition-all duration-300 shadow-[0_0_12px_rgba(255,120,0,0.4)] hover:shadow-[0_0_20px_rgba(255,140,0,0.6)] active:scale-[0.97] disabled:opacity-60 flex items-center justify-center gap-2"
+        >
+          {isNavigating ? (
+            <>
+              <Loader className="w-4 h-4 animate-spin" />
+              <span>Loading...</span>
+            </>
+          ) : (
+            'View Details'
+          )}
+        </Link>
+        {tournament.status === "live" && tournament.twitch_link && (
+          <a
+            href={tournament.twitch_link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full text-center bg-[#9146FF] hover:bg-[#772ce8] text-white text-sm font-bold py-2 rounded-xl transition-all duration-300 shadow-[0_0_12px_rgba(145,70,255,0.4)] hover:shadow-[0_0_20px_rgba(145,70,255,0.6)] active:scale-[0.97] flex items-center justify-center gap-2 border border-white/10"
+          >
+            <div className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+            </div>
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
+            </svg>
+            <span>Watch Livestream</span>
+          </a>
+        )}
       </div>
-    </Link>
+    </div>
   );
-}
+};
+
+export default TournamentCard;
