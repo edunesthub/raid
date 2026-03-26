@@ -176,15 +176,9 @@ export default function SignupPage() {
 
   const isValidPhoneForCountry = (country, phoneRaw) => {
     const phone = phoneRaw.trim();
-    const ghLocal = /^0\d{9}$/; // e.g., 0241234567
-    const ghIntl = /^233\d{9}$/; // e.g., 233241234567
-    const ngLocal = /^0\d{10}$/; // e.g., 08012345678
-    const ngIntl = /^234\d{10}$/; // e.g., 2348012345678
-
-    if (country === "Nigeria") {
-      return ngLocal.test(phone) || ngIntl.test(phone);
-    }
-    return ghLocal.test(phone) || ghIntl.test(phone);
+    // A permissive regex: allows a leading +, and then between 7 and 15 digits, spaces, or hyphens
+    const phoneRegex = /^\+?[\d\s-]{7,15}$/;
+    return phoneRegex.test(phone);
   };
 
   // ======================
@@ -259,8 +253,7 @@ export default function SignupPage() {
     const phone = formData.phone.trim();
     const country = formData.country || "Ghana";
     if (!isValidPhoneForCountry(country, phone)) {
-      const example = country === "Nigeria" ? "08012345678 or 2348012345678" : "0241234567 or 233241234567";
-      setError(`Please enter a valid ${country} phone number (e.g., ${example})`);
+      setError(`Please enter a valid phone number (e.g., +447123456789)`);
       return false;
     }
     if (phoneAvailable === false) {
@@ -299,8 +292,7 @@ export default function SignupPage() {
     const phone = formData.phone.trim();
     const country = formData.country || "Ghana";
     if (!isValidPhoneForCountry(country, phone)) {
-      const example = country === "Nigeria" ? "08012345678 or 2348012345678" : "0241234567 or 233241234567";
-      setError(`Please enter a valid ${country} phone number (e.g., ${example})`);
+      setError(`Please enter a valid phone number`);
       return false;
     }
     if (phoneAvailable === false) {
@@ -585,7 +577,7 @@ export default function SignupPage() {
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => handlePhoneChange(e.target.value)}
-                      placeholder={formData.country === "Nigeria" ? "e.g., 08012345678 or 2348012345678" : "e.g., 0241234567 or 233241234567"}
+                      placeholder="e.g., +447123456789 or 0241234567"
                       className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
                       disabled={isLoading}
                       required
