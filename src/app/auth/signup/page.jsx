@@ -119,7 +119,7 @@ export default function SignupPage() {
     if (window.phoneCheckTimeout) clearTimeout(window.phoneCheckTimeout);
 
     window.phoneCheckTimeout = setTimeout(async () => {
-      if (!phone || !isValidPhoneForCountry(formData.country || "Ghana", phone)) return;
+      if (!phone || !isValidPhone(phone)) return;
 
       setPhoneChecking(true);
       try {
@@ -174,7 +174,7 @@ export default function SignupPage() {
     setAvatarFile(null);
   };
 
-  const isValidPhoneForCountry = (country, phoneRaw) => {
+  const isValidPhone = (phoneRaw) => {
     const phone = phoneRaw.trim();
     // A permissive regex: allows a leading +, and then between 7 and 15 digits, spaces, or hyphens
     const phoneRegex = /^\+?[\d\s-]{7,15}$/;
@@ -252,8 +252,8 @@ export default function SignupPage() {
     }
     const phone = formData.phone.trim();
     const country = formData.country || "Ghana";
-    if (!isValidPhoneForCountry(country, phone)) {
-      setError(`Please enter a valid phone number (e.g., +447123456789)`);
+    if (!isValidPhone(phone)) {
+      setError(`Please enter a valid phone number (e.g., +44 7123 456789)`);
       return false;
     }
     if (phoneAvailable === false) {
@@ -291,7 +291,7 @@ export default function SignupPage() {
     // Phone required and must match selected country
     const phone = formData.phone.trim();
     const country = formData.country || "Ghana";
-    if (!isValidPhoneForCountry(country, phone)) {
+    if (!isValidPhone(phone)) {
       setError(`Please enter a valid phone number`);
       return false;
     }
@@ -417,7 +417,7 @@ export default function SignupPage() {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         phone: formData.phone.trim(),
-        country: formData.country || "Ghana",
+        country: formData.country || "",
         dateOfBirth: formData.dateOfBirth,
         bio: formData.bio.trim(),
         avatarUrl: avatarUrl || '', // Save it here
@@ -452,7 +452,7 @@ export default function SignupPage() {
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-orange-500 to-purple-500 text-transparent bg-clip-text">
             Create Account
           </h1>
-          <p className="text-gray-400">Join Ghana &amp; Nigeria's premier esports platform</p>
+          <p className="text-gray-400">Join the world's premier esports platform</p>
         </div>
 
         <div className="bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-sm border border-white/10 rounded-2xl p-8 relative">
@@ -577,7 +577,7 @@ export default function SignupPage() {
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => handlePhoneChange(e.target.value)}
-                      placeholder="e.g., +447123456789 or 0241234567"
+                      placeholder="e.g., +44 7123 456789 or +1 234 567 8900"
                       className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
                       disabled={isLoading}
                       required
@@ -586,7 +586,7 @@ export default function SignupPage() {
                     {!phoneChecking && phoneAvailable === true && (<CheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-400" />)}
                     {!phoneChecking && phoneAvailable === false && (<AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400" />)}
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Use a number that can receive SMS in {formData.country}.</p>
+                  <p className="text-xs text-gray-500 mt-1">Use a number that can receive SMS.</p>
                 </div>
                 <div className="flex justify-between pt-2">
                   <button type="button" onClick={() => setCurrentStep(1)} className="px-5 py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-white">Back</button>

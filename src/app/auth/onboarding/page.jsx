@@ -143,7 +143,7 @@ export default function OnboardingPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, contact: e.target.value })
                 }
-                placeholder="+233 24 123 4567"
+                placeholder="e.g., +44 7123 456789 or +1 234 567 8900"
                 className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
                 required
               />
