@@ -80,6 +80,27 @@ class ChatService {
   }
 
   /**
+   * Send a message to an arena chat
+   */
+  async sendArenaMessage(arenaId, messageData) {
+    try {
+      const chatRef = collection(db, 'arena_chats');
+      await addDoc(chatRef, {
+        arenaId,
+        senderId: messageData.senderId,
+        senderName: messageData.senderName,
+        senderAvatar: messageData.senderAvatar || null,
+        message: messageData.message.trim(),
+        createdAt: serverTimestamp()
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error sending arena message:', error);
+      throw new Error('Failed to send message');
+    }
+  }
+
+  /**
    * Subscribe to tournament chat messages in real-time
    */
   subscribeToChat(tournamentId, callback, limitCount = 50) {
@@ -177,6 +198,40 @@ class ChatService {
       });
     } catch (error) {
       console.error('Error setting up league chat subscription:', error);
+      return () => { };
+    }
+  }
+
+  /**
+   * Subscribe to arena chat messages in real-time
+   */
+  subscribeToArenaChat(arenaId, callback, limitCount = 50) {
+    try {
+      const chatRef = collection(db, 'arena_chats');
+      const q = query(
+        chatRef,
+        where('arenaId', '==', arenaId),
+        orderBy('createdAt', 'desc'),
+        limit(limitCount)
+      );
+
+      return onSnapshot(q, (snapshot) => {
+        const messages = [];
+        snapshot.forEach((doc) => {
+          messages.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+
+        // Reverse to show oldest first
+        callback(messages.reverse());
+      }, (error) => {
+        console.error('Error subscribing to arena chat:', error);
+        callback([]);
+      });
+    } catch (error) {
+      console.error('Error setting up arena chat subscription:', error);
       return () => { };
     }
   }
