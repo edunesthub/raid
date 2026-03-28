@@ -129,12 +129,13 @@ class ArenaService {
         if (!challengeDoc.exists()) throw new Error('Challenge not found');
 
         const data = challengeDoc.data();
-        if (data.status !== 'open') throw new Error('Challenge is no longer open');
         
-        // If already a participant, just return the data
+        // If already a participant, just return the data (allows entry even if status is 'active')
         if (data.participants && data.participants.includes(userId)) {
           return { id: challengeId, ...data };
         }
+
+        if (data.status !== 'open') throw new Error('Challenge is no longer open');
 
         if (data.participants.length >= data.maxParticipants) {
           throw new Error('Challenge is full');
