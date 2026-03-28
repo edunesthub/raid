@@ -13,9 +13,10 @@ import {
   MessageSquare, 
   Zap, 
   Skull, 
-  Flame 
+  Flame,
+  ChevronLeft
 } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { arenaService } from "@/services/arenaService";
 import { chatService } from "@/services/chatService"; 
 import { userService } from "@/services/userService";
@@ -24,6 +25,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import toast from "react-hot-toast";
 
 export default function ChallengeRoomPage() {
+  const router = useRouter();
   const { id } = useParams();
   const { user } = useAuth();
   const [challenge, setChallenge] = useState(null);
@@ -108,6 +110,17 @@ export default function ChallengeRoomPage() {
       {/* 1. Main View (Stream or Battle Info) */}
       <div className="flex-1 overflow-y-auto lg:h-full p-4 lg:p-8 space-y-8 no-scrollbar bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#1a1a1d] via-black to-black">
         
+        {/* Top Navigation */}
+        <div className="flex items-center gap-4 mb-2">
+          <button 
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white"
+          >
+            <ChevronLeft size={16} className="text-orange-500" />
+            Back
+          </button>
+        </div>
+
         {/* Header: Title & Info */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-6 relative z-10">
           <div className="space-y-1">

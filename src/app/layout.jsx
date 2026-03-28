@@ -24,10 +24,11 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export default function RootLayout({ children }) {
   const pathname = usePathname();
 
-  // Pages that should hide navigation completely (Auth, Chat)
+  // Pages that should hide navigation completely (Auth, Chat, Arena Rooms)
   const hideBar = ["/welcome", "/auth/login", "/auth/signup", "/auth/onboarding", "/admin/login"].includes(pathname) ||
     pathname.startsWith("/team-chat") ||
     pathname.startsWith("/league-chat") ||
+    pathname.startsWith("/arena/") ||
     (pathname.includes("/tournament/") && pathname.endsWith("/chat"));
 
   // Portal pages (Admin, Host, Manager) that have their own mobile UI
