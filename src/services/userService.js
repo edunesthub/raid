@@ -194,9 +194,36 @@ class UserService {
   }
 
   /**
-   * Get multiple users by their emails
-   * @param {Array<string>} emails
+   * Get multiple users by their IDs
+   * @param {Array<string>} userIds
    * @returns {Promise<Array>} Array of user profiles
+   */
+  async getUsersByIds(userIds) {
+    if (!userIds || userIds.length === 0) return [];
+    try {
+      const usersRef = collection(db, USERS_COLLECTION);
+      const chunks = [];
+      for (let i = 0; i < userIds.length; i += 30) {
+        chunks.push(userIds.slice(i, i + 30));
+      }
+
+      const results = [];
+      for (const chunk of chunks) {
+        const q = query(usersRef, where('__name__', 'in', chunk));
+        const snapshot = await getDocs(q);
+        snapshot.forEach(doc => {
+          results.push({ id: doc.id, ...doc.data() });
+        });
+      }
+      return results;
+    } catch (error) {
+      console.error('Error fetching users by IDs:', error);
+      throw new Error('Failed to fetch users');
+    }
+  }
+
+  /**
+   * Get multiple users by their emails
    */
   async getUsersByEmails(emails) {
     if (!emails || emails.length === 0) return [];

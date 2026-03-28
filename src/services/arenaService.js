@@ -12,7 +12,9 @@ import {
   serverTimestamp,
   increment,
   runTransaction,
-  Timestamp
+  Timestamp,
+  onSnapshot,
+  arrayUnion
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
@@ -105,9 +107,7 @@ class ArenaService {
    */
   async joinChallenge(userId, challengeCodeOrId, isCode = false) {
     try {
-      let challengeDoc;
       let challengeId;
-
       if (isCode) {
         const q = query(
           collection(db, CHALLENGES_COLLECTION),
@@ -117,33 +117,64 @@ class ArenaService {
         );
         const snapshot = await getDocs(q);
         if (snapshot.empty) throw new Error('Invalid or expired challenge code');
-        challengeDoc = snapshot.docs[0];
-        challengeId = challengeDoc.id;
+        challengeId = snapshot.docs[0].id;
       } else {
         challengeId = challengeCodeOrId;
-        const ref = doc(db, CHALLENGES_COLLECTION, challengeId);
-        challengeDoc = await getDoc(ref);
-        if (!challengeDoc.exists()) throw new Error('Challenge not found');
       }
 
-      const data = challengeDoc.data();
-      if (data.status !== 'open') throw new Error('Challenge is no longer open');
-      if (data.participants.includes(userId)) return { id: challengeId, ...data };
-      if (data.participants.length >= data.maxParticipants) throw new Error('Challenge is full');
-
       const challengeRef = doc(db, CHALLENGES_COLLECTION, challengeId);
-      await updateDoc(challengeRef, {
-        participants: [...data.participants, userId],
-        currentParticipants: increment(1),
-        status: data.participants.length + 1 >= data.maxParticipants ? 'active' : 'open',
-        updatedAt: serverTimestamp()
+      
+      const result = await runTransaction(db, async (transaction) => {
+        const challengeDoc = await transaction.get(challengeRef);
+        if (!challengeDoc.exists()) throw new Error('Challenge not found');
+
+        const data = challengeDoc.data();
+        if (data.status !== 'open') throw new Error('Challenge is no longer open');
+        
+        // If already a participant, just return the data
+        if (data.participants && data.participants.includes(userId)) {
+          return { id: challengeId, ...data };
+        }
+
+        if (data.participants.length >= data.maxParticipants) {
+          throw new Error('Challenge is full');
+        }
+
+        const newParticipants = [...data.participants, userId];
+        const newCount = newParticipants.length;
+        const newStatus = newCount >= data.maxParticipants ? 'active' : 'open';
+
+        transaction.update(challengeRef, {
+          participants: newParticipants,
+          currentParticipants: newCount,
+          status: newStatus,
+          updatedAt: serverTimestamp()
+        });
+
+        return { id: challengeId, ...data, participants: newParticipants, currentParticipants: newCount, status: newStatus };
       });
 
-      return { id: challengeId, ...data };
+      return result;
     } catch (error) {
       console.error('Error joining challenge:', error);
       throw error;
     }
+  }
+
+  /**
+   * Subscribe to challenge details in real-time
+   */
+  subscribeToChallenge(challengeId, callback) {
+    const ref = doc(db, CHALLENGES_COLLECTION, challengeId);
+    return onSnapshot(ref, (snapshot) => {
+      if (snapshot.exists()) {
+        callback({ id: snapshot.id, ...snapshot.data() });
+      } else {
+        callback(null);
+      }
+    }, (error) => {
+      console.error('Error subscribing to challenge:', error);
+    });
   }
 
   /**

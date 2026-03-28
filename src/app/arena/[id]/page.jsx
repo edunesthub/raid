@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { arenaService } from "@/services/arenaService";
-import { chatService } from "@/services/chatService"; // Reusing existing chat logic
+import { chatService } from "@/services/chatService"; 
+import { userService } from "@/services/userService";
 import { useAuth } from "@/app/contexts/AuthContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import toast from "react-hot-toast";
@@ -27,33 +28,61 @@ export default function ChallengeRoomPage() {
   const { user } = useAuth();
   const [challenge, setChallenge] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [participants, setParticipants] = useState([]);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (id) {
-       fetchChallenge();
-       // In a real app, subscribe to challenge and chat updates here
-    }
-  }, [id]);
+    if (!id || !user) return;
 
-  const fetchChallenge = async () => {
-    setLoading(true);
-    try {
-      const data = await arenaService.getChallengeById(id);
-      setChallenge(data);
-      // Dummy messages for preview
-      setMessages([
-        { id: 1, sender: 'System', text: 'Arena is open. Wait for opponent...', time: '12:00' },
-        { id: 2, sender: 'ProGamer', text: 'GLHF!', time: '12:05' },
-      ]);
-    } catch (error) {
-       toast.error("Failed to load arena");
-    } finally {
-       setLoading(false);
+    let unsubscribe;
+
+    const setupChallenge = async () => {
+      setLoading(true);
+      try {
+        // Automatically join the challenge if not already a participant
+        const challengeData = await arenaService.joinChallenge(user.uid, id);
+        setChallenge(challengeData);
+
+        // Subscribe to real-time updates
+        unsubscribe = arenaService.subscribeToChallenge(id, (updatedChallenge) => {
+          if (updatedChallenge) {
+            setChallenge(updatedChallenge);
+          }
+        });
+      } catch (error) {
+        console.error("Error setting up challenge:", error);
+        toast.error(error.message || "Failed to join arena");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    setupChallenge();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [id, user]);
+
+  useEffect(() => {
+    if (challenge?.participants?.length > 0) {
+      const fetchParticipants = async () => {
+        try {
+          const profiles = await userService.getUsersByIds(challenge.participants);
+          // Ensure we preserve the order of participants as they joined
+          const orderedProfiles = challenge.participants.map(uid => 
+            profiles.find(p => p.id === uid)
+          ).filter(Boolean);
+          setParticipants(orderedProfiles);
+        } catch (error) {
+          console.error("Error fetching participants:", error);
+        }
+      };
+      fetchParticipants();
     }
-  };
+  }, [challenge?.participants]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -115,40 +144,67 @@ export default function ChallengeRoomPage() {
            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[url('https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80')] bg-cover bg-center grayscale opacity-20 transition-all duration-1000 group-hover:grayscale-0 group-hover:opacity-40 scale-110 group-hover:scale-100"></div>
            
            <div className="relative z-10 text-center space-y-4 max-w-md mx-auto p-6 md:p-12 bg-black/60 backdrop-blur-3xl rounded-3xl md:rounded-[40px] border border-white/10 shadow-2xl">
-             <div className="flex items-center justify-center gap-6 md:gap-12">
-               <div className="text-center group-hover:scale-110 transition-transform duration-500">
-                  <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-3xl border-2 md:border-4 border-orange-500 p-1 mb-2 md:mb-4 shadow-[0_0_30px_rgba(249,115,22,0.4)]">
-                    <img src={user?.photoURL || '/assets/avatar-placeholder.png'} className="w-full h-full rounded-xl md:rounded-2xl object-cover" />
-                  </div>
-                  <span className="text-[10px] md:text-xs font-black uppercase text-white">{user?.displayName?.split(' ')[0] || 'Player 1'}</span>
-               </div>
-               
-               <div className="flex flex-col items-center gap-1 md:gap-2">
-                 <span className="text-xl md:text-3xl font-black italic text-orange-500">VS</span>
-                 <Skull size={20} className="text-gray-700 animate-pulse md:hidden" />
-                 <Skull size={32} className="text-gray-700 animate-pulse hidden md:block" />
-               </div>
- 
-               <div className="text-center group-hover:scale-110 transition-transform duration-500 delay-75">
-                  <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-3xl border-2 md:border-4 border-gray-800 p-1 mb-2 md:mb-4 bg-gray-900 flex items-center justify-center">
-                    <Users size={24} className="text-gray-700 md:hidden" />
-                    <Users size={40} className="text-gray-700 hidden md:block" />
-                  </div>
-                  <span className="text-[10px] md:text-xs font-black uppercase text-gray-500">Waiting...</span>
-               </div>
-             </div>
-             
-             <div className="pt-4 md:pt-8">
-               <button className="px-8 md:px-12 py-3 md:py-5 bg-white text-black font-black uppercase tracking-widest text-[9px] md:text-[10px] rounded-full hover:bg-orange-500 hover:text-white transition-all shadow-xl shadow-white/5">
-                 READY UP
-               </button>
-             </div>
+            <div className="flex items-center justify-center gap-6 md:gap-12">
+              {/* Player 1 (Creator) */}
+              <div className="text-center group-hover:scale-110 transition-transform duration-500">
+                <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-3xl border-2 md:border-4 border-orange-500 p-1 mb-2 md:mb-4 shadow-[0_0_30px_rgba(249,115,22,0.4)] overflow-hidden">
+                  <img 
+                    src={participants[0]?.avatarUrl || '/assets/avatar-placeholder.png'} 
+                    className="w-full h-full object-cover" 
+                    alt={participants[0]?.username || 'Player 1'}
+                  />
+                </div>
+                <span className="text-[10px] md:text-xs font-black uppercase text-white">
+                  {participants[0]?.username?.split(' ')[0] || 'Player 1'}
+                </span>
+              </div>
+              
+              <div className="flex flex-col items-center gap-1 md:gap-2">
+                <span className="text-xl md:text-3xl font-black italic text-orange-500">VS</span>
+                <Skull size={20} className="text-gray-700 animate-pulse md:hidden" />
+                <Skull size={32} className="text-gray-700 animate-pulse hidden md:block" />
+              </div>
+
+              {/* Player 2 (Challenger) */}
+              <div className="text-center group-hover:scale-110 transition-transform duration-500 delay-75">
+                <div className={`w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-3xl border-2 md:border-4 ${participants[1] ? 'border-orange-500 shadow-[0_0_30px_rgba(249,115,22,0.4)]' : 'border-gray-800'} p-1 mb-2 md:mb-4 bg-gray-900 flex items-center justify-center overflow-hidden`}>
+                  {participants[1] ? (
+                    <img 
+                      src={participants[1]?.avatarUrl || '/assets/avatar-placeholder.png'} 
+                      className="w-full h-full object-cover" 
+                      alt={participants[1]?.username || 'Player 2'}
+                    />
+                  ) : (
+                    <>
+                      <Users size={24} className="text-gray-700 md:hidden" />
+                      <Users size={40} className="text-gray-700 hidden md:block" />
+                    </>
+                  )}
+                </div>
+                <span className={`text-[10px] md:text-xs font-black uppercase ${participants[1] ? 'text-white' : 'text-gray-500'}`}>
+                  {participants[1]?.username?.split(' ')[0] || 'Waiting...'}
+                </span>
+              </div>
+            </div>
+            
+            <div className="pt-4 md:pt-8">
+              <button 
+                disabled={challenge.status !== 'active'}
+                className={`px-8 md:px-12 py-3 md:py-5 font-black uppercase tracking-widest text-[9px] md:text-[10px] rounded-full transition-all shadow-xl ${
+                  challenge.status === 'active' 
+                  ? 'bg-orange-500 text-white hover:bg-white hover:text-black shadow-orange-500/20' 
+                  : 'bg-white/10 text-gray-500 cursor-not-allowed border border-white/5'
+                }`}
+              >
+                {challenge.status === 'active' ? 'START BATTLE' : 'WAITING FOR OPPONENT'}
+              </button>
+            </div>
            </div>
 
            {/* Live Label */}
-           <div className="absolute top-8 left-8 flex items-center gap-2 bg-black/80 backdrop-blur-xl px-4 py-2 rounded-full border border-white/10 z-20">
-             <div className="w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
-             <span className="text-[10px] font-black uppercase tracking-widest italic tracking-tighter">Arena Live</span>
+           <div className="absolute top-4 md:top-8 right-4 md:right-8 flex items-center gap-2 bg-black/80 backdrop-blur-xl px-3 md:px-4 py-1.5 md:py-2 rounded-full border border-white/10 z-20">
+             <div className="w-1.5 md:w-2 h-1.5 md:h-2 bg-red-500 rounded-full animate-ping"></div>
+             <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest italic tracking-tighter">Arena Live</span>
            </div>
         </div>
 
