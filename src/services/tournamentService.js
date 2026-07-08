@@ -557,10 +557,12 @@ class TournamentService {
       );
 
       const snapshot = await getDocs(q);
-      const matches = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const matches = snapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        .filter(match => match.stage !== 'group');
 
       // Get player profiles for each match
       const matchesWithParticipants = await Promise.all(
@@ -588,6 +590,42 @@ class TournamentService {
       return rounds;
     } catch (error) {
       console.error('Error fetching bracket:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all tournament matches (both group stage and knockout)
+   */
+  async getTournamentMatches(tournamentId) {
+    try {
+      const q = query(
+        collection(db, MATCHES_COLLECTION),
+        where('tournamentId', '==', tournamentId),
+        orderBy('round', 'asc'),
+        orderBy('matchNumber', 'asc')
+      );
+
+      const snapshot = await getDocs(q);
+      const matches = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      return await Promise.all(
+        matches.map(async (match) => {
+          const player1 = match.player1Id ? await this.getUserData(match.player1Id) : null;
+          const player2 = match.player2Id ? await this.getUserData(match.player2Id) : null;
+
+          return {
+            ...match,
+            player1,
+            player2
+          };
+        })
+      );
+    } catch (error) {
+      console.error('Error fetching tournament matches:', error);
       throw error;
     }
   }
@@ -648,6 +686,19 @@ class TournamentService {
 
       if (matchData.status === 'completed') {
         throw new Error('Match already completed');
+      }
+
+      if (matchData.stage === "group") {
+        const winnerId = player1Score === player2Score ? null : (player1Score > player2Score ? matchData.player1Id : matchData.player2Id);
+        await updateDoc(matchRef, {
+          player1Score,
+          player2Score,
+          winnerId,
+          status: 'completed',
+          completedAt: serverTimestamp()
+        });
+        console.log(`Group Match ${matchId} completed. Score: ${player1Score}-${player2Score}`);
+        return { success: true, winnerId };
       }
 
       if (!matchData.player2Id) {
@@ -731,6 +782,7 @@ class TournamentService {
         const matchRef = doc(collection(db, MATCHES_COLLECTION));
         batch.set(matchRef, {
           tournamentId,
+          stage: "knockout",
           round: nextRound,
           matchNumber: Math.floor(i / 2) + 1,
           player1Id: player1,
@@ -806,6 +858,321 @@ class TournamentService {
   /**
    * Generate random pairings between members of different squads
    */
+  /**
+   * Generate group stage for Group + Knockout tournament
+   */
+  async generateGroupStage(tournamentId) {
+    try {
+      const tournamentRef = doc(db, TOURNAMENTS_COLLECTION, tournamentId);
+      const tournamentDoc = await getDoc(tournamentRef);
+
+      if (!tournamentDoc.exists()) {
+        throw new Error('Tournament not found');
+      }
+
+      const tournamentData = tournamentDoc.data();
+
+      if (tournamentData.groupStageGenerated) {
+        throw new Error('Group stage already generated for this tournament');
+      }
+
+      // Get active participants (individuals or members)
+      const isTeamTournament = tournamentData.participant_type === 'Team';
+      let participants = [];
+
+      if (isTeamTournament) {
+        const rosters = tournamentData.rosters || {};
+        const allEmails = [];
+        Object.values(rosters).forEach(roster => {
+          if (Array.isArray(roster)) {
+            allEmails.push(...roster);
+          }
+        });
+
+        if (allEmails.length === 0) {
+          throw new Error('No members found in squad rosters. Teams must select their lineups before you can generate the group stage.');
+        }
+
+        const { userService } = await import('./userService');
+        const userProfiles = await userService.getUsersByEmails(allEmails);
+
+        participants = userProfiles.map(u => ({
+          id: u.id,
+          email: u.email,
+          username: u.username,
+          teamId: Object.keys(rosters).find(tid => rosters[tid].includes(u.email))
+        }));
+      } else {
+        participants = await this.getTournamentParticipants(tournamentId);
+      }
+
+      if (participants.length < 4) {
+        throw new Error(`Need at least 4 participants to generate a Group Stage. Current: ${participants.length}`);
+      }
+
+      // Determine number of groups based on participant count
+      let numGroups = 2;
+      if (participants.length >= 24) {
+        numGroups = 8;
+      } else if (participants.length >= 12) {
+        numGroups = 4;
+      }
+
+      const shuffled = this.shuffleArray(participants);
+      const groups = {};
+
+      for (let g = 0; g < numGroups; g++) {
+        const groupName = `Group ${String.fromCharCode(65 + g)}`;
+        groups[groupName] = [];
+      }
+
+      shuffled.forEach((p, idx) => {
+        const groupName = `Group ${String.fromCharCode(65 + (idx % numGroups))}`;
+        groups[groupName].push(p);
+      });
+
+      const batch = writeBatch(db);
+      let totalMatchesCreated = 0;
+
+      for (const groupName in groups) {
+        const grpPlayers = groups[groupName];
+        for (let i = 0; i < grpPlayers.length; i++) {
+          for (let j = i + 1; j < grpPlayers.length; j++) {
+            const matchRef = doc(collection(db, MATCHES_COLLECTION));
+            const matchData = {
+              tournamentId,
+              stage: "group",
+              groupName,
+              round: 1,
+              matchNumber: ++totalMatchesCreated,
+              player1Id: grpPlayers[i].id,
+              player2Id: grpPlayers[j].id,
+              player1Score: null,
+              player2Score: null,
+              winnerId: null,
+              status: 'pending',
+              createdAt: serverTimestamp()
+            };
+            batch.set(matchRef, matchData);
+          }
+        }
+      }
+
+      batch.update(tournamentRef, {
+        groupStageGenerated: true,
+        status: 'live',
+        currentRound: 1,
+        updated_at: serverTimestamp()
+      });
+
+      await batch.commit();
+      console.log(`Generated group stage for ${tournamentId} with ${numGroups} groups and ${totalMatchesCreated} matches`);
+      return { success: true, numGroups, totalMatchesCreated };
+    } catch (error) {
+      console.error('Error generating group stage:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate knockout stage from completed group stage
+   */
+  async generateKnockoutStage(tournamentId) {
+    try {
+      const tournamentRef = doc(db, TOURNAMENTS_COLLECTION, tournamentId);
+      const tournamentDoc = await getDoc(tournamentRef);
+
+      if (!tournamentDoc.exists()) {
+        throw new Error('Tournament not found');
+      }
+
+      const tournamentData = tournamentDoc.data();
+
+      if (!tournamentData.groupStageGenerated) {
+        throw new Error('Group stage has not been generated yet');
+      }
+
+      if (tournamentData.knockoutGenerated) {
+        throw new Error('Knockout bracket has already been generated');
+      }
+
+      const matchesQuery = query(
+        collection(db, MATCHES_COLLECTION),
+        where('tournamentId', '==', tournamentId),
+        where('stage', '==', 'group')
+      );
+      const snapshot = await getDocs(matchesQuery);
+      const groupMatches = snapshot.docs.map(d => d.data());
+
+      if (groupMatches.length === 0) {
+        throw new Error('No group stage matches found. Cannot generate knockout.');
+      }
+
+      const allCompleted = groupMatches.every(m => m.status === 'completed');
+      if (!allCompleted) {
+        throw new Error('Please complete all group stage matches before generating the knockout bracket.');
+      }
+
+      const playerIds = new Set();
+      groupMatches.forEach(m => {
+        if (m.player1Id) playerIds.add(m.player1Id);
+        if (m.player2Id) playerIds.add(m.player2Id);
+      });
+
+      const participantMap = {};
+      const playerProfiles = await Promise.all(
+        Array.from(playerIds).map(async (id) => {
+          const u = await this.getUserData(id);
+          return { id, username: u?.username || 'Unknown' };
+        })
+      );
+      playerProfiles.forEach(p => {
+        participantMap[p.id] = p.username;
+      });
+
+      const groupStandings = {};
+      groupMatches.forEach(m => {
+        const gName = m.groupName || 'Group A';
+        if (!groupStandings[gName]) {
+          groupStandings[gName] = {};
+        }
+
+        [m.player1Id, m.player2Id].forEach(pid => {
+          if (pid && !groupStandings[gName][pid]) {
+            groupStandings[gName][pid] = {
+              id: pid,
+              username: participantMap[pid] || 'Unknown',
+              pts: 0,
+              gf: 0,
+              ga: 0,
+              gd: 0,
+              p: 0,
+              w: 0,
+              d: 0,
+              l: 0
+            };
+          }
+        });
+
+        const p1 = groupStandings[gName][m.player1Id];
+        const p2 = groupStandings[gName][m.player2Id];
+
+        if (p1 && p2) {
+          p1.p += 1;
+          p2.p += 1;
+          p1.gf += m.player1Score || 0;
+          p1.ga += m.player2Score || 0;
+          p2.gf += m.player2Score || 0;
+          p2.ga += m.player1Score || 0;
+          p1.gd = p1.gf - p1.ga;
+          p2.gd = p2.gf - p2.ga;
+
+          if (m.player1Score > m.player2Score) {
+            p1.pts += 3;
+            p1.w += 1;
+            p2.l += 1;
+          } else if (m.player1Score < m.player2Score) {
+            p2.pts += 3;
+            p2.w += 1;
+            p1.l += 1;
+          } else {
+            p1.pts += 1;
+            p2.pts += 1;
+            p1.d += 1;
+            p2.d += 1;
+          }
+        }
+      });
+
+      const sortedGroups = {};
+      for (const gName in groupStandings) {
+        const playersList = Object.values(groupStandings[gName]);
+        playersList.sort((a, b) => {
+          if (b.pts !== a.pts) return b.pts - a.pts;
+          if (b.gd !== a.gd) return b.gd - a.gd;
+          return b.gf - a.gf;
+        });
+        sortedGroups[gName] = playersList;
+      }
+
+      const groupNames = Object.keys(sortedGroups).sort();
+      const top1 = {};
+      const top2 = {};
+
+      groupNames.forEach(gName => {
+        top1[gName] = sortedGroups[gName][0] || null;
+        top2[gName] = sortedGroups[gName][1] || null;
+      });
+
+      const pairings = [];
+      const getPair = (g1, g2) => {
+        if (top1[g1]) pairings.push({ player1: top1[g1], player2: top2[g2] });
+        if (top1[g2]) pairings.push({ player1: top1[g2], player2: top2[g1] });
+      };
+
+      if (groupNames.length === 2) {
+        getPair("Group A", "Group B");
+      } else if (groupNames.length === 4) {
+        getPair("Group A", "Group B");
+        getPair("Group C", "Group D");
+      } else if (groupNames.length === 8) {
+        getPair("Group A", "Group B");
+        getPair("Group C", "Group D");
+        getPair("Group E", "Group F");
+        getPair("Group G", "Group H");
+      } else {
+        const allAdvancing = [];
+        groupNames.forEach(gName => {
+          if (top1[gName]) allAdvancing.push(top1[gName]);
+          if (top2[gName]) allAdvancing.push(top2[gName]);
+        });
+        const shuffledAdvancing = this.shuffleArray(allAdvancing);
+        for (let i = 0; i < shuffledAdvancing.length; i += 2) {
+          pairings.push({
+            player1: shuffledAdvancing[i],
+            player2: shuffledAdvancing[i + 1] || null
+          });
+        }
+      }
+
+      const batch = writeBatch(db);
+      const totalKnockoutRounds = Math.ceil(Math.log2(pairings.length * 2));
+
+      pairings.forEach((pair, idx) => {
+        const matchRef = doc(collection(db, MATCHES_COLLECTION));
+        const matchData = {
+          tournamentId,
+          stage: "knockout",
+          round: 1,
+          matchNumber: idx + 1,
+          player1Id: pair.player1.id,
+          player2Id: pair.player2 ? pair.player2.id : null,
+          player1Score: null,
+          player2Score: null,
+          winnerId: pair.player2 ? null : pair.player1.id,
+          status: pair.player2 ? 'pending' : 'completed',
+          createdAt: serverTimestamp()
+        };
+        batch.set(matchRef, matchData);
+      });
+
+      batch.update(tournamentRef, {
+        knockoutGenerated: true,
+        bracketGenerated: true,
+        currentRound: 1,
+        totalRounds: totalKnockoutRounds,
+        updated_at: serverTimestamp()
+      });
+
+      await batch.commit();
+      console.log(`Generated knockout bracket for ${tournamentId} with ${pairings.length} matches`);
+      return { success: true, matchesCount: pairings.length };
+    } catch (error) {
+      console.error('Error generating knockout stage:', error);
+      throw error;
+    }
+  }
+
   async generateMemberPairings(tournamentId) {
     try {
       const tournamentRef = doc(db, TOURNAMENTS_COLLECTION, tournamentId);

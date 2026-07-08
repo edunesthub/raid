@@ -56,6 +56,7 @@ export default function TournamentForm({ tournament, onClose, onCreated, hostId 
   const tournamentFormats = [
     { value: "Battle Royale", label: "Battle Royale", description: "Free-for-all, winner selected manually" },
     { value: "Bracket", label: "Bracket/Knockout", description: "1v1 elimination bracket" },
+    { value: "Group + Knockout", label: "Group + Knockout (World Cup)", description: "Group stage followed by a single-elimination knockout bracket" },
     { value: "Round Robin", label: "Round Robin", description: "Everyone plays everyone" },
     { value: "Swiss", label: "Swiss System", description: "Paired based on performance" },
   ];
@@ -436,6 +437,8 @@ export default function TournamentForm({ tournament, onClose, onCreated, hostId 
               <p className="text-blue-400 text-xs">
                 {form.format === "Bracket"
                   ? "⚡ Bracket will be auto-generated when tournament goes live"
+                  : form.format === "Group + Knockout"
+                  ? "⚽ Group stage matches will be generated when live, followed by a knockout bracket"
                   : "📋 Winners will be selected manually by admin after completion"}
               </p>
             </div>

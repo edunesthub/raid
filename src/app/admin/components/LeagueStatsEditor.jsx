@@ -20,7 +20,8 @@ import {
     Save,
     User,
     Trophy,
-    Star
+    Star,
+    Search
 } from "lucide-react";
 
 export default function LeagueStatsEditor({ leagueId, onBack }) {
@@ -28,6 +29,7 @@ export default function LeagueStatsEditor({ leagueId, onBack }) {
     const [teams, setTeams] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         loadData();
@@ -56,7 +58,7 @@ export default function LeagueStatsEditor({ leagueId, onBack }) {
                 orderBy("goals", "desc")
             );
             const snapshot = await getDocs(q);
-            let data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            let data = snapshot.docs.map(d => ({ id: d.id, tempId: d.id, ...d.data() }));
 
             setPlayers(data);
         } catch (error) {
@@ -70,6 +72,7 @@ export default function LeagueStatsEditor({ leagueId, onBack }) {
         setPlayers([
             ...players,
             {
+                tempId: `new_${Date.now()}_${Math.random()}`,
                 name: "New Player",
                 team: teams[0]?.name || "",
                 goals: 0,
@@ -79,9 +82,16 @@ export default function LeagueStatsEditor({ leagueId, onBack }) {
         ]);
     };
 
-    const updatePlayer = (index, field, value) => {
-        const newPlayers = [...players];
-        newPlayers[index][field] = field === 'name' || field === 'team' ? value : (parseInt(value) || 0);
+    const updatePlayer = (tempId, field, value) => {
+        const newPlayers = players.map(p => {
+            if (p.id === tempId || p.tempId === tempId) {
+                return {
+                    ...p,
+                    [field]: field === 'name' || field === 'team' ? value : (parseInt(value) || 0)
+                };
+            }
+            return p;
+        });
         setPlayers(newPlayers);
     };
 
@@ -89,10 +99,11 @@ export default function LeagueStatsEditor({ leagueId, onBack }) {
         setSaving(true);
         try {
             for (const player of players) {
+                const { tempId, ...cleanPlayer } = player;
                 if (player.id) {
-                    await setDoc(doc(db, "league_player_stats", player.id), player);
+                    await setDoc(doc(db, "league_player_stats", player.id), cleanPlayer);
                 } else {
-                    await addDoc(collection(db, "league_player_stats"), player);
+                    await addDoc(collection(db, "league_player_stats"), cleanPlayer);
                 }
             }
             alert("Stats saved successfully!");
@@ -104,15 +115,18 @@ export default function LeagueStatsEditor({ leagueId, onBack }) {
         }
     };
 
-    const removePlayer = async (id, index) => {
+    const removePlayer = async (id, tempId) => {
         if (!confirm("Are you sure?")) return;
         if (id) {
             await deleteDoc(doc(db, "league_player_stats", id));
         }
-        const newPlayers = [...players];
-        newPlayers.splice(index, 1);
-        setPlayers(newPlayers);
+        setPlayers(players.filter(p => p.id !== tempId && p.tempId !== tempId));
     };
+
+    const filteredPlayers = players.filter(player =>
+        player.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        player.team?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     if (loading) {
         return (
@@ -133,7 +147,17 @@ export default function LeagueStatsEditor({ leagueId, onBack }) {
                     >
                         <ChevronLeft size={18} /> Back to Seasons
                     </button>
-                    <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                    <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
+                        <div className="relative flex-1 md:flex-none min-w-[200px]">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+                            <input
+                                type="text"
+                                placeholder="Search player or team..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-xs md:text-sm text-white placeholder-gray-500 outline-none focus:border-orange-500/50"
+                            />
+                        </div>
                         <button
                             onClick={addPlayer}
                             className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white px-3 md:px-4 py-2.5 md:py-2 rounded-xl border border-white/5 text-xs md:text-sm font-bold transition-all"
@@ -154,71 +178,80 @@ export default function LeagueStatsEditor({ leagueId, onBack }) {
             <div className="flex-1 overflow-y-auto scrollbar-hide p-1 md:p-2">
                 {/* Mobile View */}
                 <div className="lg:hidden space-y-3 pb-24 px-2">
-                    {players.map((player, idx) => (
-                        <div key={player.id || idx} className="bg-gray-900/50 border border-white/5 rounded-xl p-3 space-y-3">
-                            <div className="flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-2 flex-1">
-                                    <div className="w-10 h-10 bg-gray-800 border border-gray-700 rounded-lg flex items-center justify-center">
-                                        <User size={20} className="text-gray-500" />
+                    {filteredPlayers.map((player) => {
+                        const pKey = player.id || player.tempId;
+                        return (
+                            <div key={pKey} className="bg-gray-900/50 border border-white/5 rounded-xl p-3 space-y-3">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2 flex-1">
+                                        <div className="w-10 h-10 bg-gray-800 border border-gray-700 rounded-lg flex items-center justify-center">
+                                            <User size={20} className="text-gray-500" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <input
+                                                placeholder="Player Name"
+                                                value={player.name}
+                                                onChange={(e) => updatePlayer(pKey, 'name', e.target.value)}
+                                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-2 text-sm text-white font-bold"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="flex-1">
-                                        <input
-                                            placeholder="Player Name"
-                                            value={player.name}
-                                            onChange={(e) => updatePlayer(idx, 'name', e.target.value)}
-                                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-2 text-sm text-white font-bold"
-                                        />
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => removePlayer(player.id, idx)}
-                                    className="p-2 text-red-500/40 hover:text-red-500 transition-colors bg-white/5 rounded-lg"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-[8px] font-black text-gray-500 uppercase mb-1">Team</label>
-                                    <select
-                                        value={player.team}
-                                        onChange={(e) => updatePlayer(idx, 'team', e.target.value)}
-                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-[10px] text-white font-bold"
+                                    <button
+                                        onClick={() => removePlayer(player.id, pKey)}
+                                        className="p-2 text-red-500/40 hover:text-red-500 transition-colors bg-white/5 rounded-lg"
                                     >
-                                        <option value="">Select Team</option>
-                                        {teams.map(t => (
-                                            <option key={t.id} value={t.name}>{t.name}</option>
-                                        ))}
-                                    </select>
+                                        <Trash2 size={16} />
+                                    </button>
                                 </div>
-                                <div className="grid grid-cols-2 gap-2">
+
+                                <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-center text-[8px] font-black text-orange-500 uppercase mb-1 flex items-center justify-center gap-1">
-                                            <Trophy size={8} /> Goals
-                                        </label>
-                                        <input
-                                            type="number"
-                                            value={player.goals}
-                                            onChange={(e) => updatePlayer(idx, 'goals', e.target.value)}
-                                            className="w-full bg-gray-800 border border-orange-500/20 rounded-lg py-1.5 text-center text-white text-xs font-bold"
-                                        />
+                                        <label className="block text-[8px] font-black text-gray-500 uppercase mb-1">Team</label>
+                                        <select
+                                            value={player.team}
+                                            onChange={(e) => updatePlayer(pKey, 'team', e.target.value)}
+                                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-[10px] text-white font-bold"
+                                        >
+                                            <option value="">Select Team</option>
+                                            {teams.map(t => (
+                                                <option key={t.id} value={t.name}>{t.name}</option>
+                                            ))}
+                                        </select>
                                     </div>
-                                    <div>
-                                        <label className="block text-center text-[8px] font-black text-blue-500 uppercase mb-1 flex items-center justify-center gap-1">
-                                            <Star size={8} /> Assists
-                                        </label>
-                                        <input
-                                            type="number"
-                                            value={player.assists}
-                                            onChange={(e) => updatePlayer(idx, 'assists', e.target.value)}
-                                            className="w-full bg-gray-800 border border-blue-500/20 rounded-lg py-1.5 text-center text-white text-xs font-bold"
-                                        />
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="block text-center text-[8px] font-black text-orange-500 uppercase mb-1 flex items-center justify-center gap-1">
+                                                <Trophy size={8} /> Goals
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={player.goals}
+                                                onChange={(e) => updatePlayer(pKey, 'goals', e.target.value)}
+                                                className="w-full bg-gray-800 border border-orange-500/20 rounded-lg py-1.5 text-center text-white text-xs font-bold"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-center text-[8px] font-black text-blue-500 uppercase mb-1 flex items-center justify-center gap-1">
+                                                <Star size={8} /> Assists
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={player.assists}
+                                                onChange={(e) => updatePlayer(pKey, 'assists', e.target.value)}
+                                                className="w-full bg-gray-800 border border-blue-500/20 rounded-lg py-1.5 text-center text-white text-xs font-bold"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                        );
+                    })}
+
+                    {players.length > 0 && filteredPlayers.length === 0 && (
+                        <div className="p-12 text-center text-gray-500 text-sm">
+                            No players found matching "{searchTerm}"
                         </div>
-                    ))}
+                    )}
                 </div>
 
                 {/* Desktop View */}
@@ -234,61 +267,70 @@ export default function LeagueStatsEditor({ leagueId, onBack }) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.03]">
-                            {players.map((player, idx) => (
-                                <tr key={player.id || idx} className="hover:bg-white/[0.01] transition-colors">
-                                    <td className="py-3 pl-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center text-gray-500">
-                                                <User size={16} />
+                            {filteredPlayers.map((player) => {
+                                const pKey = player.id || player.tempId;
+                                return (
+                                    <tr key={pKey} className="hover:bg-white/[0.01] transition-colors">
+                                        <td className="py-3 pl-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center text-gray-500">
+                                                    <User size={16} />
+                                                </div>
+                                                <input
+                                                    placeholder="Player Name"
+                                                    value={player.name}
+                                                    onChange={(e) => updatePlayer(pKey, 'name', e.target.value)}
+                                                    className="bg-transparent border-none p-0 text-sm text-white font-bold focus:ring-0 w-full"
+                                                />
                                             </div>
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            <select
+                                                value={player.team}
+                                                onChange={(e) => updatePlayer(pKey, 'team', e.target.value)}
+                                                className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-orange-500/50 w-full"
+                                            >
+                                                <option value="">Select Team</option>
+                                                {teams.map(t => (
+                                                    <option key={t.id} value={t.name}>{t.name}</option>
+                                                ))}
+                                            </select>
+                                        </td>
+                                        <td className="py-3 text-center">
                                             <input
-                                                placeholder="Player Name"
-                                                value={player.name}
-                                                onChange={(e) => updatePlayer(idx, 'name', e.target.value)}
-                                                className="bg-transparent border-none p-0 text-sm text-white font-bold focus:ring-0 w-full"
+                                                type="number"
+                                                value={player.goals}
+                                                onChange={(e) => updatePlayer(pKey, 'goals', e.target.value)}
+                                                className="w-16 bg-orange-500/10 border border-orange-500/20 rounded-lg py-1 text-center text-orange-500 font-black text-sm focus:outline-none focus:border-orange-500 mx-auto"
                                             />
-                                        </div>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <select
-                                            value={player.team}
-                                            onChange={(e) => updatePlayer(idx, 'team', e.target.value)}
-                                            className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-orange-500/50 w-full"
-                                        >
-                                            <option value="">Select Team</option>
-                                            {teams.map(t => (
-                                                <option key={t.id} value={t.name}>{t.name}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 text-center">
-                                        <input
-                                            type="number"
-                                            value={player.goals}
-                                            onChange={(e) => updatePlayer(idx, 'goals', e.target.value)}
-                                            className="w-16 bg-orange-500/10 border border-orange-500/20 rounded-lg py-1 text-center text-orange-500 font-black text-sm focus:outline-none focus:border-orange-500 mx-auto"
-                                        />
-                                    </td>
-                                    <td className="py-3 text-center">
-                                        <input
-                                            type="number"
-                                            value={player.assists}
-                                            onChange={(e) => updatePlayer(idx, 'assists', e.target.value)}
-                                            className="w-16 bg-blue-500/10 border border-blue-500/20 rounded-lg py-1 text-center text-blue-500 font-black text-sm focus:outline-none focus:border-blue-500 mx-auto"
-                                        />
-                                    </td>
-                                    <td className="py-3 pr-6 text-right">
-                                        <button
-                                            onClick={() => removePlayer(player.id, idx)}
-                                            className="p-2 text-red-500/40 hover:text-red-500 transition-colors"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                                        </td>
+                                        <td className="py-3 text-center">
+                                            <input
+                                                type="number"
+                                                value={player.assists}
+                                                onChange={(e) => updatePlayer(pKey, 'assists', e.target.value)}
+                                                className="w-16 bg-blue-500/10 border border-blue-500/20 rounded-lg py-1 text-center text-blue-500 font-black text-sm focus:outline-none focus:border-blue-500 mx-auto"
+                                            />
+                                        </td>
+                                        <td className="py-3 pr-6 text-right">
+                                            <button
+                                                onClick={() => removePlayer(player.id, pKey)}
+                                                className="p-2 text-red-500/40 hover:text-red-500 transition-colors"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
+
+                    {players.length > 0 && filteredPlayers.length === 0 && (
+                        <div className="p-20 text-center text-gray-500 text-sm">
+                            No players found matching "{searchTerm}"
+                        </div>
+                    )}
 
                     {players.length === 0 && !loading && (
                         <div className="p-20 text-center">

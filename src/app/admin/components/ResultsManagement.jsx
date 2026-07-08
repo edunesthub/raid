@@ -9,6 +9,7 @@ export default function ResultsManagement() {
   const [liveTournaments, setLiveTournaments] = useState([]);
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [bracket, setBracket] = useState({});
+  const [groupMatches, setGroupMatches] = useState({});
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -34,12 +35,29 @@ export default function ResultsManagement() {
   const openTournament = async (tournament) => {
     try {
       setSelectedTournament(tournament);
-      const bracketData = await tournamentService.getTournamentBracket(tournament.id);
-      setBracket(bracketData);
+      const allMatches = await tournamentService.getTournamentMatches(tournament.id);
+      
+      const groups = {};
+      const rounds = {};
+      
+      allMatches.forEach(match => {
+        if (match.stage === 'group') {
+          const gName = match.groupName || 'Group A';
+          if (!groups[gName]) groups[gName] = [];
+          groups[gName].push(match);
+        } else {
+          const rNum = match.round || 1;
+          if (!rounds[rNum]) rounds[rNum] = [];
+          rounds[rNum].push(match);
+        }
+      });
+      
+      setGroupMatches(groups);
+      setBracket(rounds);
       setShowModal(true);
     } catch (error) {
-      console.error('Error loading bracket:', error);
-      alert('Failed to load tournament bracket');
+      console.error('Error loading tournament matches:', error);
+      alert('Failed to load tournament matches');
     }
   };
 
@@ -67,7 +85,7 @@ export default function ResultsManagement() {
       return;
     }
 
-    if (p1Score === p2Score) {
+    if (p1Score === p2Score && selectedMatch.stage !== 'group') {
       alert('Scores cannot be tied. Please determine a winner.');
       return;
     }
@@ -76,9 +94,25 @@ export default function ResultsManagement() {
       setSubmitting(true);
       await tournamentService.submitMatchResult(selectedMatch.id, p1Score, p2Score);
       
-      // Reload bracket
-      const bracketData = await tournamentService.getTournamentBracket(selectedTournament.id);
-      setBracket(bracketData);
+      // Reload matches
+      const allMatches = await tournamentService.getTournamentMatches(selectedTournament.id);
+      const groups = {};
+      const rounds = {};
+      
+      allMatches.forEach(match => {
+        if (match.stage === 'group') {
+          const gName = match.groupName || 'Group A';
+          if (!groups[gName]) groups[gName] = [];
+          groups[gName].push(match);
+        } else {
+          const rNum = match.round || 1;
+          if (!rounds[rNum]) rounds[rNum] = [];
+          rounds[rNum].push(match);
+        }
+      });
+      
+      setGroupMatches(groups);
+      setBracket(rounds);
       
       // Reload tournaments list
       await loadLiveTournaments();
@@ -276,25 +310,59 @@ export default function ResultsManagement() {
 
             {/* Bracket Content */}
             <div className="p-6 space-y-8">
-              {Object.keys(bracket).sort((a, b) => parseInt(a) - parseInt(b)).map(round => (
-                <div key={round}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <h4 className="text-xl font-bold text-white">
-                      {getRoundName(parseInt(round))}
-                    </h4>
-                    <div className="flex-1 h-px bg-gray-700"></div>
-                    <span className="text-gray-400 text-sm">
-                      {bracket[round].length} {bracket[round].length === 1 ? 'match' : 'matches'}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {bracket[round].map(match => (
-                      <MatchCard key={match.id} match={match} />
+              {/* Group Stage Matches (if any) */}
+              {Object.keys(groupMatches).length > 0 && (
+                <div>
+                  <h4 className="text-2xl font-black text-orange-500 mb-6 uppercase tracking-widest border-b border-orange-500/20 pb-2">
+                    Group Stage
+                  </h4>
+                  <div className="space-y-6">
+                    {Object.keys(groupMatches).sort().map(gName => (
+                      <div key={gName} className="bg-gray-850/30 p-4 rounded-xl border border-white/5">
+                        <h5 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                          <span className="w-2 h-6 bg-orange-500 rounded"></span>
+                          {gName}
+                        </h5>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                          {groupMatches[gName].map(match => (
+                            <MatchCard key={match.id} match={match} />
+                          ))}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* Knockout Stage Matches (if any) */}
+              {Object.keys(bracket).length > 0 && (
+                <div>
+                  <h4 className="text-2xl font-black text-purple-500 mb-6 uppercase tracking-widest border-b border-purple-500/20 pb-2 mt-8">
+                    Knockout Bracket
+                  </h4>
+                  <div className="space-y-8">
+                    {Object.keys(bracket).sort((a, b) => parseInt(a) - parseInt(b)).map(round => (
+                      <div key={round}>
+                        <div className="flex items-center gap-3 mb-4">
+                          <h4 className="text-xl font-bold text-white">
+                            {getRoundName(parseInt(round))}
+                          </h4>
+                          <div className="flex-1 h-px bg-gray-700"></div>
+                          <span className="text-gray-400 text-sm">
+                            {bracket[round].length} {bracket[round].length === 1 ? 'match' : 'matches'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                          {bracket[round].map(match => (
+                            <MatchCard key={match.id} match={match} />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {selectedTournament.status === 'completed' && (
                 <div className="bg-green-500/20 border border-green-500/40 rounded-xl p-6 flex items-center gap-4">

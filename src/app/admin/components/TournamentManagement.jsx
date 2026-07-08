@@ -162,10 +162,14 @@ export default function TournamentManagement({ hostId, restriction, onPlanRequir
           }
         }
 
-        // 2. Prompt for Bracket generation if it's a Bracket tournament
+        // 2. Prompt for Bracket or Group stage generation if applicable
         if (tournament?.format === 'Bracket' && !tournament?.bracketGenerated) {
           if (confirm("Tournament is now LIVE. Would you like to generate the Bracket matches now?")) {
             await handleGenerateBracket(statusUpdate.tournamentId);
+          }
+        } else if (tournament?.format === 'Group + Knockout' && !tournament?.groupStageGenerated) {
+          if (confirm("Tournament is now LIVE. Would you like to generate the Group Stage matches now?")) {
+            await handleGenerateGroupStage(statusUpdate.tournamentId);
           }
         }
       }
@@ -215,6 +219,62 @@ export default function TournamentManagement({ hostId, restriction, onPlanRequir
     }
   };
 
+  const handleGenerateGroupStage = async (tournamentId) => {
+    if (!confirm('Generate Group Stage matches for this tournament? This will distribute all participants into groups and create group round robin matches.')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { tournamentService } = await import('@/services/tournamentService');
+      const result = await tournamentService.generateGroupStage(tournamentId);
+      if (user?.id) {
+        logAdminAction({
+          adminId: user.id,
+          action: 'tournament_generate_groups',
+          entityType: 'tournament',
+          entityId: tournamentId,
+          details: { groups: result?.numGroups || 0, matches: result?.totalMatchesCreated || 0 }
+        });
+      }
+      toast.success(`Group stage generated successfully! Created ${result.numGroups} groups and ${result.totalMatchesCreated} matches.`);
+      loadTournaments();
+    } catch (error) {
+      console.error('Error generating group stage:', error);
+      toast.error(error.message || 'Failed to generate group stage');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateKnockoutStage = async (tournamentId) => {
+    if (!confirm('Generate Knockout Bracket matches from Group Standings? Make sure all group stage matches are finished first.')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { tournamentService } = await import('@/services/tournamentService');
+      const result = await tournamentService.generateKnockoutStage(tournamentId);
+      if (user?.id) {
+        logAdminAction({
+          adminId: user.id,
+          action: 'tournament_generate_knockout',
+          entityType: 'tournament',
+          entityId: tournamentId,
+          details: { matches: result?.matchesCount || 0 }
+        });
+      }
+      toast.success(`Knockout bracket generated successfully! ${result.matchesCount} matches created for Round 1.`);
+      loadTournaments();
+    } catch (error) {
+      console.error('Error generating knockout stage:', error);
+      toast.error(error.message || 'Failed to generate knockout stage');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusOption = statusOptions.find(s => s.value === status);
     if (!statusOption) return <span className="text-gray-400">Unknown</span>;
@@ -228,8 +288,9 @@ export default function TournamentManagement({ hostId, restriction, onPlanRequir
 
   const getFormatBadge = (format) => {
     const formatColors = {
-      "Bracket": "bg-purple-500/20 text-purple-400 border-purple-500/40",
       "Battle Royale": "bg-orange-500/20 text-orange-400 border-orange-500/40",
+      "Bracket": "bg-purple-500/20 text-purple-400 border-purple-500/40",
+      "Group + Knockout": "bg-pink-500/20 text-pink-400 border-pink-500/40",
       "Round Robin": "bg-blue-500/20 text-blue-400 border-blue-500/40",
       "Swiss": "bg-green-500/20 text-green-400 border-green-500/40",
     };
@@ -245,9 +306,8 @@ export default function TournamentManagement({ hostId, restriction, onPlanRequir
 
   const shouldShowBracketButton = (tournament) => {
     return (
-      tournament.format === "Bracket" &&
-      !tournament.bracketGenerated &&
-      tournament.status === 'live'
+      (tournament.format === "Bracket" && !tournament.bracketGenerated && tournament.status === 'live') ||
+      (tournament.format === "Group + Knockout" && !tournament.groupStageGenerated && tournament.status === 'live')
     );
   };
 
@@ -497,6 +557,32 @@ export default function TournamentManagement({ hostId, restriction, onPlanRequir
                           Pending
                         </span>
                       )
+                    ) : t.format === "Group + Knockout" ? (
+                      t.knockoutGenerated ? (
+                        <span className="text-green-400 text-xs flex items-center gap-1 font-bold uppercase tracking-widest">
+                          <Target size={12} />
+                          Knockout
+                        </span>
+                      ) : t.groupStageGenerated ? (
+                        <button
+                          onClick={() => handleGenerateKnockoutStage(t.id)}
+                          className="bg-pink-600/20 hover:bg-pink-600/30 text-pink-400 px-3 py-1.5 rounded-lg border border-pink-500/30 text-[10px] font-black uppercase tracking-widest transition-all animate-pulse"
+                        >
+                          Knockout
+                        </button>
+                      ) : t.status === 'live' ? (
+                        <button
+                          onClick={() => handleGenerateGroupStage(t.id)}
+                          className="bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 px-3 py-1.5 rounded-lg border border-purple-500/30 text-[10px] font-black uppercase tracking-widest transition-all animate-pulse"
+                        >
+                          Groups
+                        </button>
+                      ) : (
+                        <span className="text-yellow-500/50 text-[10px] flex items-center gap-1 font-black uppercase tracking-widest italic">
+                          <Zap size={10} />
+                          Pending
+                        </span>
+                      )
                     ) : (
                       <span className="text-gray-700 text-xs font-black select-none">-</span>
                     )}
@@ -505,9 +591,12 @@ export default function TournamentManagement({ hostId, restriction, onPlanRequir
                     <div className="flex gap-2">
                       {shouldShowBracketButton(t) && (
                         <button
-                          onClick={() => handleGenerateBracket(t.id)}
+                          onClick={() => {
+                            if (t.format === "Bracket") handleGenerateBracket(t.id);
+                            else handleGenerateGroupStage(t.id);
+                          }}
                           className="p-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition"
-                          title="Generate Bracket"
+                          title={t.format === "Bracket" ? "Generate Bracket" : "Generate Group Stage"}
                         >
                           <Zap size={14} />
                         </button>
@@ -636,23 +725,37 @@ export default function TournamentManagement({ hostId, restriction, onPlanRequir
                   Commission: <span className="text-orange-500 font-black">{t.country === 'Nigeria' ? '₦' : '₵'}{((t.entry_fee || 0) * (t.max_participant || 0) * 0.20).toFixed(2)}</span>
                 </div>
                 {t.format === "Bracket" && (
-                  <div className="text-gray-300">
+                  <span className="text-gray-400 text-xs">
                     Bracket: {t.bracketGenerated ? (
-                      <span className="text-green-400">✓ Generated</span>
+                      <span className="text-green-400 font-bold uppercase">Generated</span>
                     ) : (
-                      <span className="text-yellow-500">⚡ Pending</span>
+                      <span className="text-yellow-500 font-bold uppercase">Pending</span>
                     )}
-                  </div>
+                  </span>
+                )}
+                {t.format === "Group + Knockout" && (
+                  <span className="text-gray-400 text-xs">
+                    Stage: {t.knockoutGenerated ? (
+                      <span className="text-green-400 font-bold uppercase">Knockout</span>
+                    ) : t.groupStageGenerated ? (
+                      <span className="text-pink-400 font-bold uppercase">Group Stage</span>
+                    ) : (
+                      <span className="text-yellow-500 font-bold uppercase">Pending</span>
+                    )}
+                  </span>
                 )}
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 {shouldShowBracketButton(t) && (
                   <button
-                    onClick={() => handleGenerateBracket(t.id)}
-                    className="col-span-2 p-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition flex items-center justify-center gap-1"
+                    onClick={() => {
+                      if (t.format === "Bracket") handleGenerateBracket(t.id);
+                      else handleGenerateGroupStage(t.id);
+                    }}
+                    className="flex-1 bg-purple-600 hover:bg-purple-600/50 text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5"
                   >
-                    <Zap size={16} /> Generate Bracket
+                    <Zap size={16} /> {t.format === "Bracket" ? "Generate Bracket" : "Generate Group Stage"}
                   </button>
                 )}
                 <button

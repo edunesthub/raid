@@ -6,6 +6,7 @@ import { notFound, useRouter, useSearchParams } from 'next/navigation';
 import { use, useState, useEffect, Suspense } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner.jsx';
 import TournamentBracket from '@/components/TournamentBracket';
+import TournamentGroups from '@/components/TournamentGroups';
 import PaystackPaymentModal from '@/components/PaystackPaymentModal';
 import PaymentSuccessHandler from '@/components/PaymentSuccessHandler';
 import { useTournament } from '@/hooks/useTournaments';
@@ -484,7 +485,9 @@ function TournamentPageContent({ resolvedParams }) {
   const progressPercentage = (tournament.currentPlayers / tournament.maxPlayers) * 100;
   const spotsLeft = tournament.maxPlayers - tournament.currentPlayers;
   const canJoin = (tournament.status === 'registration-open' || tournament.status === 'upcoming') && spotsLeft > 0;
+  const showGroups = tournament.format === 'Group + Knockout' && tournament.groupStageGenerated;
   const showBracket = tournament.bracketGenerated && (tournament.status === 'live' || tournament.status === 'completed');
+  const showTabs = showGroups || showBracket;
 
   // Winners Podium - Enhanced & More User Friendly
   const WinnerPodium = () => {
@@ -1158,9 +1161,9 @@ function TournamentPageContent({ resolvedParams }) {
         )
       }
 
-      {/* Tabs for Details and Bracket */}
+      {/* Tabs for Details, Group Stage and Bracket */}
       {
-        showBracket && (
+        showTabs && (
           <div className="mb-6">
             <div className="flex gap-2 bg-gray-800 border border-gray-700 rounded-xl p-1">
               <button
@@ -1173,16 +1176,30 @@ function TournamentPageContent({ resolvedParams }) {
                 <Award className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Details</span>
               </button>
-              <button
-                onClick={() => setActiveTab('bracket')}
-                className={`flex-1 py-2 sm:py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base ${activeTab === 'bracket'
-                  ? 'bg-orange-500 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white'
-                  }`}
-              >
-                <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Bracket</span>
-              </button>
+              {showGroups && (
+                <button
+                  onClick={() => setActiveTab('groups')}
+                  className={`flex-1 py-2 sm:py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base ${activeTab === 'groups'
+                    ? 'bg-orange-500 text-white shadow-lg'
+                    : 'text-gray-400 hover:text-white'
+                    }`}
+                >
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>Group Stage</span>
+                </button>
+              )}
+              {showBracket && (
+                <button
+                  onClick={() => setActiveTab('bracket')}
+                  className={`flex-1 py-2 sm:py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base ${activeTab === 'bracket'
+                    ? 'bg-orange-500 text-white shadow-lg'
+                    : 'text-gray-400 hover:text-white'
+                    }`}
+                >
+                  <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>Bracket</span>
+                </button>
+              )}
             </div>
           </div>
         )
@@ -1190,7 +1207,9 @@ function TournamentPageContent({ resolvedParams }) {
 
       {/* Content based on active tab */}
       {
-        activeTab === 'bracket' && showBracket ? (
+        activeTab === 'groups' && showGroups ? (
+          <TournamentGroups tournamentId={tournament.id} />
+        ) : activeTab === 'bracket' && showBracket ? (
           <TournamentBracket tournamentId={tournament.id} />
         ) : (
           <>
