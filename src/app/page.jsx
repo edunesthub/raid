@@ -87,29 +87,16 @@ export default function Home() {
 
         {/* Content Wrapper */}
         <div className="container-mobile relative z-40 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 lg:gap-12 h-full py-4">
-          {/* Visual Content: 3D iPhone */}
+          {/* Visual Content: High-Fidelity iPhone Mockup */}
           <div className="flex-none lg:flex-1 flex justify-center items-center order-1 lg:order-2 px-6 lg:px-0">
-            <div className="relative group perspective-2000">
-              {/* Phone Frame */}
-              <div className="iphone-frame-3d animate-float">
-                <div className="iphone-screen">
-                  <img
-                    src="/screenshot.png"
-                    alt="App Preview"
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Dark Overlay */}
-                  <div className="absolute inset-0 bg-black/40" />
-                </div>
-                {/* Glossy Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-white/5 pointer-events-none" />
-
-                {/* Notch */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-1/3 bg-black rounded-b-2xl z-20" />
-              </div>
-
-              {/* Decorative Glow */}
-              <div className="absolute -inset-10 bg-orange-500/15 blur-[100px] rounded-full opacity-50 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+            <div className="relative group max-w-[280px] lg:max-w-[400px] animate-float">
+              <img
+                src="/iphone_mockup_hero.png"
+                alt="App Preview"
+                className="w-full h-auto object-contain mix-blend-screen hover:scale-105 transition-transform duration-500"
+              />
+              {/* Subtle back-glow */}
+              <div className="absolute -inset-10 bg-orange-500/10 blur-[100px] rounded-full opacity-50 group-hover:opacity-80 transition-opacity duration-500 pointer-events-none z-[-1]" />
             </div>
           </div>
 
